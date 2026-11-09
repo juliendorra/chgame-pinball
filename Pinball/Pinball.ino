@@ -24,7 +24,7 @@ bool previewReady = false;
 int previewIndex = -1;
 struct Record { uint32_t id, score; };
 struct Scores { Record records[24]; uint8_t muted; uint8_t reserved[3]; } scores = {};
-constexpr uint32_t SAVE_MAGIC = chsave::id("MPIN");
+constexpr auto SAVE_ID = chsave::id("com.juliendorra.pinball");
 chsave::Store scoreSaves;
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC push_options
@@ -32,31 +32,13 @@ chsave::Store scoreSaves;
 #endif
 
 void storeScores() {
-    if (!scoreSaves.store(SAVE_MAGIC, 1, scores)) announce("SD SAVE FAILED",180);
+    if (!scoreSaves.store(SAVE_ID, 1, scores)) announce("SD SAVE FAILED",180);
 }
 
 void loadScores() {
-    bool loaded=scoreSaves.load(SAVE_MAGIC,1,&scores,sizeof scores,nullptr);
-    const auto media=scoreSaves.status();
-    bool writable=media==chsave::Status::Ready || media==chsave::Status::Empty;
-    if(loaded && scores.reserved[0]==0x53)return;
-    const auto *old=(writable || media==chsave::Status::NoCard || media==chsave::Status::NeedsSetup)
-        ? static_cast<const Scores *>(save::readLegacy(SAVE_MAGIC,1,sizeof scores)) : nullptr;
-    if(!loaded){if(!old)return;scores=*old;}
-    // Merge a surviving legacy flash record once, even when SD already has
-    // scores. Keep SD preferences and full SD tables; only improve scores.
-    if (!writable) return;
-    if(old)for(const Record &r:old->records)if(r.id && r.score<=99999999u) {
-        Record *slot=nullptr;
-        for(Record &s:scores.records) {
-            if(s.id==r.id){slot=&s;break;}
-            if(!s.id && !slot)slot=&s;
-        }
-        if(slot && (!slot->id || slot->score<r.score))*slot=r;
-    }
-    scores.reserved[0]=0x53;
-    storeScores();
+    scoreSaves.load(SAVE_ID, 1, scores);
 }
+
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC pop_options
 #endif
