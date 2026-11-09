@@ -1,0 +1,8 @@
+# Card ranks A 2 3 4 5 6 7 8 9 10 J Q K: 5x7 bold ("10" is 7 wide), one blank column between.
+.kkk. .kkk. kkkk. ...kk kkkkk .kkk. kkkkk .kkk. .kkk. .k..kk. ..kkk .kkk. kk..k
+kk.kk kk.kk ...kk ..kkk kk... kk... ...kk kk.kk kk.kk kk.k..k ...kk kk.kk kk.kk
+kk.kk ...kk ...kk .k.kk kkkk. kk... ..kk. kk.kk kk.kk .k.k..k ...kk kk.kk kkkk.
+kkkkk ..kk. .kkk. k..kk ...kk kkkk. ..kk. .kkk. .kkkk .k.k..k ...kk kk.kk kkk..
+kk.kk .kk.. ...kk kkkkk ...kk kk.kk .kk.. kk.kk ...kk .k.k..k ...kk kk.kk kkkk.
+kk.kk kk... ...kk ...kk kk.kk kk.kk .kk.. kk.kk ...kk .k.k..k kk.kk kk.k. kk.kk
+kk.kk kkkkk kkkk. ...kk .kkk. .kkk. .kk.. .kkk. .kkk. kkk.kk. .kkk. .kk.k kk..k

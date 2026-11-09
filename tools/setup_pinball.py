@@ -12,7 +12,6 @@ if sys.argv[1:2]==['native-toolchain']:
 else:
     for name in ('git','uv','arduino-cli'):
         if not shutil.which(name):raise SystemExit(f'Install {name} and add it to PATH first.')
-    run('git','submodule','update','--init','--','CHGame')
     if not (ROOT/'.venv/bin/python').exists():run('uv','venv','--python',sys.executable,ROOT/'.venv')
     run('uv','pip','install','--python',ROOT/'.venv/bin/python','-r',ROOT/'requirements.txt')
     run('arduino-cli','core','update-index')

@@ -40,16 +40,7 @@ def prepare(card):
             if path.read_bytes()!=b'\xff'*1024:raise OSError(f'Provisioning readback failed: {path}')
     print(f'Prepared/preserved {len(catalog())} shared game journals on {card}')
 
-def apply_sdk_patch():
-    patch=ROOT/'tools/sd_saves/sdk-ui.patch'
-    options=dict(cwd=ROOT/'CHGame',capture_output=True,text=True)
-    if subprocess.run(['git','apply','--reverse','--check',str(patch)],**options).returncode==0:return
-    check=subprocess.run(['git','apply','--check',str(patch)],**options)
-    if check.returncode:raise RuntimeError('SDK save-status patch conflicts with local edits: '+check.stderr)
-    subprocess.run(['git','apply',str(patch)],cwd=ROOT/'CHGame',check=True)
-
 def overlay():
-    apply_sdk_patch()
     # Hash every input; rebuild after either the SDK or our implementation changes.
     sources=list((SDK/'CHGame/src').rglob('*'))+list(SOURCE.glob('*'))
     sources += [SDK/'CHGame/library.properties',Path(__file__)]

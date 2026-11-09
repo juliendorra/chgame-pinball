@@ -1,0 +1,7 @@
+{
+  "upstream": "https://github.com/bateske/CHGame",
+  "upstreamBase": "e1f8d05940ddb7bbef89c13326da75c003f02904",
+  "workspaceRevision": "edf822c8803a4939f4d0808f779d9522ee41c2ba",
+  "scope": "CHGame/CHGfx/CHSd libraries, shared tools and Python uploader; unused game examples and board binaries omitted",
+  "localChange": "Add bounded PCM output and table-free direct notes; exact SDK source snapshot used by Pinball 1.4.15"
+}

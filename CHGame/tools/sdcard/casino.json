@@ -1,0 +1,135 @@
+{
+  "_comment": "The repository's cart (tools/sdcard/mkcard.py, `chgame card`), as a recipe for `chgame cart build` (tools/chcart/cli.py): the programs by sketch name, in genre folders, in menu order. Each sketch's chgame.json gives its title, details, SD files and picture (docs/cart.png, drawn by its tools/cart.py). menu.png beside this file is the list menu's picture, with the CHGAME logo in it (docs/menu-image.md); art/ holds the visual menu's: the cover (the splash) and each folder's (tools/sdcard/covers.py draws them; docs/visual-menu.md). Edit any of them, then `chgame card`.",
+  "title": "CHGame Casino",
+  "author": "bateske",
+  "description": "The CHGame board package's twenty casino games, with the STL viewer and the SD card reader.",
+  "url": "https://github.com/bateske/CHGame",
+  "menu": {
+    "background": "menu.png",
+    "cover": "art/cover.png",
+    "folders": [
+      {
+        "name": "CARDS",
+        "cover": "art/cards.png"
+      },
+      {
+        "name": "CASINO",
+        "cover": "art/casino.png"
+      },
+      {
+        "name": "DICE",
+        "cover": "art/dice.png"
+      },
+      {
+        "name": "BOARD",
+        "cover": "art/board.png"
+      },
+      {
+        "name": "TILES",
+        "cover": "art/tiles.png"
+      },
+      {
+        "name": "WORDS",
+        "cover": "art/words.png"
+      },
+      {
+        "name": "APPS",
+        "cover": "art/apps.png"
+      }
+    ]
+  },
+  "games": [
+    {
+      "sketch": "CHBlackjack",
+      "folder": "CARDS"
+    },
+    {
+      "sketch": "CHPoker",
+      "folder": "CARDS"
+    },
+    {
+      "sketch": "CHSolitaire",
+      "folder": "CARDS"
+    },
+    {
+      "sketch": "CHBingo",
+      "folder": "CASINO"
+    },
+    {
+      "sketch": "CHRoulette",
+      "folder": "CASINO"
+    },
+    {
+      "sketch": "CHSlots",
+      "folder": "CASINO"
+    },
+    {
+      "sketch": "CHCraps",
+      "folder": "DICE"
+    },
+    {
+      "sketch": "CHYacht",
+      "folder": "DICE"
+    },
+    {
+      "sketch": "CHBackgammon",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHBoardwalk",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHCheckers",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHChess",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHFour",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHSnakes",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHTicTacToe",
+      "folder": "BOARD"
+    },
+    {
+      "sketch": "CHDominoes",
+      "folder": "TILES"
+    },
+    {
+      "sketch": "CHMahjong",
+      "folder": "TILES"
+    },
+    {
+      "sketch": "CHCrossword",
+      "folder": "WORDS"
+    },
+    {
+      "sketch": "CHWordWheel",
+      "folder": "WORDS"
+    },
+    {
+      "sketch": "CHWords",
+      "folder": "WORDS"
+    },
+    {
+      "sketch": "CHStlView",
+      "folder": "APPS"
+    },
+    {
+      "sketch": "CHSDtoUSB",
+      "folder": "APPS"
+    },
+    {
+      "sketch": "CHSDtoSerial",
+      "folder": "APPS"
+    }
+  ]
+}

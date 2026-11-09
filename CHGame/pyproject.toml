@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chgame-tools"
+version = "0.1.0"
+description = "PC tools for the CHGame handheld: build, upload, simulate, check, pack"
+readme = "tools/README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+dependencies = ["pillow", "pyserial", "numpy"]   # numpy: the box art (tools/artkit)
+
+[project.optional-dependencies]
+# The simulator's and the host tests' compiler, when no zig, clang++ or g++ is installed.
+sim = ["ziglang"]
+# CHCrossword's grid tools (tools/puzzles).
+words = ["wordfreq"]
+all = ["ziglang", "wordfreq"]
+
+[project.scripts]
+chgame = "chgame:main"
+
+# One root, tools/, so an editable install (`pip install -e .`) puts tools/ on
+# sys.path as a plain .pth entry: the same thing every tool's own
+# `sys.path.insert(0, .../tools)` does, so nothing imports differently
+# installed or not. The uploader (platform/bootloader/host/py) has its own
+# pyproject.toml rather than a second root here, which would switch
+# setuptools to an import hook that only knows the listed names.
+[tool.setuptools]
+package-dir = {"" = "tools"}
+py-modules = ["chgame", "device", "paths", "check", "hosttests", "gamecfg", "artlib", "pixkit",
+              "readme_gif", "check_size", "chgpack", "libzip", "serialcap"]
+packages = ["chsim", "audio", "sdcard", "music", "fonts", "release", "chcart", "artkit"]

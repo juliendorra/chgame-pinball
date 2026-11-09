@@ -1,0 +1,21 @@
+# Court portraits 14x18: JACK QUEEN KING (the classic court, 2026-10-06).
+# r = robe (recoloured per suit), m = wine (robe shadow, mouths), y = gold, b = hair/wood,
+# p = skin, k = ink, w = white, s = steel. Keep x>=9,y>=15 clear (the corner pip) and x=0,y<=6 (the rank).
+..ss.......s.. ......y....... .y...y...y.s..
+...ssrrrr.sks. ....y.y.y..... .yy.yyy.yy.s..
+..rrrrrrrrrs.. ....yyyyy..... .yyyyyyyyy.s..
+.yyyyyyyyyyb.. ..bbyryrybb... .yryyryyry.s..
+.ykpppppppkb.. .bbpppppppbb.. .kpppppppk.s..
+.ykpkpppkpkb.. .bbpkpppkpbb.. .kpkpppkpk.s..
+.ykpppppppkb.. .bbpppppppbb.. .kpppppppk.s..
+.ykppmmmppkb.. .bbppmmmppbb.. .kbbbbbbbk.s..
+.yykpppppkyb.. .bbbpppppbbb.. .kbbmmmbbk.s..
+....kkkkk..b.. .bbbbkpkbbbb.. ..kbbbbbk.yyy.
+..rrrwwwrrrb.. ..byywwwyyb... rrwkbbbkwrybr.
+.rrrrrwrrrppm. .yrrrwwwrrrr.. rrwwkkkwwrrpp.
+.rryrrrrryrpm. .yrrryyyrrrm.. rrryrwkrymrpp.
+.rrryrrrrymb.. ..prrryrrrmm.. rrrryrrymmrm..
+.rrrryrr...... ..rrrryr...... rrrrryy.......
+.rrrrryy...... .rrrrryr...... rrrrryy.......
+.rrrrryy...... .rrrrryr...... rrrrryy.......
+.rrrrryy...... .rrrrryr...... rrrrryy.......

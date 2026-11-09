@@ -24,7 +24,7 @@ See [the game guide](Pinball/README.md) and [build guarantees](Pinball/docs/stat
 Install Python 3.12+, Node.js 22 and Clang, then:
 
 ```sh
-git clone --recurse-submodules https://github.com/juliendorra/chgame-pinball.git
+git clone https://github.com/juliendorra/chgame-pinball.git
 cd chgame-pinball
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
@@ -58,4 +58,6 @@ repository secrets and the site-only deployment trigger.
 This initial source snapshot comes from workspace commit
 `000005c4e34636799bb5ea9eeb329852b60ea8b8` (game 1.4.15).
 The standalone packaging changes build paths, not game behavior.
+CHGame libraries and host tools are bundled at the exact revision used by
+the game; see [SDK provenance](CHGame/VENDOR.json).
 See [third-party notices](NOTICE) for dependency licenses.

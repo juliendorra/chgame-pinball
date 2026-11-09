@@ -46,7 +46,8 @@ def inputs():
                  'sanitizer.ignore'):
         files.add(GAME/'tools'/name)
     files.add(ROOT/'tools/sd_saves.py')
-    for folder in [GAME/'src',GAME/'sprites',GAME/'boards',GAME/'editor',GAME/'tools/wasm',HOST,
+    for folder in [GAME/'src',GAME/'sprites',GAME/'boards',GAME/'editor',GAME/'tools/wasm',HOST,ROOT/'CHGame/tools',
+                   ROOT/'CHGame/platform/board/arduino/CHGame/libraries/CHSd/host',
                    LIB/'CHGame/src',LIB/'CHGfx/src',LIB/'CHSd/src',ROOT/'tools/sd_saves/src',
                    ROOT/'vendor/sd-spi']:
         files.update(p for p in folder.rglob('*') if p.is_file() and p.suffix in

@@ -1,0 +1,7 @@
+# Small suit glyphs 5x6 (Press Play On Tape's, from CHBlackjack): clubs diamonds hearts spades.
+.kkk. ..k.. .k.k. ..k..
+.kkk. .kkk. kkkkk .kkk.
+kkkkk kkkkk kkkkk kkkkk
+kk.kk kkkkk kkkkk kkkkk
+..k.. .kkk. .kkk. ..k..
+.kkk. ..k.. ..k.. .kkk.

@@ -1,0 +1,16 @@
+// title: CASINO
+// font: Lanky Git Variable (itch/Lanky Git Variable)
+// author: 2bitcrook
+// terms: commercial and commercial work, edit, transform and (encouraged!) buil
+// source: https://2bitcrook.itch.io/44-game-boy-fonts
+// set at the font's own size by tools/artkit/fontscout.py; pixels may be touched up by hand
+// spaced 2 px wider than the font sets it (fontscout export --gap 2): letters 3 px apart, so each
+// is its own neon tube (the letters are the tube's white-hot core; tools/sdcard/art/src/menu.py)
+..##......#......###....#...#...#.....##..
+.#..#.....#.....#...#...#...##..#....#..#.
+#........#.#.....#......#...##..#...#....#
+#........#.#......#.....#...#.#.#...#....#
+#.......#...#......#....#...#.#.#...#....#
+#.......#####.......#...#...#..##...#....#
+.#..#...#...#...#...#...#...#..##....#..#.
+..##....#...#....###....#...#...#.....##..

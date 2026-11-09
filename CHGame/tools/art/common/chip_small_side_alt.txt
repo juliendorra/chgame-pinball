@@ -1,0 +1,7 @@
+# The casino chip (docs/pixel-art.md; the family the menus' box art shares): drawn in placeholder
+# colours that each denomination's remap replaces: w body, u edge inserts, s shade (rim and
+# bottom), c the lit label, k ink; '.' clear. A stack steps 2 px a chip; its lower chips
+# alternate *_side and *_side_alt, so the inserts make a countable brick pattern.
+# The same, its inserts moved.
+kssuussuusk
+.ksssssssk.

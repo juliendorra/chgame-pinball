@@ -26,7 +26,7 @@ its configured root, before uploading any file.
 ## Trigger scope
 
 Automatic publishing runs only for pushes to **main** changing site inputs:
-editor HTML/JS/CSS, game C++/headers, boards, sprites, the shared SDK revision,
+editor HTML/JS/CSS, game C++/headers, boards, sprites, the bundled SDK sources,
 SD-save implementation, Python dependencies and browser build/test tools.
 The workflow file itself is also a deployment input. Documentation, screenshots,
 research, cartridge metadata and compiler-only tooling do not trigger it.

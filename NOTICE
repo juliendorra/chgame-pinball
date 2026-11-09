@@ -1,7 +1,7 @@
 Midnight Pinball
 Copyright 2026 Julien Dorra
 
-CHGame is an external, pinned dependency by bateske. Its own LICENSE and
+CHGame is a bundled SDK source snapshot by bateske (see CHGame/VENDOR.json). Its own LICENSE and
 per-component notices apply, including CHGfx and CHSd.
 
 chgame-sd-saves is CHSave by Julien Dorra, under its included MIT LICENSE.

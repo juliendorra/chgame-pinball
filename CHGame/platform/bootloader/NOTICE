@@ -1,0 +1,52 @@
+CHGame bootloader with the SD game menu
+Copyright 2026 bateske
+
+Based on CH32SerialBoot v0.2.4 (MIT, see LICENSE). Its third-party
+components are listed in THIRD-PARTY.md.
+
+The SD game menu adds code from two other parts of this repository (CHGame), both MIT:
+
+- src/sd.c and src/fat.c are C ports of CHSd 1.0.0
+  (platform/board/arduino/CHGame/libraries/CHSd). Its NOTICE says the SPI-mode block driver and
+  the FAT reader are HypeRunner's clean-room code (MIT), written from the SD
+  Physical Layer Simplified Specification, the Microsoft FAT specification,
+  the MBR layout and the CH32X035 reference manual, with no code from any
+  other SD or FAT library.
+
+- The ST7735 panel set-up values in src/lcd.c come from CHGfx 1.3.0
+  (platform/board/arduino/CHGame/libraries/CHGfx, MIT).
+
+- src/font5x7.h is CHGfx 1.3.0's src/CHGfx_font.h. The only change is a
+  guard that leaves out the glyphs after '_' (the menu draws capitals).
+  CHGfx's notice for it reads:
+
+    The printable-ASCII subset of the fixed-space GLCD font as distributed in
+    glcdfont.c in the Adafruit GFX Library.
+
+    Software License Agreement (BSD License)
+
+    Copyright (c) 2012 Adafruit Industries.  All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+
+    - Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+    - Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
+
+The test harness in test/native uses CHSd's tools/fatimg.py (MIT) to build
+card images.
