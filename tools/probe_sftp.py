@@ -15,8 +15,11 @@ with paramiko.SSHClient() as client:
     with client.open_sftp() as sftp:
         home=posixpath.normpath(sftp.normalize('.'))
         print('Canonical login directory:',home)
+        for label,path in [('home','.'),('parent','..')]:
+            info=sftp.stat(path)
+            print(f'{label}: uid={info.st_uid}, gid={info.st_gid}, mode={oct(info.st_mode & 0o777)}')
         escaped=False
-        for path in ('.','..','/','/../..'):
+        for path in ('.','..','/','/../..','/home/juliendo','/home/juliendo-today','/home/juliendo/www','/www'):
             try:
                 canonical=posixpath.normpath(sftp.normalize(path))
                 # Paramiko 5.1's listdir implementation uses these same requests;
