@@ -1,7 +1,7 @@
 {
   "id": "midnight-pinball",
   "title": "MIDNIGHT PINBALL",
-  "version": "1.4.16",
+  "version": "1.4.17",
   "description": "Original 80s arcade pinball: tall scrolling tables, upper flippers, target banks, lane combos and three-ball multiball. Load a library of PBT tables from SD without reflashing.",
   "genre": "Arcade",
   "cartImage": "docs/cart.png",

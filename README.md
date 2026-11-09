@@ -9,6 +9,13 @@ Move, add, delete and clone elements while the ball keeps playing. Connect a
 CHGame through desktop Chrome/Edge Web Serial to retrieve boards, apply edits
 live or save them to its SD card. The hosted editor is entirely static.
 
+Rubber slingshots are editable parts too: move, resize, mirror, duplicate or
+remove the existing pair, or add more while playing. Use firmware 1.4.17 or
+newer for these layouts on CHGame; older boards retain their original pair.
+
+Download the console cart and matching offline editor from the
+[latest release](https://github.com/juliendorra/chgame-pinball/releases/latest).
+
 | Key | Action |
 | --- | --- |
 | Left / B | Left / right flippers |
