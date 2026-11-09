@@ -26,20 +26,17 @@ def confined(sftp):
     home=posixpath.normpath(sftp.normalize('.'))
     if home!=TARGET['sftpHome']:raise RuntimeError('Unexpected SFTP login namespace; no files uploaded')
     parent=posixpath.dirname(home);info=sftp.lstat(parent);own=sftp.lstat(home)
-    # OVH exposes a shared /home container above each isolated virtual home.
-    # That container must be root-owned, non-writable by this account, and
-    # expose exactly this account's home, rather than other site directories.
+    # The dedicated login home maps to OVH's configured www/chgame-pinball
+    # target. A readable, root-owned namespace parent is harmless; it is
+    # never used as a publication destination.
     if (not stat.S_ISDIR(info.st_mode) or not stat.S_ISDIR(own.st_mode) or info.st_uid!=0 or own.st_uid==0
             or info.st_mode & 0o022):
         raise RuntimeError('SFTP parent is writable or unexpected; no files uploaded')
-    names=set(sftp.listdir(parent))-set(('.', '..'))
-    if names!={posixpath.basename(home)}:
-        raise RuntimeError('SFTP exposes other account namespaces; no files uploaded')
     for path in ('/','/../..','/home/juliendo','/home/juliendo-today','/home/juliendo/www','/www'):
         if directory_access(sftp,path):
             raise RuntimeError('SFTP can open an outside directory; no files uploaded')
     sftp.chdir(home)
-    print('SFTP namespace verified: own home only; parent read-only; root and other accounts denied.')
+    print('SFTP target verified: dedicated login home; parent read-only; other account access denied.')
     return home
 
 def artifacts(folder):

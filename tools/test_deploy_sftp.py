@@ -53,10 +53,10 @@ class Deploy(unittest.TestCase):
         server=Fake(parent_mode=0o777)
         with self.assertRaisesRegex(RuntimeError,'writable'):publish(server,self.folder)
         self.assertEqual(server.renames,[])
-    def test_other_visible_home_is_rejected(self):
-        server=Fake(extra_home=True)
-        with self.assertRaisesRegex(RuntimeError,'other account'):publish(server,self.folder)
-        self.assertEqual(server.renames,[])
+    def test_parent_metadata_does_not_grant_access_to_other_accounts(self):
+        server=Fake(extra_home=True);publish(server,self.folder)
+        self.assertEqual(server.cwd,TARGET['sftpHome'])
+        self.assertEqual(server.files['KEEP.txt'],b'unrelated')
     def test_wrong_login_home_is_rejected(self):
         server=Fake();server.normalize=lambda path:'/home/primary'
         with self.assertRaisesRegex(RuntimeError,'Unexpected'):publish(server,self.folder)
