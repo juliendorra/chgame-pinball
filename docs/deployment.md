@@ -8,7 +8,11 @@ firmware and unrelated game folders are not deployed.
 
 The `deploy-editor.yml` workflow follows the FTP action used in
 [juliendorra/blob-keyboard-simulator](https://github.com/juliendorra/blob-keyboard-simulator/blob/main/.github/workflows/main.yaml).
-It uses explicit FTPS with certificate validation and a dedicated OVH user.
+It uses standard FTP with a dedicated, directory-confined OVH user.
+The hosting server rejects `AUTH TLS` with `500 This security scheme is not
+implemented`. FTP does not encrypt credentials or files in transit; this
+limitation also applies to the existing FTP workflows. SFTP and SSH remain
+disabled for this scoped account.
 
 ## OVH access and secrets
 
@@ -18,9 +22,9 @@ must resolve to this directory; the action therefore uploads to `./`, not to a
 second nested `www/chgame-pinball` path.
 
 Set repository Actions secrets `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.
-Use the OVH FTP hostname matching the server's TLS certificate. Credentials
+Use the OVH FTP hostname shown by the hosting control panel. Credentials
 belong in GitHub Secrets, never in this repository or in deployment logs.
-The workflow verifies TLS and rejects the login if parent traversal can leave
+The workflow rejects the login if parent traversal can leave
 its configured root, before uploading any file.
 
 ## Trigger scope
