@@ -25,7 +25,8 @@
 bool gfx__paletteTake(uint16_t out[16]);   // CHGfx_palette.cpp
 void gfx__paletteTouch(void);
 
-uint8_t gfx_fb[GFX_FB_BYTES] __attribute__((aligned(4)));
+// x86 vectorized CHGfx code assumes the ABI's 16-byte array alignment.
+uint8_t gfx_fb[GFX_FB_BYTES] __attribute__((aligned(16)));
 CHGfx Gfx;
 uint32_t sim_panel[GFX_W * GFX_H];
 

@@ -3,7 +3,8 @@
 #include <CHGame.h>
 #include <SdSpi.h>
 
-uint8_t gfx_fb[GFX_FB_BYTES] __attribute__((aligned(4)));
+// x86 vectorized CHGfx code assumes the ABI's 16-byte array alignment.
+uint8_t gfx_fb[GFX_FB_BYTES] __attribute__((aligned(16)));
 CHGfx Gfx;
 SimSerial Serial;
 static uint8_t scratch[2*GFX_CHUNK_BYTES] __attribute__((aligned(4)));

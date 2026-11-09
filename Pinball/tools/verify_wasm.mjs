@@ -286,7 +286,7 @@ command('R',12345);place(11,180,-800,0);step();assert.notEqual(readState(m).rng,
 command('R');const autoSeed=readState(m).seed;command('R');assert.notEqual(readState(m).seed,autoSeed,'new games get fresh session seeds');
 console.log('Physics model: compiled configuration, repeatable impacts, seed-independent motion with scatter disabled, contact spin, rendering independence and live edits passed.');
 const result=spawnSync(native,[],{input:Buffer.concat(inputs),maxBuffer:64*1024*1024});
-assert.equal(result.status,0,result.stderr?.toString());if(result.stderr?.length)console.log(result.stderr.toString().trim());const expected=Buffer.concat(outputs);
+assert.equal(result.status,0,`Native replay failed: signal=${result.signal}, error=${result.error?.message ?? 'none'}\n${result.stderr?.toString()}`);if(result.stderr?.length)console.log(result.stderr.toString().trim());const expected=Buffer.concat(outputs);
 if(!expected.equals(result.stdout)){
  let at=0;while(at<expected.length&&expected[at]===result.stdout[at])at++;
  throw new Error(`Native/WASM discrepancy at byte ${at}: WASM=${expected[at]} native=${result.stdout[at]} (lengths ${expected.length}/${result.stdout.length})`);
