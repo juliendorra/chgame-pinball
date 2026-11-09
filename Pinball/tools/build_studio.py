@@ -39,6 +39,7 @@ def digest(p):return hashlib.sha256(p.read_bytes()).hexdigest()
 def inputs():
     files=set(GAME.glob('*.ino'))|set(GAME.glob('*.cpp'))|set(GAME.glob('*.h'))
     files.add(ROOT/'pinball.py')
+    files.add(ROOT/'save-config.json')
     files.add(GAME/'editor/.htaccess')
     for name in ('build_studio.py','game.py','sprites.py','boards.py','sim_build.py',
                  'verify_wasm.mjs','verify_browser_card.py','verify_browser_card.mjs',

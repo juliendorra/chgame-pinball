@@ -8,6 +8,7 @@ on:
       - 'CHGame/**'
       - 'pinball.py'
       - 'requirements.txt'
+      - 'save-config.json'
       - 'Pinball/*.ino'
       - 'Pinball/*.cpp'
       - 'Pinball/*.c'
