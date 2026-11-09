@@ -1,4 +1,5 @@
 // Compatibility API for SDK games; storage is implemented by CHSave.
+#pragma GCC optimize("Oz")
 #include "Save.h"
 #include <CHSave.h>
 #include <CHGfx.h>

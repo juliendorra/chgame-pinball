@@ -26,24 +26,26 @@ struct Record { uint32_t id, score; };
 struct Scores { Record records[24]; uint8_t muted; uint8_t reserved[3]; } scores = {};
 constexpr uint32_t SAVE_MAGIC = chsave::id("MPIN");
 chsave::Store scoreSaves;
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC push_options
+#pragma GCC optimize("Oz")
+#endif
 
 void storeScores() {
     if (!scoreSaves.store(SAVE_MAGIC, 1, scores)) announce("SD SAVE FAILED",180);
 }
 
 void loadScores() {
-    bool loaded=scoreSaves.load(SAVE_MAGIC,1,scores);
+    bool loaded=scoreSaves.load(SAVE_MAGIC,1,&scores,sizeof scores,nullptr);
     const auto media=scoreSaves.status();
-    if(!loaded && (media==chsave::Status::Empty || media==chsave::Status::NoCard ||
-                   media==chsave::Status::NeedsSetup)) {
-        const auto *old=static_cast<const Scores *>(save::readLegacy(SAVE_MAGIC,1,sizeof scores));
-        if(old){scores=*old;loaded=true;}
-    }
+    bool writable=media==chsave::Status::Ready || media==chsave::Status::Empty;
+    if(loaded && scores.reserved[0]==0x53)return;
+    const auto *old=(writable || media==chsave::Status::NoCard || media==chsave::Status::NeedsSetup)
+        ? static_cast<const Scores *>(save::readLegacy(SAVE_MAGIC,1,sizeof scores)) : nullptr;
+    if(!loaded){if(!old)return;scores=*old;}
     // Merge a surviving legacy flash record once, even when SD already has
     // scores. Keep SD preferences and full SD tables; only improve scores.
-    if (!loaded || (media!=chsave::Status::Ready && media!=chsave::Status::Empty) ||
-        scores.reserved[0]==0x53) return;
-    const auto *old=static_cast<const Scores *>(save::readLegacy(SAVE_MAGIC,1,sizeof scores));
+    if (!writable) return;
     if(old)for(const Record &r:old->records)if(r.id && r.score<=99999999u) {
         Record *slot=nullptr;
         for(Record &s:scores.records) {
@@ -55,6 +57,9 @@ void loadScores() {
     scores.reserved[0]=0x53;
     storeScores();
 }
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC pop_options
+#endif
 
 uint32_t best() {
     for (const Record &r : scores.records) if (r.id == table.h.id) return r.score;
@@ -279,7 +284,7 @@ void pinball::live::invalidatePreview() { previewIndex=-1; }
 
 void setup() {
     chgame.boot();
-    dbg::begin("MPIN 1.4.15");
+    dbg::begin("MPIN 1.4.16");
 #if CHGAME_DEBUG
     dbg::hook = debugCommand;
 #endif

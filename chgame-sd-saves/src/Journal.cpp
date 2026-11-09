@@ -8,10 +8,22 @@
 
 namespace chsave {
 namespace {
+// Header fields are aligned in the caller's checked scratch buffer.
+#if defined(__GNUC__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+uint16_t get16(const uint8_t *p) {
+    uint16_t value; memcpy(&value, __builtin_assume_aligned(p, 2), 2); return value;
+}
+uint32_t get32(const uint8_t *p) {
+    uint32_t value; memcpy(&value, __builtin_assume_aligned(p, 4), 4); return value;
+}
+void put16(uint8_t *p, uint16_t value) { memcpy(__builtin_assume_aligned(p, 2), &value, 2); }
+void put32(uint8_t *p, uint32_t value) { memcpy(__builtin_assume_aligned(p, 4), &value, 4); }
+#else
 uint16_t get16(const uint8_t *p) { return uint16_t(p[0]) | uint16_t(p[1]) << 8; }
 uint32_t get32(const uint8_t *p) { return uint32_t(get16(p)) | uint32_t(get16(p + 2)) << 16; }
 void put16(uint8_t *p, uint16_t n) { p[0] = n; p[1] = n >> 8; }
 void put32(uint8_t *p, uint32_t n) { put16(p, n); put16(p + 2, n >> 16); }
+#endif
 uint32_t crcUpdate(uint32_t crc, const uint8_t *p, unsigned size) {
     while (size--) {
         crc ^= *p++;
@@ -25,8 +37,7 @@ bool blank(const uint8_t *p) {
     return true;
 }
 bool newer(uint32_t a, uint32_t b) {
-    uint32_t delta = a - b;
-    return delta && delta < 0x80000000u;
+    return a - b - 1 < 0x7fffffffu;
 }
 uint32_t tag(unsigned sectors) { return sectors == 1 ? 0x31565343u : 0x32565343u; }
 } // namespace
@@ -35,14 +46,15 @@ Journal::Journal(Storage &storage, void *scratch, size_t scratchBytes)
     : storage_(storage), scratch_(static_cast<uint8_t *>(scratch)), scratchBytes_(scratchBytes) {}
 
 bool Journal::arguments(uint32_t gameId, const void *data, uint16_t size) {
-    bool good = scratch_ && !(reinterpret_cast<uintptr_t>(scratch_) & 3) &&
-                scratchBytes_ >= SCRATCH_BYTES && data && size && size <= MAX_DATA;
+    status_ = Status::InvalidArgument;
+    if (!scratch_ || (reinterpret_cast<uintptr_t>(scratch_) & 3) ||
+        scratchBytes_ < SCRATCH_BYTES || !data || uint16_t(size - 1) >= MAX_DATA) return false;
     for (unsigned i = 0; i < 4; ++i) {
-        uint8_t c = gameId >> (i * 8);
-        good = good && ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'));
+        uint8_t c = gameId;
+        if (!((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))) return false;
+        gameId >>= 8;
     }
-    if (!good) status_ = Status::InvalidArgument;
-    return good;
+    return true;
 }
 bool Journal::open(uint32_t gameId) {
     status_ = storage_.open(gameId, scratch_ + 512);
@@ -62,18 +74,18 @@ bool Journal::latest(uint32_t gameId, int &slot, uint32_t &generation) {
     for (unsigned i = 0; i < 2; ++i) {
         uint32_t crc = ~0u, gen = 0;
         bool header = false;
-        for (unsigned block = 0; block < sectors_; ++block) {
-            if (!storage_.read(i * sectors_ + block, b)) {
+        for (unsigned block = 0; block < sectors(); ++block) {
+            if (!storage_.read(i * sectors() + block, b)) {
                 status_ = Status::IoError;
                 return false;
             }
             empty = empty && blank(b);
             if (!block) {
-                header = get32(b) == gameId && get32(b + 12) == tag(sectors_) &&
-                         get16(b + 8) <= sectors_ * 512u - 20;
+                header = get32(b) == gameId && get32(b + 12) == tag(sectors()) &&
+                         get16(b + 8) <= sectors() * 512u - 20;
                 gen = get32(b + 4);
             }
-            bool last = block + 1 == sectors_;
+            bool last = block + 1 == sectors();
             crc = crcUpdate(crc, b, last ? 508 : 512);
             if (last && header && get32(b + 508) == ~crc &&
                 (slot < 0 || newer(gen, generation))) {
@@ -96,17 +108,17 @@ bool Journal::load(uint32_t gameId, uint8_t schema, void *data, uint16_t size, u
     uint32_t crc = ~0u;
     unsigned copied = 0;
     uint8_t savedFlags = 0;
-    for (unsigned block = 0; block < sectors_; ++block) {
-        if (!storage_.read(slot * sectors_ + block, b)) { status_ = Status::IoError; return false; }
+    for (unsigned block = 0; block < sectors(); ++block) {
+        if (!storage_.read(slot * sectors() + block, b)) { status_ = Status::IoError; return false; }
         if (!block) {
-            if (get32(b) != gameId || get32(b + 4) != generation || get32(b + 12) != tag(sectors_)) {
+            if (get32(b) != gameId || get32(b + 4) != generation || get32(b + 12) != tag(sectors())) {
                 status_ = Status::Damaged;
                 return false;
             }
             if (b[10] != schema || get16(b + 8) != size) { status_ = Status::Incompatible; return false; }
             savedFlags = b[11];
         }
-        bool last = block + 1 == sectors_;
+        bool last = block + 1 == sectors();
         crc = crcUpdate(crc, b, last ? 508 : 512);
         if (last && get32(b + 508) != ~crc) { status_ = Status::Damaged; return false; }
         unsigned offset = block ? 0 : 16;
@@ -122,7 +134,7 @@ bool Journal::load(uint32_t gameId, uint8_t schema, void *data, uint16_t size, u
 
 bool Journal::store(uint32_t gameId, uint8_t schema, const void *data, uint16_t size, uint8_t flags) {
     if (!arguments(gameId, data, size) || !open(gameId)) return false;
-    if (size > sectors_ * 512u - 20) { status_ = Status::TooLarge; return false; }
+    if (size > sectors() * 512u - 20) { status_ = Status::TooLarge; return false; }
     int slot;
     uint32_t generation;
     if (!latest(gameId, slot, generation)) return false;
@@ -131,11 +143,11 @@ bool Journal::store(uint32_t gameId, uint8_t schema, const void *data, uint16_t 
     if (slot >= 0) {
         bool same = true;
         unsigned compared = 0;
-        for (unsigned block = 0; same && block < sectors_; ++block) {
-            if (!storage_.read(slot * sectors_ + block, check)) { status_ = Status::IoError; return false; }
+        for (unsigned block = 0; same && block < sectors(); ++block) {
+            if (!storage_.read(slot * sectors() + block, check)) { status_ = Status::IoError; return false; }
             if (!block) same = check[10] == schema && get16(check + 8) == size && check[11] == flags;
             unsigned offset = block ? 0 : 16;
-            unsigned count = (block + 1 == sectors_ ? 508 : 512) - offset;
+            unsigned count = (block + 1 == sectors() ? 508 : 512) - offset;
             if (count > size - compared) count = size - compared;
             same = same && !memcmp(input + compared, check + offset, count);
             compared += count;
@@ -145,7 +157,7 @@ bool Journal::store(uint32_t gameId, uint8_t schema, const void *data, uint16_t 
     unsigned target = slot < 0 ? 0 : 1 - slot;
     uint32_t crc = ~0u;
     unsigned copied = 0;
-    for (unsigned block = 0; block < sectors_; ++block) {
+    for (unsigned block = 0; block < sectors(); ++block) {
         memset(b, 0, 512);
         if (!block) {
             put32(b, gameId);
@@ -153,9 +165,9 @@ bool Journal::store(uint32_t gameId, uint8_t schema, const void *data, uint16_t 
             put16(b + 8, size);
             b[10] = schema;
             b[11] = flags;
-            put32(b + 12, tag(sectors_));
+            put32(b + 12, tag(sectors()));
         }
-        bool last = block + 1 == sectors_;
+        bool last = block + 1 == sectors();
         unsigned offset = block ? 0 : 16;
         unsigned count = (last ? 508 : 512) - offset;
         if (count > size - copied) count = size - copied;
@@ -163,7 +175,7 @@ bool Journal::store(uint32_t gameId, uint8_t schema, const void *data, uint16_t 
         copied += count;
         crc = crcUpdate(crc, b, last ? 508 : 512);
         if (last) put32(b + 508, ~crc);
-        unsigned fileSector = target * sectors_ + block;
+        unsigned fileSector = target * sectors() + block;
         if (!storage_.write(fileSector, b) || !storage_.read(fileSector, check) || memcmp(b, check, 512)) {
             status_ = Status::IoError;
             return false;

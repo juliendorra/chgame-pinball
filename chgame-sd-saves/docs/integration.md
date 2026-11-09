@@ -81,6 +81,12 @@ Sector indices run through both slots; `slotSectors()` is the length of one
 slot, from 1 to 128. The default is one sector for simple custom backends.
 The supplied hardware adapter targets CHGame Rev0 (CH32X035, SPI1, PB11 CS).
 
+For firmware close to Rev0's flash limit, build the whole library and sketch
+with `-DCHSAVE_MAX_SLOT_SECTORS=1`. This optional compact profile supports
+1 KB files and payloads up to 492 bytes. The default supports larger files
+and discovers their capacity at runtime. Both profiles use the same format
+for 1 KB files.
+
 For CHSIM builds, set `CHSAVE_CARD_IMAGE` to a writable FAT disk image.
 The simulator backend modifies that image; use a copy for experiments.
 
@@ -94,3 +100,16 @@ prepared file, since no committed record exists yet.
 Firmware never allocates clusters or changes FAT/directory metadata. These
 checks cannot guarantee an SD controller's behavior during physical power
 loss. The tests simulate interrupted sector writes, not electrical failures.
+
+## Checked games
+
+The workspace integration was checked on 2026-11-09 with Tetris, Midnight
+Pinball, Void Bloom, Climbing Colors, Climbing Lab, Light Drive and Mystic
+Balloon: native Rev0 builds and host gameplay tests. Pinball and Mystic
+Balloon also have game-specific save/import/restart tests. The journal
+suite checks restart persistence and interrupted writes independently.
+
+These games use the compact profile and a storage adapter that shares the
+workspace's CHSd driver with streamed assets. The standalone library's own
+SD/FAT adapter is tested with FAT images and the Settings firmware build.
+This extraction has not been installed on the console for a new hardware test.

@@ -17,6 +17,7 @@
 #endif
 #include "Fat.h"
 #include "Block.h"
+#include "../Config.h"
 
 namespace chsave { namespace fat {
 
@@ -125,7 +126,7 @@ int8_t saveFile(uint32_t magic, uint32_t &cluster, uint16_t &slotSectors, uint8_
             if (sec >> v.shift) {
                 uint32_t cached = ~0u;
                 int32_t n = next(dir, b, cached);
-                if (n < 2) return n < 0 ? n : (n ? E_CHAIN : E_NOTFOUND);
+                if (n < 2) return n < 0 ? n : int32_t(n ? E_CHAIN : E_NOTFOUND);
                 dir = n;
                 sec = 0;
             }
@@ -139,7 +140,7 @@ int8_t saveFile(uint32_t magic, uint32_t &cluster, uint16_t &slotSectors, uint8_
             if (u32at(d) != magic || le32(d + 4) != 0x20202020u ||
                 d[8] != 'S' || d[9] != 'A' || d[10] != 'V') continue;
             uint32_t bytes = u32at(d + 28);
-            if ((d[11] & 0x1f) || bytes < 1024 || bytes > 131072 || bytes % 1024) return E_CHAIN;
+            if ((d[11] & 0x1f) || bytes < 1024 || bytes > CHSAVE_MAX_SLOT_SECTORS * 1024u || bytes % 1024) return E_CHAIN;
             uint32_t c = u16at(d + 26) | (v.rootSecs ? 0 : u16at(d + 20) << 16);
             cluster = c;
             slotSectors = bytes / 1024;
@@ -163,7 +164,7 @@ int8_t sector(uint32_t cluster, unsigned fileSector, uint32_t &lba, uint8_t *b) 
     uint32_t cached = ~0u;
     for (unsigned skip = fileSector >> v.shift; skip; --skip) {
         int32_t n = next(cluster, b, cached);
-        if (n < 2) return n < 0 ? n : E_CHAIN;
+        if (n < 2) return n < 0 ? n : int32_t(E_CHAIN);
         cluster = n;
     }
     if (cluster < 2 || cluster >= v.end) return E_CHAIN;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #pragma once
+#include "Config.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -7,8 +8,8 @@
 
 namespace chsave {
 
-constexpr uint16_t MAX_DATA = 65516;
-constexpr uint16_t MAX_SLOT_SECTORS = 128;
+constexpr uint16_t MAX_SLOT_SECTORS = CHSAVE_MAX_SLOT_SECTORS;
+constexpr uint16_t MAX_DATA = MAX_SLOT_SECTORS * 512u - 20;
 constexpr size_t SCRATCH_BYTES = 1024;
 
 enum class Status : uint8_t {
@@ -69,6 +70,7 @@ private:
     bool open(uint32_t gameId);
     bool latest(uint32_t gameId, int &slot, uint32_t &generation);
     uint16_t sectors_ = 1;
+    uint16_t sectors() const { return MAX_SLOT_SECTORS == 1 ? 1 : sectors_; }
 };
 
 } // namespace chsave
