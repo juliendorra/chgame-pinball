@@ -183,13 +183,26 @@ def main():
     header += "\n};\n}  // namespace pinball\n"
     bats = '// Generated from the editable flipper art by tools/sprites.py.\n#pragma once\nnamespace pinball {\n'
     poses = []
+    canonical_masks = {}
+    def mask_rows(mask):
+        rows=[];at=0
+        while at<len(mask):
+            if mask[at]==255:rows.append([]);at+=1;continue
+            row=[]
+            while True:
+                a,b=mask[at:at+2];at+=2;row.append((a,b&127))
+                if b&128:break
+            rows.append(row)
+        return rows
     for side in range(2):
         for level in range(9):
             angle = flipper["rest_angle"] + level * (flipper["raised_angle"] - flipper["rest_angle"]) / 8
             data, ax, ay, hull = flipper_pose(source["flipper"][0], angle, side, shadows["flipper"], flipper["pivot"])
             name = f"flipper_pose_{side}_{level}"
             bats += f"static const uint8_t {name}[] PB_SPRITE = {{" + ",".join(map(str, data)) + "};\n"
-            bats += f"static const int8_t {name}_hull[] PB_SPRITE = {{" + ",".join(str(v) for p in hull for v in p) + "};\n"
+            # Bake the exact pixel-corner conversion formerly done on every hit.
+            assert all(v&1 for p in hull for v in p)
+            bats += f"static const uint8_t {name}_hull[] PB_SPRITE = {{" + ",".join(str((v+1)//2+(ax if axis==0 else ay)) for p in hull for axis,v in enumerate(p)) + "};\n"
             # Store opaque span endpoints, excluding shadows. The end of a
             # row is flagged in its final endpoint; 255 represents an empty
             # row. This removes redundant transparent/color RLE tokens while
@@ -213,8 +226,16 @@ def main():
                     assert restored==pixels, "flipper mask must preserve every pixel"
                     spans[-1]|=128;mask.extend(spans)
                 else:mask.append(255)
-            bats += f"static const uint8_t {name}_mask[] PB_SPRITE = {{" + ",".join(map(str,mask)) + "};\n"
-            poses.append(f"{{{name},{name}_hull,{name}_mask,{ax},{ay},{len(hull)},{raw[1]}}}")
+            if side:
+                width,left_rows=canonical_masks[level]
+                assert width==raw[0]
+                expected=[[(width-b,width-a) for a,b in reversed(row)] for row in left_rows]
+                assert expected==mask_rows(mask), "shared mirrored mask must preserve every opaque span and tie order"
+            else:canonical_masks[level]=(raw[0],mask_rows(mask))
+            # Prefix the canonical width. Right-hand poses share the left
+            # data, with count's high bit selecting exact reverse traversal.
+            if not side:bats += f"static const uint8_t {name}_mask[] PB_SPRITE = {{" + ",".join(map(str,[raw[0],*mask])) + "};\n"
+            poses.append(f"{{{name},{name}_hull,flipper_pose_0_{level}_mask,{ax},{ay},{len(hull)|(128 if side else 0)},{raw[1]}}}")
     bats += "const FlipperPose FLIPPER_POSES[2][9] PB_SPRITE = {{" + ",".join(poses[:9]) + "},{" + ",".join(poses[9:]) + "}};\n"
     bats += "}  // namespace pinball\n"
     for out, contents in ((GAME / "SpriteData.h", header), (GAME / "FlipperData.h", bats),

@@ -1,7 +1,9 @@
 #pragma once
 #include "Table.h"
 namespace pinball {
-struct FlipperPose { const uint8_t *data; const int8_t *hull; const uint8_t *mask; int8_t ax, ay; uint8_t count, height; };
+// hull stores precomputed nonnegative sprite pixel corners. count uses its
+// high bit to mirror the shared, width-prefixed collision mask.
+struct FlipperPose { const uint8_t *data; const uint8_t *hull; const uint8_t *mask; int8_t ax, ay; uint8_t count, height; };
 extern const FlipperPose FLIPPER_POSES[2][9];
 constexpr int RUBBER_TIP_X=45, RUBBER_REFLECT_X=118;
 // Exact for every supported 0..255 stroke level; avoid division in the hot path.

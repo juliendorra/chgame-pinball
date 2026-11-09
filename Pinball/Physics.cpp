@@ -175,12 +175,19 @@ static bool segment(Ball &b, int ax, int ay, int bx, int by, int radius = RADIUS
 // and anchor as sprite4. Treat each row as its visible filled rectangle.
 static unsigned artDistance(int x,int y,const FlipperPose &pose,int scale,int left,int top,int &px,int &py) {
     unsigned nearest=0xFFFFFFFFu;
-    const uint8_t *data=pose.mask;
+    const uint8_t *data=pose.mask;unsigned width=*data++;
+    bool mirror=pose.count&128;
     for(unsigned row=0;row<pose.height;++row) {
-        unsigned a=*data++;if(a==255)continue;
+        if(*data==255){++data;continue;}
+        const uint8_t *first=data,*last=data;
+        while(!(last[1]&128))last+=2;
+        data=last+2;
         int y0=top+(row*scale/ONE)*ONE-ONE/2,y1=top+((row+1)*scale/ONE)*ONE-ONE/2;
-        for(;;) {
-            unsigned code=*data++,b=code&127;
+        // Read the mirrored row backwards, preserving the original left-to-
+        // right tie order as well as the exact sprite scaling of both edges.
+        for(const uint8_t *p=mirror?last:first;;p+=mirror?-2:2) {
+            unsigned a=p[0],b=p[1]&127;
+            if(mirror){unsigned lo=width-b;b=width-a;a=lo;}
             if(y0!=y1) {
                 int x0=left+(a*scale/ONE)*ONE-ONE/2,x1=left+(b*scale/ONE)*ONE-ONE/2;
                 if(x0!=x1){
@@ -188,8 +195,7 @@ static unsigned artDistance(int x,int y,const FlipperPose &pose,int scale,int le
                     unsigned d=dx*dx+dy*dy;if(d<nearest){nearest=d;px=xx;py=yy;}
                 }
             }
-            if(code&128)break;
-            a=*data++;
+            if(p==(mirror?first:last))break;
         }
     }
     return nearest;
@@ -206,12 +212,12 @@ static bool poseContact(Ball &b, const FlipperPose &pose, int pivot, int y, int 
         // A moving bat can cover a ball center. The art-derived hull gives
         // an escape direction; a short search finds the actual pixel face.
         unsigned closest=0xFFFFFFFFu;int nx=0,ny=-ONE;
-        for(unsigned i=0;i<pose.count;++i) {
-            unsigned j=(i+1)%pose.count;
-            int ax=left+(((pose.hull[i*2]+1)/2+pose.ax)*scale/ONE)*ONE-ONE/2;
-            int ay=top+(((pose.hull[i*2+1]+1)/2+pose.ay)*scale/ONE)*ONE-ONE/2;
-            int bx=left+(((pose.hull[j*2]+1)/2+pose.ax)*scale/ONE)*ONE-ONE/2;
-            int by=top+(((pose.hull[j*2+1]+1)/2+pose.ay)*scale/ONE)*ONE-ONE/2;
+        for(unsigned i=0;i<(pose.count&127);++i) {
+            unsigned j=(i+1)%(pose.count&127);
+            int ax=left+(pose.hull[i*2]*unsigned(scale)/ONE)*ONE-ONE/2;
+            int ay=top+(pose.hull[i*2+1]*unsigned(scale)/ONE)*ONE-ONE/2;
+            int bx=left+(pose.hull[j*2]*unsigned(scale)/ONE)*ONE-ONE/2;
+            int by=top+(pose.hull[j*2+1]*unsigned(scale)/ONE)*ONE-ONE/2;
             int dx=bx-ax,dy=by-ay,len2=dx*dx+dy*dy;if(!len2)continue;
             int dot=(b.x-ax)*dx+(b.y-ay)*dy;
             int t=dot<=0?0:dot>=len2?ONE:((dot>>4)*ONE)/(len2>>4);
