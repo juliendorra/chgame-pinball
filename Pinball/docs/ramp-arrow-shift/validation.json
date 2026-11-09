@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "physics_identical": true,
+  "capture_frame": 32,
+  "release_frame": 122,
+  "marker_offset": {
+    "x": -1,
+    "y": 4
+  },
+  "layer": "after all balls",
+  "hide": "any active rider on this ramp",
+  "trace_sha256": "0ce54f5b3b8b5d2a0d942035bd73c3e4db89a5f99b81301618d9784a55a263ee",
+  "renderer_sha256": "6184f2263857e6ca813c71796df4a83ae1e73382768bb1683f62878023fc2d36"
+}

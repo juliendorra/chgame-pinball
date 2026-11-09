@@ -1,0 +1,57 @@
+# A deterministic showcase of the real renderer and controls. Debug ball
+# placement below stages the special-hit camera; normal physics keeps running.
+wait 1
+snap library
+say F 9
+wait 1
+snap pirate_serve
+say J 42,365,-600,400
+rec start 1
+wait 3
+snap rubber_compressed
+wait 5
+snap rubber_recoil
+wait 18
+rec stop rubber_flex
+say F 9
+tap A 36
+wait 100
+snap pirate_upper
+hold LEFT+B
+gif pirate_play 90 2
+release
+say F 9
+say M 221
+say J 90,283,0,-500
+rec start 2
+wait 1
+snap ramp_entry
+wait 44
+snap ramp_crossing
+wait 45
+snap ramp_exit
+wait 16
+rec stop ramp_full
+say F 9
+say O 12345
+rec start 2
+wait 3
+snap score_pop
+wait 38
+rec stop score_pop
+say F 9
+say C 7
+say J 20,132,0,0
+rec start 2
+wait 8
+snap pirate_zoom
+wait 70
+rec stop special_zoom
+snap pirate_multiball
+tap START
+snap paused
+wait 60
+snap still_paused
+tap START
+tap SELECT
+snap library_return

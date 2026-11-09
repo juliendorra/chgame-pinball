@@ -1,0 +1,24 @@
+{
+  "result": "passed",
+  "version": "1.4.15",
+  "sourceHash": "389a00b572ae9943122a28a104d07af6f633a39d0161e36de6c949d228234d36",
+  "firmware_sha256": "0ee2932b3ae32a80efd3180bbc368374d96d743281588b59cf0a86ed821ac0d2",
+  "firmware_bytes": 50748,
+  "firmware_crc32": "8441721B",
+  "sd_cart_sha256": "d368e1e4f9706e73daa980b97d88ddbcc9307e7410d097423876ecbe903ba835",
+  "sd_save_preserved": true,
+  "recorded_before_span_pixels": {
+    "x": 0.0,
+    "y": 0.578125
+  },
+  "native_regression_fails_old_detector": true,
+  "native_checks": 9282,
+  "trap_test_frames": 990,
+  "normal_automatic_kick": false,
+  "tilt_retirement": true,
+  "continuous_warning_seconds": 13.365492041994003,
+  "render_hz": 59.28777865102275,
+  "physics_hz": 59.28777865102275,
+  "no_resets_or_board_changes_during_observation": true,
+  "lives_unchanged": true
+}

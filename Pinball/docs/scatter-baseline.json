@@ -1,0 +1,6323 @@
+{
+  "schema": 1,
+  "workload": {
+    "seeds": 32,
+    "seconds": 120,
+    "shot_seeds": 512,
+    "physics_seed_stream": "xorshift32: 0xA11CE517",
+    "shot_seed_stream": "xorshift32: 0x51A77E12",
+    "bootstrap_seed": 720983,
+    "bootstrap_replicates": 2000,
+    "board_hash": "7c74ee42ec137ce661970d98e791debffa1bc5733439336c3e17db07c73a0101"
+  },
+  "configs": {
+    "off": {
+      "passive": 0,
+      "powered": 0,
+      "eject": 0,
+      "angle_zero": 0
+    },
+    "passive_only": {
+      "passive": 4,
+      "powered": 0,
+      "eject": 0,
+      "angle_zero": 0
+    },
+    "powered_only": {
+      "passive": 0,
+      "powered": 16,
+      "eject": 0,
+      "angle_zero": 0
+    },
+    "current": {
+      "passive": 4,
+      "powered": 16,
+      "eject": 8,
+      "angle_zero": 0
+    },
+    "softer_powered": {
+      "passive": 4,
+      "powered": 8,
+      "eject": 8,
+      "angle_zero": 0
+    },
+    "stronger_passive": {
+      "passive": 8,
+      "powered": 16,
+      "eject": 8,
+      "angle_zero": 0
+    },
+    "passive_damping_only": {
+      "passive": 4,
+      "powered": 0,
+      "eject": 0,
+      "angle_zero": 1
+    },
+    "powered_damping_only": {
+      "passive": 0,
+      "powered": 16,
+      "eject": 0,
+      "angle_zero": 1
+    },
+    "zero_angles": {
+      "passive": 4,
+      "powered": 16,
+      "eject": 8,
+      "angle_zero": 1
+    }
+  },
+  "angular_controls": {
+    "passive_only": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 0,
+        "eject": 0,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 50.195,
+          "angle_degrees": {
+            "mean": 0.089524,
+            "median": 0.095493,
+            "p95": 0.286477,
+            "maximum": 0.381966
+          },
+          "displacement_15_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "displacement_60_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 94.873,
+          "angle_degrees": {
+            "mean": 0.159613,
+            "median": 0.117024,
+            "p95": 0.329045,
+            "maximum": 0.447238
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.038914,
+            "median": 0.027344,
+            "p95": 0.107262,
+            "maximum": 0.152344
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.162782,
+            "median": 0.117188,
+            "p95": 0.419281,
+            "maximum": 0.627449
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.162782,
+            "median": 0.117188,
+            "p95": 0.419281,
+            "maximum": 0.627449
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 82.621,
+          "time_limit_percent": 23.264,
+          "life_losses_per_minute": 1.8079,
+          "mean_score": 33931.146,
+          "score_per_minute": 24640.934,
+          "paired_duration": {
+            "percent": 3.325,
+            "ci95": [
+              -0.43,
+              7.476
+            ]
+          },
+          "paired_score": {
+            "percent": 7.341,
+            "ci95": [
+              -5.269,
+              21.187
+            ]
+          },
+          "metrics": {
+            "lives": 0.5104,
+            "coverage": 60.3889,
+            "types": 5.5556,
+            "stalled": 61.9062,
+            "drought": 193.7396,
+            "fast": 7.1979,
+            "ramps": 1.441,
+            "flips": 17.9271,
+            "searches": 0,
+            "banks": 0.625,
+            "lanes": 0.1076,
+            "multiballs": 0.1285
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 96.528,
+          "one_ball_path_divergence_percent": 97.569,
+          "median_seconds_to_path_divergence": 4,
+          "mean_seconds": 113.157,
+          "time_limit_percent": 79.514,
+          "life_losses_per_minute": 0.6499,
+          "mean_score": 78162.986,
+          "score_per_minute": 41444.76,
+          "paired_duration": {
+            "percent": 7.087,
+            "ci95": [
+              4.506,
+              9.804
+            ]
+          },
+          "paired_score": {
+            "percent": 30.245,
+            "ci95": [
+              9.911,
+              58.588
+            ]
+          },
+          "metrics": {
+            "lives": 1.7743,
+            "coverage": 60.3438,
+            "types": 5.9757,
+            "stalled": 0,
+            "drought": 796.1354,
+            "fast": 10.9965,
+            "ramps": 2.2535,
+            "flips": 37.3681,
+            "searches": 0,
+            "banks": 0.7674,
+            "lanes": 0.4236,
+            "multiballs": 0.2396
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 4.245,
+            "ci95": [
+              -9.429,
+              20.799
+            ]
+          },
+          "score": {
+            "percent": -20.376,
+            "ci95": [
+              -40.315,
+              12.485
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 1.984,
+            "ci95": [
+              -1.385,
+              5.552
+            ]
+          },
+          "score": {
+            "percent": 5.186,
+            "ci95": [
+              -16.628,
+              36.094
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -40.735,
+            "ci95": [
+              -62.265,
+              -15.772
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 45.312,
+            "ci95": [
+              -6.825,
+              136.071
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 3.458,
+            "ci95": [
+              -4.993,
+              14.101
+            ]
+          },
+          "score": {
+            "percent": 30.026,
+            "ci95": [
+              6.564,
+              60.546
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 8.21,
+            "ci95": [
+              2.331,
+              16.529
+            ]
+          },
+          "score": {
+            "percent": 76.8,
+            "ci95": [
+              37.585,
+              127.966
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -4.064,
+            "ci95": [
+              -14.395,
+              7.192
+            ]
+          },
+          "score": {
+            "percent": 61.061,
+            "ci95": [
+              19.565,
+              109.568
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 46.625,
+            "ci95": [
+              29.701,
+              69.429
+            ]
+          },
+          "score": {
+            "percent": 71.529,
+            "ci95": [
+              24.625,
+              137.363
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 14.388,
+            "ci95": [
+              1.065,
+              31.352
+            ]
+          },
+          "score": {
+            "percent": 28.017,
+            "ci95": [
+              -1.018,
+              71.039
+            ]
+          }
+        }
+      ]
+    },
+    "powered_only": {
+      "config": {
+        "kind": "config",
+        "passive": 0,
+        "powered": 16,
+        "eject": 0,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 93.652,
+          "angle_degrees": {
+            "mean": 0.627669,
+            "median": 0.543526,
+            "p95": 1.486581,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.23012,
+            "median": 0.070312,
+            "p95": 0.996094,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 94.873,
+          "angle_degrees": {
+            "mean": 0.644769,
+            "median": 0.562921,
+            "p95": 1.488633,
+            "maximum": 2.012473
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.425019,
+            "median": 0.308594,
+            "p95": 1.269531,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.744105,
+            "median": 1.277344,
+            "p95": 5.226562,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.744105,
+            "median": 1.277344,
+            "p95": 5.226562,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 11.377
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 91.211,
+          "angle_degrees": {
+            "mean": 0.573344,
+            "median": 0.495626,
+            "p95": 1.370139,
+            "maximum": 1.684684
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.062675,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.460938
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 93.652,
+          "angle_degrees": {
+            "mean": 0.609831,
+            "median": 0.528704,
+            "p95": 1.391607,
+            "maximum": 1.706828
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.232685,
+            "median": 0.18529,
+            "p95": 0.562079,
+            "maximum": 0.764797
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.954986,
+            "median": 0.737454,
+            "p95": 2.313968,
+            "maximum": 3.159413
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.954986,
+            "median": 0.737454,
+            "p95": 2.313968,
+            "maximum": 3.159413
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.681994,
+            "median": 0.607466,
+            "p95": 1.59824,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.397564,
+            "median": 0.289062,
+            "p95": 1.171875,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.679706,
+            "median": 0.592854,
+            "p95": 1.567562,
+            "maximum": 2.012473
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.617353,
+            "median": 0.539062,
+            "p95": 1.417969,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 2.533224,
+            "median": 2.210938,
+            "p95": 5.8125,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 2.533224,
+            "median": 2.210938,
+            "p95": 5.8125,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 22.754
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 89.236,
+          "one_ball_path_divergence_percent": 89.236,
+          "median_seconds_to_path_divergence": 6,
+          "mean_seconds": 82.472,
+          "time_limit_percent": 24.653,
+          "life_losses_per_minute": 1.7935,
+          "mean_score": 29463.611,
+          "score_per_minute": 21435.464,
+          "paired_duration": {
+            "percent": 4.622,
+            "ci95": [
+              -1.232,
+              10.085
+            ]
+          },
+          "paired_score": {
+            "percent": -0.836,
+            "ci95": [
+              -11.934,
+              11.994
+            ]
+          },
+          "metrics": {
+            "lives": 0.5347,
+            "coverage": 58.8576,
+            "types": 5.3368,
+            "stalled": 103.8264,
+            "drought": 236.8021,
+            "fast": 6.9167,
+            "ramps": 1.4028,
+            "flips": 18.0833,
+            "searches": 0,
+            "banks": 0.5903,
+            "lanes": 0.0694,
+            "multiballs": 0.1215
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 88.889,
+          "one_ball_path_divergence_percent": 88.889,
+          "median_seconds_to_path_divergence": 5.0,
+          "mean_seconds": 111.283,
+          "time_limit_percent": 76.042,
+          "life_losses_per_minute": 0.702,
+          "mean_score": 78524.931,
+          "score_per_minute": 42337.861,
+          "paired_duration": {
+            "percent": 10.938,
+            "ci95": [
+              6.025,
+              16.071
+            ]
+          },
+          "paired_score": {
+            "percent": 28.922,
+            "ci95": [
+              8.675,
+              55.732
+            ]
+          },
+          "metrics": {
+            "lives": 1.6979,
+            "coverage": 59.7153,
+            "types": 5.8889,
+            "stalled": 0,
+            "drought": 775.4028,
+            "fast": 10.1424,
+            "ramps": 2.1319,
+            "flips": 38.0312,
+            "searches": 0,
+            "banks": 0.7361,
+            "lanes": 0.4062,
+            "multiballs": 0.2708
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 7.915,
+            "ci95": [
+              -3.724,
+              22.009
+            ]
+          },
+          "score": {
+            "percent": 15.017,
+            "ci95": [
+              -8.845,
+              43.832
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 41.193,
+            "ci95": [
+              21.173,
+              66.777
+            ]
+          },
+          "score": {
+            "percent": 318.132,
+            "ci95": [
+              238.377,
+              431.341
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 5.704,
+            "ci95": [
+              0.201,
+              12.297
+            ]
+          },
+          "score": {
+            "percent": 81.317,
+            "ci95": [
+              20.099,
+              174.847
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 1.726,
+            "ci95": [
+              -8.654,
+              13.289
+            ]
+          },
+          "score": {
+            "percent": 19.438,
+            "ci95": [
+              2.211,
+              40.685
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 13.851,
+            "ci95": [
+              -0.339,
+              31.858
+            ]
+          },
+          "score": {
+            "percent": -18.047,
+            "ci95": [
+              -47.745,
+              35.69
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": 12.063,
+            "ci95": [
+              -5.241,
+              35.383
+            ]
+          },
+          "score": {
+            "percent": 129.062,
+            "ci95": [
+              60.727,
+              226.501
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 7.501,
+            "ci95": [
+              1.634,
+              14.798
+            ]
+          },
+          "score": {
+            "percent": 6.721,
+            "ci95": [
+              -23.253,
+              46.088
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 18.42,
+            "ci95": [
+              3.953,
+              37.228
+            ]
+          },
+          "score": {
+            "percent": -1.748,
+            "ci95": [
+              -32.601,
+              54.87
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 16,
+        "eject": 8,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 50.195,
+          "angle_degrees": {
+            "mean": 0.089524,
+            "median": 0.095493,
+            "p95": 0.286477,
+            "maximum": 0.381966
+          },
+          "displacement_15_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "displacement_60_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 94.873,
+          "angle_degrees": {
+            "mean": 0.159613,
+            "median": 0.117024,
+            "p95": 0.329045,
+            "maximum": 0.447238
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.038914,
+            "median": 0.027344,
+            "p95": 0.107262,
+            "maximum": 0.152344
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.162782,
+            "median": 0.117188,
+            "p95": 0.419281,
+            "maximum": 0.627449
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.162782,
+            "median": 0.117188,
+            "p95": 0.419281,
+            "maximum": 0.627449
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 93.652,
+          "angle_degrees": {
+            "mean": 0.627669,
+            "median": 0.543526,
+            "p95": 1.486581,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.23012,
+            "median": 0.070312,
+            "p95": 0.996094,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 94.873,
+          "angle_degrees": {
+            "mean": 0.644769,
+            "median": 0.562921,
+            "p95": 1.488633,
+            "maximum": 2.012473
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.425019,
+            "median": 0.308594,
+            "p95": 1.269531,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.744105,
+            "median": 1.277344,
+            "p95": 5.226562,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.744105,
+            "median": 1.277344,
+            "p95": 5.226562,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 11.377
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 91.211,
+          "angle_degrees": {
+            "mean": 0.573344,
+            "median": 0.495626,
+            "p95": 1.370139,
+            "maximum": 1.684684
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.062675,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.460938
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 93.652,
+          "angle_degrees": {
+            "mean": 0.609831,
+            "median": 0.528704,
+            "p95": 1.391607,
+            "maximum": 1.706828
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.232685,
+            "median": 0.18529,
+            "p95": 0.562079,
+            "maximum": 0.764797
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.954986,
+            "median": 0.737454,
+            "p95": 2.313968,
+            "maximum": 3.159413
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.954986,
+            "median": 0.737454,
+            "p95": 2.313968,
+            "maximum": 3.159413
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.681994,
+            "median": 0.607466,
+            "p95": 1.59824,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.397564,
+            "median": 0.289062,
+            "p95": 1.171875,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.679706,
+            "median": 0.592854,
+            "p95": 1.567562,
+            "maximum": 2.012473
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.617353,
+            "median": 0.539062,
+            "p95": 1.417969,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 2.533224,
+            "median": 2.210938,
+            "p95": 5.8125,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 2.533224,
+            "median": 2.210938,
+            "p95": 5.8125,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 22.754
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 81.491,
+          "time_limit_percent": 23.958,
+          "life_losses_per_minute": 1.833,
+          "mean_score": 31108.681,
+          "score_per_minute": 22904.519,
+          "paired_duration": {
+            "percent": -4.125,
+            "ci95": [
+              -7.404,
+              -0.637
+            ]
+          },
+          "paired_score": {
+            "percent": -10.474,
+            "ci95": [
+              -26.696,
+              6.546
+            ]
+          },
+          "metrics": {
+            "lives": 0.5104,
+            "coverage": 59.7882,
+            "types": 5.3646,
+            "stalled": 81.5625,
+            "drought": 204.6806,
+            "fast": 7.0868,
+            "ramps": 1.3472,
+            "flips": 17.5208,
+            "searches": 0,
+            "banks": 0.5556,
+            "lanes": 0.1007,
+            "multiballs": 0.1146
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 95.139,
+          "one_ball_path_divergence_percent": 96.528,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 110.912,
+          "time_limit_percent": 74.306,
+          "life_losses_per_minute": 0.7307,
+          "mean_score": 74863.681,
+          "score_per_minute": 40498.906,
+          "paired_duration": {
+            "percent": 8.531,
+            "ci95": [
+              6.015,
+              11.368
+            ]
+          },
+          "paired_score": {
+            "percent": 19.82,
+            "ci95": [
+              -1.968,
+              48.436
+            ]
+          },
+          "metrics": {
+            "lives": 1.6493,
+            "coverage": 61.1424,
+            "types": 5.9062,
+            "stalled": 0,
+            "drought": 936.4514,
+            "fast": 8.4062,
+            "ramps": 2.1424,
+            "flips": 37.8715,
+            "searches": 0,
+            "banks": 0.8333,
+            "lanes": 0.4931,
+            "multiballs": 0.2361
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 8.59,
+            "ci95": [
+              2.021,
+              15.497
+            ]
+          },
+          "score": {
+            "percent": -26.773,
+            "ci95": [
+              -47.158,
+              2.855
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 6.772,
+            "ci95": [
+              -1.43,
+              17.018
+            ]
+          },
+          "score": {
+            "percent": 14.996,
+            "ci95": [
+              -15.248,
+              62.584
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -47.26,
+            "ci95": [
+              -73.456,
+              -0.546
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 2.311,
+            "ci95": [
+              -2.971,
+              8.28
+            ]
+          },
+          "score": {
+            "percent": 41.186,
+            "ci95": [
+              -18.729,
+              136.136
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": -3.64,
+            "ci95": [
+              -14.447,
+              9.07
+            ]
+          },
+          "score": {
+            "percent": -9.847,
+            "ci95": [
+              -30.106,
+              16.143
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 7.0,
+            "ci95": [
+              1.655,
+              15.053
+            ]
+          },
+          "score": {
+            "percent": 32.306,
+            "ci95": [
+              -4.615,
+              76.133
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": 22.196,
+            "ci95": [
+              8.663,
+              37.421
+            ]
+          },
+          "score": {
+            "percent": 45.353,
+            "ci95": [
+              10.045,
+              88.454
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 14.489,
+            "ci95": [
+              6.465,
+              24.506
+            ]
+          },
+          "score": {
+            "percent": 20.297,
+            "ci95": [
+              -8.783,
+              63.157
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 28.485,
+            "ci95": [
+              12.736,
+              50.129
+            ]
+          },
+          "score": {
+            "percent": 94.839,
+            "ci95": [
+              51.452,
+              154.869
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "current_vs_softer_powered": {
+    "config": {
+      "kind": "config",
+      "passive": 4,
+      "powered": 16,
+      "eject": 8,
+      "angle_zero": 0
+    },
+    "contacts": {
+      "passive_normal": {
+        "samples": 1024,
+        "changed_velocity_percent": 0,
+        "angle_degrees": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "passive_oblique": {
+        "samples": 2048,
+        "changed_velocity_percent": 0,
+        "angle_degrees": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.0,
+          "median": 0.0,
+          "p95": 0.0,
+          "maximum": 0.0
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_normal": {
+        "samples": 2048,
+        "changed_velocity_percent": 93.652,
+        "angle_degrees": {
+          "mean": 0.327777,
+          "median": 0.297364,
+          "p95": 0.767033,
+          "maximum": 1.022378
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.162916,
+          "median": 0.058594,
+          "p95": 0.617188,
+          "maximum": 0.90625
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.265768,
+          "median": 0.058594,
+          "p95": 1.351562,
+          "maximum": 2.898438
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.265768,
+          "median": 0.058594,
+          "p95": 1.351562,
+          "maximum": 2.898438
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_oblique": {
+        "samples": 4096,
+        "changed_velocity_percent": 92.847,
+        "angle_degrees": {
+          "mean": 0.321526,
+          "median": 0.281667,
+          "p95": 0.734113,
+          "maximum": 1.004641
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.213699,
+          "median": 0.154532,
+          "p95": 0.628906,
+          "maximum": 0.90625
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.877178,
+          "median": 0.626,
+          "p95": 2.558594,
+          "maximum": 3.71875
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.877178,
+          "median": 0.626,
+          "p95": 2.558594,
+          "maximum": 3.71875
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_typical_normal": {
+        "samples": 1024,
+        "changed_velocity_percent": 91.211,
+        "angle_degrees": {
+          "mean": 0.306987,
+          "median": 0.297364,
+          "p95": 0.693698,
+          "maximum": 0.891714
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.052223,
+          "median": 0.019531,
+          "p95": 0.210938,
+          "maximum": 0.355469
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.053665,
+          "median": 0.019531,
+          "p95": 0.210938,
+          "maximum": 0.433594
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.053665,
+          "median": 0.019531,
+          "p95": 0.210938,
+          "maximum": 0.433594
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_typical_oblique": {
+        "samples": 2048,
+        "changed_velocity_percent": 89.6,
+        "angle_degrees": {
+          "mean": 0.303224,
+          "median": 0.277259,
+          "p95": 0.69594,
+          "maximum": 0.853202
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.118783,
+          "median": 0.101863,
+          "p95": 0.281602,
+          "maximum": 0.387999
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.48778,
+          "median": 0.420371,
+          "p95": 1.145437,
+          "maximum": 1.581573
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.48778,
+          "median": 0.420371,
+          "p95": 1.145437,
+          "maximum": 1.581573
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_max_normal": {
+        "samples": 1024,
+        "changed_velocity_percent": 96.094,
+        "angle_degrees": {
+          "mean": 0.348566,
+          "median": 0.319708,
+          "p95": 0.798983,
+          "maximum": 1.022378
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.273609,
+          "median": 0.234375,
+          "p95": 0.710938,
+          "maximum": 0.90625
+        },
+        "displacement_60_frames_px": {
+          "mean": 0.477871,
+          "median": 0.242188,
+          "p95": 1.757812,
+          "maximum": 2.898438
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 0.477871,
+          "median": 0.242188,
+          "p95": 1.757812,
+          "maximum": 2.898438
+        },
+        "half_ball_displacement_percent": 0
+      },
+      "powered_max_oblique": {
+        "samples": 2048,
+        "changed_velocity_percent": 96.094,
+        "angle_degrees": {
+          "mean": 0.339829,
+          "median": 0.310671,
+          "p95": 0.785288,
+          "maximum": 1.004641
+        },
+        "displacement_15_frames_px": {
+          "mean": 0.308615,
+          "median": 0.28125,
+          "p95": 0.710938,
+          "maximum": 0.90625
+        },
+        "displacement_60_frames_px": {
+          "mean": 1.266577,
+          "median": 1.164062,
+          "p95": 2.90625,
+          "maximum": 3.71875
+        },
+        "maximum_sampled_displacement_px": {
+          "mean": 1.266577,
+          "median": 1.164062,
+          "p95": 2.90625,
+          "maximum": 3.71875
+        },
+        "half_ball_displacement_percent": 0
+      }
+    },
+    "policies": {
+      "fixed": {
+        "games": 288,
+        "changed_outcome_percent": 89.236,
+        "one_ball_path_divergence_percent": 89.236,
+        "median_seconds_to_path_divergence": 5,
+        "mean_seconds": 81.491,
+        "time_limit_percent": 23.958,
+        "life_losses_per_minute": 1.833,
+        "mean_score": 31108.681,
+        "score_per_minute": 22904.519,
+        "paired_duration": {
+          "percent": -3.507,
+          "ci95": [
+            -7.849,
+            1.26
+          ]
+        },
+        "paired_score": {
+          "percent": -5.994,
+          "ci95": [
+            -19.08,
+            9.754
+          ]
+        },
+        "metrics": {
+          "lives": 0.5104,
+          "coverage": 59.7882,
+          "types": 5.3646,
+          "stalled": 81.5625,
+          "drought": 204.6806,
+          "fast": 7.0868,
+          "ramps": 1.3472,
+          "flips": 17.5208,
+          "searches": 0,
+          "banks": 0.5556,
+          "lanes": 0.1007,
+          "multiballs": 0.1146
+        }
+      },
+      "reactive": {
+        "games": 288,
+        "changed_outcome_percent": 92.708,
+        "one_ball_path_divergence_percent": 92.708,
+        "median_seconds_to_path_divergence": 5,
+        "mean_seconds": 110.912,
+        "time_limit_percent": 74.306,
+        "life_losses_per_minute": 0.7307,
+        "mean_score": 74863.681,
+        "score_per_minute": 40498.906,
+        "paired_duration": {
+          "percent": -0.073,
+          "ci95": [
+            -2.347,
+            2.438
+          ]
+        },
+        "paired_score": {
+          "percent": 9.382,
+          "ci95": [
+            -11.616,
+            34.381
+          ]
+        },
+        "metrics": {
+          "lives": 1.6493,
+          "coverage": 61.1424,
+          "types": 5.9062,
+          "stalled": 0,
+          "drought": 936.4514,
+          "fast": 8.4062,
+          "ramps": 2.1424,
+          "flips": 37.8715,
+          "searches": 0,
+          "banks": 0.8333,
+          "lanes": 0.4931,
+          "multiballs": 0.2361
+        }
+      }
+    },
+    "boards": [
+      {
+        "title": "Neon Pursuit",
+        "duration": {
+          "percent": 4.327,
+          "ci95": [
+            -3.811,
+            14.166
+          ]
+        },
+        "score": {
+          "percent": 13.303,
+          "ci95": [
+            -14.99,
+            58.985
+          ]
+        }
+      },
+      {
+        "title": "Orbital Robot",
+        "duration": {
+          "percent": -3.955,
+          "ci95": [
+            -8.579,
+            -0.624
+          ]
+        },
+        "score": {
+          "percent": -2.815,
+          "ci95": [
+            -22.718,
+            22.359
+          ]
+        }
+      },
+      {
+        "title": "Shuttle Run",
+        "duration": {
+          "percent": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "score": {
+          "percent": 38.74,
+          "ci95": [
+            4.557,
+            85.244
+          ]
+        }
+      },
+      {
+        "title": "Storm Riders",
+        "duration": {
+          "percent": -2.534,
+          "ci95": [
+            -5.845,
+            0.226
+          ]
+        },
+        "score": {
+          "percent": 3.415,
+          "ci95": [
+            -40.342,
+            59.351
+          ]
+        }
+      },
+      {
+        "title": "Solar Temple",
+        "duration": {
+          "percent": -2.183,
+          "ci95": [
+            -12.871,
+            11.671
+          ]
+        },
+        "score": {
+          "percent": 9.781,
+          "ci95": [
+            -18.097,
+            50.437
+          ]
+        }
+      },
+      {
+        "title": "Midnight Manor",
+        "duration": {
+          "percent": 0.0,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        },
+        "score": {
+          "percent": 21.745,
+          "ci95": [
+            -17.193,
+            74.618
+          ]
+        }
+      },
+      {
+        "title": "Cosmic Carnival",
+        "duration": {
+          "percent": 2.59,
+          "ci95": [
+            -11.826,
+            19.038
+          ]
+        },
+        "score": {
+          "percent": 19.549,
+          "ci95": [
+            -17.741,
+            74.059
+          ]
+        }
+      },
+      {
+        "title": "Dragon Keep",
+        "duration": {
+          "percent": -1.074,
+          "ci95": [
+            -5.188,
+            2.818
+          ]
+        },
+        "score": {
+          "percent": 5.565,
+          "ci95": [
+            -22.276,
+            44.225
+          ]
+        }
+      },
+      {
+        "title": "Buccaneer Bay",
+        "duration": {
+          "percent": 3.412,
+          "ci95": [
+            -4.364,
+            12.308
+          ]
+        },
+        "score": {
+          "percent": -2.474,
+          "ci95": [
+            -40.503,
+            50.118
+          ]
+        }
+      }
+    ]
+  },
+  "source_hash": "e68be07b0450bf182934d5df2ce573b00ef56b9106c72e49470515ec9a347469",
+  "raw_sha256": {
+    "off": "55c2a92a6c0e7456b6f69b4241801ed942479f2770f2e06323edbf4f19df6057",
+    "passive_only": "59664ec40579dbad3bebe9f0c87cad754e70fb10e92e5c018b51f740817763ab",
+    "powered_only": "046f3c9b71f5f96dc37cfec198c28fe30e8da05fa0a0fe4ac95c80ee2213f724",
+    "current": "482b83a4cd5159e6dcfd2b166129239229911a03ba2f7ec6f15d3c772974a3e2",
+    "softer_powered": "13b639e980415b4396f7ddfe49adc8f6731f038104a2cc79dca26c824e9a3127",
+    "stronger_passive": "d5efa23b8e9b9f9dcd662aa428e82e6713204626957e4fdae5b2193ee2cc6363",
+    "passive_damping_only": "b702db9a7d5fb0c32e9d5a14cdb5d8e2a24c63eabbca2b8deca6a7d4166af0a0",
+    "powered_damping_only": "ef9dbc5073b854b8aab9fc17310af04ddfabf5dbf2fe27fb729cc41578a720fe",
+    "zero_angles": "813785e8680fe504a741e5036e06263903aced084ce7d229e72763cc4829cedc"
+  },
+  "results": {
+    "off": {
+      "config": {
+        "kind": "config",
+        "passive": 0,
+        "powered": 0,
+        "eject": 0,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 0,
+          "one_ball_path_divergence_percent": 0,
+          "median_seconds_to_path_divergence": null,
+          "mean_seconds": 82.824,
+          "time_limit_percent": 25.0,
+          "life_losses_per_minute": 1.8136,
+          "mean_score": 30290.486,
+          "score_per_minute": 21943.34,
+          "paired_duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "paired_score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "metrics": {
+            "lives": 0.4965,
+            "coverage": 57.7049,
+            "types": 5.2743,
+            "stalled": 38.6597,
+            "drought": 172.7847,
+            "fast": 6.8542,
+            "ramps": 1.3715,
+            "flips": 18.191,
+            "searches": 0,
+            "banks": 0.7153,
+            "lanes": 0.0729,
+            "multiballs": 0.1424
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 0,
+          "one_ball_path_divergence_percent": 0,
+          "median_seconds_to_path_divergence": null,
+          "mean_seconds": 104.214,
+          "time_limit_percent": 66.667,
+          "life_losses_per_minute": 0.6917,
+          "mean_score": 65388.715,
+          "score_per_minute": 37646.645,
+          "paired_duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "paired_score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "metrics": {
+            "lives": 1.7986,
+            "coverage": 47.5035,
+            "types": 4.7292,
+            "stalled": 0,
+            "drought": 701.6111,
+            "fast": 11.6042,
+            "ramps": 2.2639,
+            "flips": 34.0694,
+            "searches": 0,
+            "banks": 0.8299,
+            "lanes": 0.1354,
+            "multiballs": 0.2326
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ]
+    },
+    "passive_only": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 0,
+        "eject": 0,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.089524,
+            "median": 0.095493,
+            "p95": 0.286477,
+            "maximum": 0.381966
+          },
+          "displacement_15_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "displacement_60_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.161074,
+            "median": 0.116936,
+            "p95": 0.328575,
+            "maximum": 0.447474
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.040087,
+            "median": 0.027344,
+            "p95": 0.104012,
+            "maximum": 0.150884
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 99.653,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 82.621,
+          "time_limit_percent": 23.264,
+          "life_losses_per_minute": 1.8079,
+          "mean_score": 33931.146,
+          "score_per_minute": 24640.934,
+          "paired_duration": {
+            "percent": -0.244,
+            "ci95": [
+              -4.518,
+              4.212
+            ]
+          },
+          "paired_score": {
+            "percent": 12.019,
+            "ci95": [
+              -1.163,
+              27.741
+            ]
+          },
+          "metrics": {
+            "lives": 0.5104,
+            "coverage": 60.3889,
+            "types": 5.5556,
+            "stalled": 61.9062,
+            "drought": 193.7396,
+            "fast": 7.1979,
+            "ramps": 1.441,
+            "flips": 17.9271,
+            "searches": 0,
+            "banks": 0.625,
+            "lanes": 0.1076,
+            "multiballs": 0.1285
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 95.486,
+          "one_ball_path_divergence_percent": 96.875,
+          "median_seconds_to_path_divergence": 4,
+          "mean_seconds": 113.157,
+          "time_limit_percent": 79.514,
+          "life_losses_per_minute": 0.6499,
+          "mean_score": 78162.986,
+          "score_per_minute": 41444.76,
+          "paired_duration": {
+            "percent": 8.581,
+            "ci95": [
+              5.48,
+              11.957
+            ]
+          },
+          "paired_score": {
+            "percent": 19.536,
+            "ci95": [
+              1.244,
+              42.571
+            ]
+          },
+          "metrics": {
+            "lives": 1.7743,
+            "coverage": 60.3438,
+            "types": 5.9757,
+            "stalled": 0,
+            "drought": 796.1354,
+            "fast": 10.9965,
+            "ramps": 2.2535,
+            "flips": 37.3681,
+            "searches": 0,
+            "banks": 0.7674,
+            "lanes": 0.4236,
+            "multiballs": 0.2396
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 14.281,
+            "ci95": [
+              -0.984,
+              33.156
+            ]
+          },
+          "score": {
+            "percent": -2.105,
+            "ci95": [
+              -25.619,
+              36.888
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 7.878,
+            "ci95": [
+              1.036,
+              17.04
+            ]
+          },
+          "score": {
+            "percent": -8.955,
+            "ci95": [
+              -32.871,
+              30.014
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -53.16,
+            "ci95": [
+              -76.08,
+              -6.978
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 47.138,
+            "ci95": [
+              -6.994,
+              138.728
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 14.921,
+            "ci95": [
+              2.94,
+              33.314
+            ]
+          },
+          "score": {
+            "percent": 20.276,
+            "ci95": [
+              1.497,
+              46.636
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 54.224,
+            "ci95": [
+              30.722,
+              89.823
+            ]
+          },
+          "score": {
+            "percent": 110.861,
+            "ci95": [
+              42.586,
+              246.263
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -10.071,
+            "ci95": [
+              -18.298,
+              -1.725
+            ]
+          },
+          "score": {
+            "percent": 18.83,
+            "ci95": [
+              -16.985,
+              68.008
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 3.114,
+            "ci95": [
+              -0.537,
+              7.678
+            ]
+          },
+          "score": {
+            "percent": -15.539,
+            "ci95": [
+              -38.652,
+              19.114
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 8.298,
+            "ci95": [
+              -2.15,
+              21.114
+            ]
+          },
+          "score": {
+            "percent": -5.017,
+            "ci95": [
+              -28.386,
+              29.542
+            ]
+          }
+        }
+      ]
+    },
+    "powered_only": {
+      "config": {
+        "kind": "config",
+        "passive": 0,
+        "powered": 16,
+        "eject": 0,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 98.047,
+          "angle_degrees": {
+            "mean": 0.627669,
+            "median": 0.543526,
+            "p95": 1.486581,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.23012,
+            "median": 0.070312,
+            "p95": 0.996094,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.646231,
+            "median": 0.561507,
+            "p95": 1.472949,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.42649,
+            "median": 0.308594,
+            "p95": 1.246094,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 11.377
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.573344,
+            "median": 0.495626,
+            "p95": 1.370139,
+            "maximum": 1.684684
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.062675,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.460938
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.611537,
+            "median": 0.538121,
+            "p95": 1.407667,
+            "maximum": 1.687902
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.234483,
+            "median": 0.202824,
+            "p95": 0.564625,
+            "maximum": 0.768529
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.681994,
+            "median": 0.607466,
+            "p95": 1.59824,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.397564,
+            "median": 0.289062,
+            "p95": 1.171875,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.680924,
+            "median": 0.594145,
+            "p95": 1.580907,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.618498,
+            "median": 0.542969,
+            "p95": 1.445312,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 22.754
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 89.236,
+          "one_ball_path_divergence_percent": 89.236,
+          "median_seconds_to_path_divergence": 6,
+          "mean_seconds": 82.472,
+          "time_limit_percent": 24.653,
+          "life_losses_per_minute": 1.7935,
+          "mean_score": 29463.611,
+          "score_per_minute": 21435.464,
+          "paired_duration": {
+            "percent": -0.425,
+            "ci95": [
+              -5.102,
+              3.751
+            ]
+          },
+          "paired_score": {
+            "percent": -2.73,
+            "ci95": [
+              -11.913,
+              6.712
+            ]
+          },
+          "metrics": {
+            "lives": 0.5347,
+            "coverage": 58.8576,
+            "types": 5.3368,
+            "stalled": 103.8264,
+            "drought": 236.8021,
+            "fast": 6.9167,
+            "ramps": 1.4028,
+            "flips": 18.0833,
+            "searches": 0,
+            "banks": 0.5903,
+            "lanes": 0.0694,
+            "multiballs": 0.1215
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 88.889,
+          "one_ball_path_divergence_percent": 88.889,
+          "median_seconds_to_path_divergence": 5.0,
+          "mean_seconds": 111.283,
+          "time_limit_percent": 76.042,
+          "life_losses_per_minute": 0.702,
+          "mean_score": 78524.931,
+          "score_per_minute": 42337.861,
+          "paired_duration": {
+            "percent": 6.783,
+            "ci95": [
+              3.476,
+              10.078
+            ]
+          },
+          "paired_score": {
+            "percent": 20.089,
+            "ci95": [
+              3.644,
+              42.263
+            ]
+          },
+          "metrics": {
+            "lives": 1.6979,
+            "coverage": 59.7153,
+            "types": 5.8889,
+            "stalled": 0,
+            "drought": 775.4028,
+            "fast": 10.1424,
+            "ramps": 2.1319,
+            "flips": 38.0312,
+            "searches": 0,
+            "banks": 0.7361,
+            "lanes": 0.4062,
+            "multiballs": 0.2708
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 17.11,
+            "ci95": [
+              4.093,
+              33.192
+            ]
+          },
+          "score": {
+            "percent": 18.381,
+            "ci95": [
+              -20.035,
+              80.072
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 4.567,
+            "ci95": [
+              -5.011,
+              15.78
+            ]
+          },
+          "score": {
+            "percent": -27.068,
+            "ci95": [
+              -43.443,
+              -0.026
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -1.369,
+            "ci95": [
+              -3.828,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 30.089,
+            "ci95": [
+              -22.802,
+              112.1
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 9.069,
+            "ci95": [
+              -5.417,
+              28.418
+            ]
+          },
+          "score": {
+            "percent": 25.814,
+            "ci95": [
+              2.169,
+              60.022
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 41.575,
+            "ci95": [
+              16.66,
+              75.3
+            ]
+          },
+          "score": {
+            "percent": 107.192,
+            "ci95": [
+              27.47,
+              258.786
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -11.765,
+            "ci95": [
+              -20.539,
+              -2.499
+            ]
+          },
+          "score": {
+            "percent": 29.314,
+            "ci95": [
+              7.46,
+              61.504
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 4.453,
+            "ci95": [
+              1.146,
+              8.734
+            ]
+          },
+          "score": {
+            "percent": 1.084,
+            "ci95": [
+              -29.972,
+              42.614
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 9.699,
+            "ci95": [
+              -0.725,
+              22.31
+            ]
+          },
+          "score": {
+            "percent": -3.934,
+            "ci95": [
+              -29.637,
+              37.1
+            ]
+          }
+        }
+      ]
+    },
+    "current": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 16,
+        "eject": 8,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.089524,
+            "median": 0.095493,
+            "p95": 0.286477,
+            "maximum": 0.381966
+          },
+          "displacement_15_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "displacement_60_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.161074,
+            "median": 0.116936,
+            "p95": 0.328575,
+            "maximum": 0.447474
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.040087,
+            "median": 0.027344,
+            "p95": 0.104012,
+            "maximum": 0.150884
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 98.047,
+          "angle_degrees": {
+            "mean": 0.627669,
+            "median": 0.543526,
+            "p95": 1.486581,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.23012,
+            "median": 0.070312,
+            "p95": 0.996094,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.646231,
+            "median": 0.561507,
+            "p95": 1.472949,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.42649,
+            "median": 0.308594,
+            "p95": 1.246094,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 11.377
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.573344,
+            "median": 0.495626,
+            "p95": 1.370139,
+            "maximum": 1.684684
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.062675,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.460938
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.611537,
+            "median": 0.538121,
+            "p95": 1.407667,
+            "maximum": 1.687902
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.234483,
+            "median": 0.202824,
+            "p95": 0.564625,
+            "maximum": 0.768529
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.681994,
+            "median": 0.607466,
+            "p95": 1.59824,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.397564,
+            "median": 0.289062,
+            "p95": 1.171875,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.680924,
+            "median": 0.594145,
+            "p95": 1.580907,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.618498,
+            "median": 0.542969,
+            "p95": 1.445312,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 22.754
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 81.491,
+          "time_limit_percent": 23.958,
+          "life_losses_per_minute": 1.833,
+          "mean_score": 31108.681,
+          "score_per_minute": 22904.519,
+          "paired_duration": {
+            "percent": -1.609,
+            "ci95": [
+              -5.448,
+              2.326
+            ]
+          },
+          "paired_score": {
+            "percent": 2.701,
+            "ci95": [
+              -8.659,
+              15.652
+            ]
+          },
+          "metrics": {
+            "lives": 0.5104,
+            "coverage": 59.7882,
+            "types": 5.3646,
+            "stalled": 81.5625,
+            "drought": 204.6806,
+            "fast": 7.0868,
+            "ramps": 1.3472,
+            "flips": 17.5208,
+            "searches": 0,
+            "banks": 0.5556,
+            "lanes": 0.1007,
+            "multiballs": 0.1146
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 95.139,
+          "one_ball_path_divergence_percent": 96.528,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 110.912,
+          "time_limit_percent": 74.306,
+          "life_losses_per_minute": 0.7307,
+          "mean_score": 74863.681,
+          "score_per_minute": 40498.906,
+          "paired_duration": {
+            "percent": 6.427,
+            "ci95": [
+              3.27,
+              10.081
+            ]
+          },
+          "paired_score": {
+            "percent": 14.49,
+            "ci95": [
+              -6.54,
+              42.694
+            ]
+          },
+          "metrics": {
+            "lives": 1.6493,
+            "coverage": 61.1424,
+            "types": 5.9062,
+            "stalled": 0,
+            "drought": 936.4514,
+            "fast": 8.4062,
+            "ramps": 2.1424,
+            "flips": 37.8715,
+            "searches": 0,
+            "banks": 0.8333,
+            "lanes": 0.4931,
+            "multiballs": 0.2361
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 19.016,
+            "ci95": [
+              5.395,
+              37.197
+            ]
+          },
+          "score": {
+            "percent": 16.653,
+            "ci95": [
+              -19.888,
+              80.667
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 5.026,
+            "ci95": [
+              -3.358,
+              15.102
+            ]
+          },
+          "score": {
+            "percent": -24.634,
+            "ci95": [
+              -43.362,
+              2.836
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -47.26,
+            "ci95": [
+              -73.456,
+              -0.546
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -3.1,
+            "ci95": [
+              -6.174,
+              -0.831
+            ]
+          },
+          "score": {
+            "percent": 25.281,
+            "ci95": [
+              -25.172,
+              103.778
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 1.339,
+            "ci95": [
+              -12.923,
+              20.772
+            ]
+          },
+          "score": {
+            "percent": 20.609,
+            "ci95": [
+              -7.71,
+              57.821
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 54.842,
+            "ci95": [
+              31.854,
+              90.535
+            ]
+          },
+          "score": {
+            "percent": 144.282,
+            "ci95": [
+              56.872,
+              304.562
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -13.661,
+            "ci95": [
+              -23.844,
+              -3.338
+            ]
+          },
+          "score": {
+            "percent": 4.462,
+            "ci95": [
+              -32.565,
+              60.155
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 2.147,
+            "ci95": [
+              -2.63,
+              7.267
+            ]
+          },
+          "score": {
+            "percent": -36.926,
+            "ci95": [
+              -51.653,
+              -18.802
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 8.04,
+            "ci95": [
+              -0.965,
+              19.066
+            ]
+          },
+          "score": {
+            "percent": -4.006,
+            "ci95": [
+              -34.056,
+              40.483
+            ]
+          }
+        }
+      ]
+    },
+    "softer_powered": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 8,
+        "eject": 8,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.089524,
+            "median": 0.095493,
+            "p95": 0.286477,
+            "maximum": 0.381966
+          },
+          "displacement_15_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "displacement_60_frames_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 3.1e-05,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.003906
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.161074,
+            "median": 0.116936,
+            "p95": 0.328575,
+            "maximum": 0.447474
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.040087,
+            "median": 0.027344,
+            "p95": 0.104012,
+            "maximum": 0.150884
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.16818,
+            "median": 0.117188,
+            "p95": 0.422526,
+            "maximum": 0.626
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 96.826,
+          "angle_degrees": {
+            "mean": 0.299892,
+            "median": 0.261027,
+            "p95": 0.717791,
+            "maximum": 1.02303
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.067204,
+            "median": 0.011719,
+            "p95": 0.378906,
+            "maximum": 0.65625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.072083,
+            "median": 0.011719,
+            "p95": 0.410156,
+            "maximum": 0.90625
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.072083,
+            "median": 0.011719,
+            "p95": 0.410156,
+            "maximum": 0.90625
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 99.39,
+          "angle_degrees": {
+            "mean": 0.324704,
+            "median": 0.280536,
+            "p95": 0.742316,
+            "maximum": 1.030724
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.214622,
+            "median": 0.154532,
+            "p95": 0.628906,
+            "maximum": 0.933594
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.88034,
+            "median": 0.626,
+            "p95": 2.558594,
+            "maximum": 3.832031
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.88034,
+            "median": 0.626,
+            "p95": 2.558594,
+            "maximum": 3.832031
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.266358,
+            "median": 0.198255,
+            "p95": 0.652543,
+            "maximum": 0.792971
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.010452,
+            "median": 0.0,
+            "p95": 0.054688,
+            "maximum": 0.105469
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.010452,
+            "median": 0.0,
+            "p95": 0.054688,
+            "maximum": 0.105469
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.010452,
+            "median": 0.0,
+            "p95": 0.054688,
+            "maximum": 0.105469
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.308313,
+            "median": 0.250226,
+            "p95": 0.696647,
+            "maximum": 0.862462
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.119362,
+            "median": 0.107262,
+            "p95": 0.286518,
+            "maximum": 0.380534
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.48953,
+            "median": 0.419281,
+            "p95": 1.186658,
+            "maximum": 1.581573
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.48953,
+            "median": 0.419281,
+            "p95": 1.186658,
+            "maximum": 1.581573
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 93.652,
+          "angle_degrees": {
+            "mean": 0.333427,
+            "median": 0.287755,
+            "p95": 0.799275,
+            "maximum": 1.02303
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.123955,
+            "median": 0.054688,
+            "p95": 0.460938,
+            "maximum": 0.65625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.133713,
+            "median": 0.054688,
+            "p95": 0.539062,
+            "maximum": 0.90625
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.133713,
+            "median": 0.054688,
+            "p95": 0.539062,
+            "maximum": 0.90625
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 98.779,
+          "angle_degrees": {
+            "mean": 0.341096,
+            "median": 0.311182,
+            "p95": 0.780333,
+            "maximum": 1.030724
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.309883,
+            "median": 0.277344,
+            "p95": 0.710938,
+            "maximum": 0.933594
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.271149,
+            "median": 1.160156,
+            "p95": 2.90625,
+            "maximum": 3.832031
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.271149,
+            "median": 1.160156,
+            "p95": 2.90625,
+            "maximum": 3.832031
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 84.453,
+          "time_limit_percent": 25.0,
+          "life_losses_per_minute": 1.7367,
+          "mean_score": 33092.118,
+          "score_per_minute": 23510.484,
+          "paired_duration": {
+            "percent": 1.967,
+            "ci95": [
+              -2.494,
+              6.247
+            ]
+          },
+          "paired_score": {
+            "percent": 9.249,
+            "ci95": [
+              -4.493,
+              24.993
+            ]
+          },
+          "metrics": {
+            "lives": 0.5556,
+            "coverage": 60.7153,
+            "types": 5.5833,
+            "stalled": 48.316,
+            "drought": 193.1562,
+            "fast": 7.5,
+            "ramps": 1.4931,
+            "flips": 18.9306,
+            "searches": 0,
+            "banks": 0.5938,
+            "lanes": 0.1076,
+            "multiballs": 0.1354
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 95.139,
+          "one_ball_path_divergence_percent": 96.528,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 110.994,
+          "time_limit_percent": 77.431,
+          "life_losses_per_minute": 0.6832,
+          "mean_score": 68442.222,
+          "score_per_minute": 36997.898,
+          "paired_duration": {
+            "percent": 6.505,
+            "ci95": [
+              3.242,
+              10.047
+            ]
+          },
+          "paired_score": {
+            "percent": 4.67,
+            "ci95": [
+              -9.908,
+              22.73
+            ]
+          },
+          "metrics": {
+            "lives": 1.7361,
+            "coverage": 61.0868,
+            "types": 5.9826,
+            "stalled": 0,
+            "drought": 1065.1354,
+            "fast": 8.3542,
+            "ramps": 2.0764,
+            "flips": 39.5903,
+            "searches": 0,
+            "banks": 0.8021,
+            "lanes": 0.4965,
+            "multiballs": 0.1979
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 14.079,
+            "ci95": [
+              0.09,
+              32.078
+            ]
+          },
+          "score": {
+            "percent": 2.957,
+            "ci95": [
+              -20.481,
+              42.302
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 9.35,
+            "ci95": [
+              2.869,
+              18.453
+            ]
+          },
+          "score": {
+            "percent": -22.451,
+            "ci95": [
+              -42.154,
+              8.191
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -61.986,
+            "ci95": [
+              -77.658,
+              -34.507
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -0.58,
+            "ci95": [
+              -1.741,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 21.145,
+            "ci95": [
+              -9.544,
+              57.853
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 3.6,
+            "ci95": [
+              -8.476,
+              18.938
+            ]
+          },
+          "score": {
+            "percent": 9.864,
+            "ci95": [
+              -11.655,
+              36.585
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 54.842,
+            "ci95": [
+              31.854,
+              90.535
+            ]
+          },
+          "score": {
+            "percent": 100.651,
+            "ci95": [
+              32.746,
+              226.772
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -15.841,
+            "ci95": [
+              -25.247,
+              -5.513
+            ]
+          },
+          "score": {
+            "percent": -12.62,
+            "ci95": [
+              -36.949,
+              23.378
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 3.256,
+            "ci95": [
+              -1.34,
+              8.136
+            ]
+          },
+          "score": {
+            "percent": -40.251,
+            "ci95": [
+              -57.633,
+              -18.251
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 4.476,
+            "ci95": [
+              -4.976,
+              16.48
+            ]
+          },
+          "score": {
+            "percent": -1.571,
+            "ci95": [
+              -40.456,
+              67.894
+            ]
+          }
+        }
+      ]
+    },
+    "stronger_passive": {
+      "config": {
+        "kind": "config",
+        "passive": 8,
+        "powered": 16,
+        "eject": 8,
+        "angle_zero": 0
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.239846,
+            "median": 0.190985,
+            "p95": 0.572939,
+            "maximum": 0.763898
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.002522,
+            "median": 0.0,
+            "p95": 0.019531,
+            "maximum": 0.039062
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.002522,
+            "median": 0.0,
+            "p95": 0.019531,
+            "maximum": 0.039062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.002522,
+            "median": 0.0,
+            "p95": 0.019531,
+            "maximum": 0.039062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.306724,
+            "median": 0.279759,
+            "p95": 0.677138,
+            "maximum": 0.868277
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.078764,
+            "median": 0.07734,
+            "p95": 0.18529,
+            "maximum": 0.278031
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.325126,
+            "median": 0.328706,
+            "p95": 0.744876,
+            "maximum": 1.145437
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.325126,
+            "median": 0.328706,
+            "p95": 0.744876,
+            "maximum": 1.145437
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 98.047,
+          "angle_degrees": {
+            "mean": 0.627669,
+            "median": 0.543526,
+            "p95": 1.486581,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.23012,
+            "median": 0.070312,
+            "p95": 0.996094,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.337851,
+            "median": 0.070312,
+            "p95": 1.761719,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.646231,
+            "median": 0.561507,
+            "p95": 1.472949,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.42649,
+            "median": 0.308594,
+            "p95": 1.246094,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 1.75008,
+            "median": 1.277344,
+            "p95": 5.113281,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 11.377
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.573344,
+            "median": 0.495626,
+            "p95": 1.370139,
+            "maximum": 1.684684
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.062675,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.460938
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.064117,
+            "median": 0.019531,
+            "p95": 0.265625,
+            "maximum": 0.539062
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.611537,
+            "median": 0.538121,
+            "p95": 1.407667,
+            "maximum": 1.687902
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.234483,
+            "median": 0.202824,
+            "p95": 0.564625,
+            "maximum": 0.768529
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.962434,
+            "median": 0.844554,
+            "p95": 2.317694,
+            "maximum": 3.163146
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 96.094,
+          "angle_degrees": {
+            "mean": 0.681994,
+            "median": 0.607466,
+            "p95": 1.59824,
+            "maximum": 2.045408
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.397564,
+            "median": 0.289062,
+            "p95": 1.171875,
+            "maximum": 1.5625
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.611584,
+            "median": 0.296875,
+            "p95": 2.296875,
+            "maximum": 3.804688
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.680924,
+            "median": 0.594145,
+            "p95": 1.580907,
+            "maximum": 2.035364
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.618498,
+            "median": 0.542969,
+            "p95": 1.445312,
+            "maximum": 1.839844
+          },
+          "displacement_60_frames_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 2.537725,
+            "median": 2.210938,
+            "p95": 5.925781,
+            "maximum": 7.550781
+          },
+          "half_ball_displacement_percent": 22.754
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 3.0,
+          "mean_seconds": 81.307,
+          "time_limit_percent": 25.347,
+          "life_losses_per_minute": 1.8346,
+          "mean_score": 28245.521,
+          "score_per_minute": 20843.593,
+          "paired_duration": {
+            "percent": -1.831,
+            "ci95": [
+              -5.454,
+              1.627
+            ]
+          },
+          "paired_score": {
+            "percent": -6.751,
+            "ci95": [
+              -13.926,
+              0.742
+            ]
+          },
+          "metrics": {
+            "lives": 0.5139,
+            "coverage": 60.0347,
+            "types": 5.5069,
+            "stalled": 34.1424,
+            "drought": 185.0069,
+            "fast": 6.9583,
+            "ramps": 1.2639,
+            "flips": 17.2361,
+            "searches": 0,
+            "banks": 0.4688,
+            "lanes": 0.0764,
+            "multiballs": 0.0764
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 95.139,
+          "one_ball_path_divergence_percent": 98.611,
+          "median_seconds_to_path_divergence": 3.0,
+          "mean_seconds": 110.439,
+          "time_limit_percent": 73.264,
+          "life_losses_per_minute": 0.7678,
+          "mean_score": 80796.215,
+          "score_per_minute": 43895.478,
+          "paired_duration": {
+            "percent": 5.973,
+            "ci95": [
+              2.685,
+              9.521
+            ]
+          },
+          "paired_score": {
+            "percent": 23.563,
+            "ci95": [
+              8.765,
+              38.929
+            ]
+          },
+          "metrics": {
+            "lives": 1.5868,
+            "coverage": 63.1042,
+            "types": 6.1111,
+            "stalled": 0,
+            "drought": 826.0312,
+            "fast": 9.2049,
+            "ramps": 2.1597,
+            "flips": 39.3021,
+            "searches": 0,
+            "banks": 0.875,
+            "lanes": 0.5278,
+            "multiballs": 0.3056
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 17.937,
+            "ci95": [
+              5.278,
+              34.916
+            ]
+          },
+          "score": {
+            "percent": 13.527,
+            "ci95": [
+              -17.872,
+              61.181
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 1.441,
+            "ci95": [
+              -8.77,
+              12.505
+            ]
+          },
+          "score": {
+            "percent": -8.053,
+            "ci95": [
+              -30.068,
+              24.748
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -52.861,
+            "ci95": [
+              -67.955,
+              -29.343
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -6.012,
+            "ci95": [
+              -12.086,
+              -1.437
+            ]
+          },
+          "score": {
+            "percent": 56.365,
+            "ci95": [
+              -1.125,
+              132.355
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 11.33,
+            "ci95": [
+              -2.169,
+              29.659
+            ]
+          },
+          "score": {
+            "percent": 27.591,
+            "ci95": [
+              3.359,
+              62.265
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 54.244,
+            "ci95": [
+              31.333,
+              89.889
+            ]
+          },
+          "score": {
+            "percent": 115.803,
+            "ci95": [
+              45.811,
+              246.91
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -14.064,
+            "ci95": [
+              -23.959,
+              -4.119
+            ]
+          },
+          "score": {
+            "percent": 43.137,
+            "ci95": [
+              -1.588,
+              98.047
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": 3.874,
+            "ci95": [
+              0.399,
+              8.297
+            ]
+          },
+          "score": {
+            "percent": -3.464,
+            "ci95": [
+              -29.527,
+              30.034
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": 1.619,
+            "ci95": [
+              -9.189,
+              14.73
+            ]
+          },
+          "score": {
+            "percent": -27.549,
+            "ci95": [
+              -46.545,
+              -0.597
+            ]
+          }
+        }
+      ]
+    },
+    "passive_damping_only": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 0,
+        "eject": 0,
+        "angle_zero": 1
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.037603,
+            "median": 0.037616,
+            "p95": 0.051044,
+            "maximum": 0.051044
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.025391,
+            "median": 0.025391,
+            "p95": 0.027344,
+            "maximum": 0.027344
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 100,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 79.963,
+          "time_limit_percent": 23.958,
+          "life_losses_per_minute": 1.842,
+          "mean_score": 31610.625,
+          "score_per_minute": 23719.018,
+          "paired_duration": {
+            "percent": -3.454,
+            "ci95": [
+              -7.611,
+              0.845
+            ]
+          },
+          "paired_score": {
+            "percent": 4.358,
+            "ci95": [
+              -7.145,
+              16.875
+            ]
+          },
+          "metrics": {
+            "lives": 0.5451,
+            "coverage": 56.9097,
+            "types": 5.1319,
+            "stalled": 64.0451,
+            "drought": 201.7014,
+            "fast": 6.934,
+            "ramps": 1.3056,
+            "flips": 17.7153,
+            "searches": 0,
+            "banks": 0.6181,
+            "lanes": 0.0764,
+            "multiballs": 0.1285
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 96.528,
+          "one_ball_path_divergence_percent": 96.528,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 105.668,
+          "time_limit_percent": 69.792,
+          "life_losses_per_minute": 0.7354,
+          "mean_score": 60012.188,
+          "score_per_minute": 34075.817,
+          "paired_duration": {
+            "percent": 1.395,
+            "ci95": [
+              -2.143,
+              4.87
+            ]
+          },
+          "paired_score": {
+            "percent": -8.222,
+            "ci95": [
+              -21.799,
+              7.709
+            ]
+          },
+          "metrics": {
+            "lives": 1.7049,
+            "coverage": 49.6736,
+            "types": 4.6007,
+            "stalled": 0,
+            "drought": 390.6424,
+            "fast": 9.7743,
+            "ramps": 1.7188,
+            "flips": 32.3333,
+            "searches": 0,
+            "banks": 0.6042,
+            "lanes": 0.3646,
+            "multiballs": 0.1319
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 9.627,
+            "ci95": [
+              -3.483,
+              23.895
+            ]
+          },
+          "score": {
+            "percent": 22.947,
+            "ci95": [
+              -15.291,
+              78.967
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": 5.779,
+            "ci95": [
+              0.881,
+              12.205
+            ]
+          },
+          "score": {
+            "percent": -13.444,
+            "ci95": [
+              -33.096,
+              17.38
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": -20.965,
+            "ci95": [
+              -48.446,
+              46.868
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 1.256,
+            "ci95": [
+              -24.71,
+              38.756
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 11.08,
+            "ci95": [
+              -4.802,
+              32.435
+            ]
+          },
+          "score": {
+            "percent": -7.498,
+            "ci95": [
+              -26.248,
+              20.69
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 42.523,
+            "ci95": [
+              21.373,
+              73.394
+            ]
+          },
+          "score": {
+            "percent": 19.265,
+            "ci95": [
+              -20.439,
+              95.566
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -6.262,
+            "ci95": [
+              -16.46,
+              4.104
+            ]
+          },
+          "score": {
+            "percent": -26.221,
+            "ci95": [
+              -46.09,
+              1.901
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": -29.675,
+            "ci95": [
+              -40.522,
+              -18.303
+            ]
+          },
+          "score": {
+            "percent": -50.76,
+            "ci95": [
+              -62.184,
+              -37.835
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": -5.324,
+            "ci95": [
+              -20.431,
+              11.26
+            ]
+          },
+          "score": {
+            "percent": -25.805,
+            "ci95": [
+              -49.028,
+              7.177
+            ]
+          }
+        }
+      ]
+    },
+    "powered_damping_only": {
+      "config": {
+        "kind": "config",
+        "passive": 0,
+        "powered": 16,
+        "eject": 0,
+        "angle_zero": 1
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 50.0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.037429,
+            "median": 0.03628,
+            "p95": 0.046006,
+            "maximum": 0.046006
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.02832,
+            "median": 0.029297,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.116211,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.116211,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.043671,
+            "median": 0.043671,
+            "p95": 0.046006,
+            "maximum": 0.046006
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.027344,
+            "median": 0.027344,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.117188,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.117188,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.031187,
+            "median": 0.031187,
+            "p95": 0.031224,
+            "maximum": 0.031224
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.029297,
+            "median": 0.029297,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 89.236,
+          "one_ball_path_divergence_percent": 89.236,
+          "median_seconds_to_path_divergence": 7,
+          "mean_seconds": 78.828,
+          "time_limit_percent": 22.222,
+          "life_losses_per_minute": 1.9055,
+          "mean_score": 29712.083,
+          "score_per_minute": 22615.375,
+          "paired_duration": {
+            "percent": -4.824,
+            "ci95": [
+              -7.76,
+              -1.894
+            ]
+          },
+          "paired_score": {
+            "percent": -1.91,
+            "ci95": [
+              -11.689,
+              8.707
+            ]
+          },
+          "metrics": {
+            "lives": 0.4965,
+            "coverage": 57.7743,
+            "types": 5.2743,
+            "stalled": 58.5104,
+            "drought": 210.3264,
+            "fast": 6.6528,
+            "ramps": 1.2674,
+            "flips": 17.7153,
+            "searches": 0,
+            "banks": 0.6701,
+            "lanes": 0.0486,
+            "multiballs": 0.1597
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 88.194,
+          "one_ball_path_divergence_percent": 88.889,
+          "median_seconds_to_path_divergence": 5.0,
+          "mean_seconds": 100.312,
+          "time_limit_percent": 63.889,
+          "life_losses_per_minute": 0.8266,
+          "mean_score": 60908.993,
+          "score_per_minute": 36431.863,
+          "paired_duration": {
+            "percent": -3.745,
+            "ci95": [
+              -7.941,
+              0.481
+            ]
+          },
+          "paired_score": {
+            "percent": -6.851,
+            "ci95": [
+              -20.339,
+              8.962
+            ]
+          },
+          "metrics": {
+            "lives": 1.6181,
+            "coverage": 47.6875,
+            "types": 4.8958,
+            "stalled": 0,
+            "drought": 688.6771,
+            "fast": 9.4271,
+            "ramps": 2.0868,
+            "flips": 31.0868,
+            "searches": 0,
+            "banks": 0.5625,
+            "lanes": 0.2188,
+            "multiballs": 0.0729
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 8.52,
+            "ci95": [
+              -4.472,
+              25.067
+            ]
+          },
+          "score": {
+            "percent": 2.925,
+            "ci95": [
+              -23.589,
+              46.753
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": -25.941,
+            "ci95": [
+              -37.33,
+              -12.9
+            ]
+          },
+          "score": {
+            "percent": -82.558,
+            "ci95": [
+              -85.548,
+              -78.114
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -6.691,
+            "ci95": [
+              -11.685,
+              -2.499
+            ]
+          },
+          "score": {
+            "percent": -28.253,
+            "ci95": [
+              -48.21,
+              -5.659
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 7.218,
+            "ci95": [
+              -1.528,
+              18.925
+            ]
+          },
+          "score": {
+            "percent": 5.339,
+            "ci95": [
+              -12.382,
+              28.93
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 24.351,
+            "ci95": [
+              4.18,
+              51.449
+            ]
+          },
+          "score": {
+            "percent": 152.817,
+            "ci95": [
+              51.083,
+              348.028
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -21.263,
+            "ci95": [
+              -35.721,
+              -6.088
+            ]
+          },
+          "score": {
+            "percent": -43.546,
+            "ci95": [
+              -62.611,
+              -15.6
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": -2.836,
+            "ci95": [
+              -10.3,
+              4.319
+            ]
+          },
+          "score": {
+            "percent": -5.283,
+            "ci95": [
+              -27.169,
+              24.446
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": -7.364,
+            "ci95": [
+              -20.642,
+              8.192
+            ]
+          },
+          "score": {
+            "percent": -2.225,
+            "ci95": [
+              -42.591,
+              64.227
+            ]
+          }
+        }
+      ]
+    },
+    "zero_angles": {
+      "config": {
+        "kind": "config",
+        "passive": 4,
+        "powered": 16,
+        "eject": 8,
+        "angle_zero": 1
+      },
+      "contacts": {
+        "passive_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "passive_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.037603,
+            "median": 0.037616,
+            "p95": 0.051044,
+            "maximum": 0.051044
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.025391,
+            "median": 0.025391,
+            "p95": 0.027344,
+            "maximum": 0.027344
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_normal": {
+          "samples": 2048,
+          "changed_velocity_percent": 50.0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_oblique": {
+          "samples": 4096,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.037429,
+            "median": 0.03628,
+            "p95": 0.046006,
+            "maximum": 0.046006
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.02832,
+            "median": 0.029297,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.116211,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.116211,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_typical_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.043671,
+            "median": 0.043671,
+            "p95": 0.046006,
+            "maximum": 0.046006
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.027344,
+            "median": 0.027344,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.117188,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.117188,
+            "median": 0.117188,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_normal": {
+          "samples": 1024,
+          "changed_velocity_percent": 0,
+          "angle_degrees": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.0,
+            "median": 0.0,
+            "p95": 0.0,
+            "maximum": 0.0
+          },
+          "half_ball_displacement_percent": 0
+        },
+        "powered_max_oblique": {
+          "samples": 2048,
+          "changed_velocity_percent": 100,
+          "angle_degrees": {
+            "mean": 0.031187,
+            "median": 0.031187,
+            "p95": 0.031224,
+            "maximum": 0.031224
+          },
+          "displacement_15_frames_px": {
+            "mean": 0.029297,
+            "median": 0.029297,
+            "p95": 0.03125,
+            "maximum": 0.03125
+          },
+          "displacement_60_frames_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "maximum_sampled_displacement_px": {
+            "mean": 0.115234,
+            "median": 0.115234,
+            "p95": 0.117188,
+            "maximum": 0.117188
+          },
+          "half_ball_displacement_percent": 0
+        }
+      },
+      "policies": {
+        "fixed": {
+          "games": 288,
+          "changed_outcome_percent": 99.653,
+          "one_ball_path_divergence_percent": 100,
+          "median_seconds_to_path_divergence": 4.0,
+          "mean_seconds": 84.997,
+          "time_limit_percent": 25.347,
+          "life_losses_per_minute": 1.7452,
+          "mean_score": 34748.021,
+          "score_per_minute": 24528.8,
+          "paired_duration": {
+            "percent": 2.624,
+            "ci95": [
+              -1.318,
+              6.555
+            ]
+          },
+          "paired_score": {
+            "percent": 14.716,
+            "ci95": [
+              -2.261,
+              40.625
+            ]
+          },
+          "metrics": {
+            "lives": 0.5278,
+            "coverage": 57.4688,
+            "types": 5.0625,
+            "stalled": 13.6181,
+            "drought": 166.8194,
+            "fast": 7.5208,
+            "ramps": 1.5556,
+            "flips": 18.7326,
+            "searches": 0,
+            "banks": 0.5278,
+            "lanes": 0.1111,
+            "multiballs": 0.1215
+          }
+        },
+        "reactive": {
+          "games": 288,
+          "changed_outcome_percent": 87.847,
+          "one_ball_path_divergence_percent": 92.014,
+          "median_seconds_to_path_divergence": 4,
+          "mean_seconds": 102.194,
+          "time_limit_percent": 62.153,
+          "life_losses_per_minute": 0.8277,
+          "mean_score": 62480,
+          "score_per_minute": 36683.074,
+          "paired_duration": {
+            "percent": -1.938,
+            "ci95": [
+              -5.618,
+              1.925
+            ]
+          },
+          "paired_score": {
+            "percent": -4.448,
+            "ci95": [
+              -11.723,
+              2.868
+            ]
+          },
+          "metrics": {
+            "lives": 1.5903,
+            "coverage": 48.0139,
+            "types": 4.9792,
+            "stalled": 0,
+            "drought": 681.0972,
+            "fast": 12.0868,
+            "ramps": 2.0799,
+            "flips": 32.6285,
+            "searches": 0,
+            "banks": 0.7951,
+            "lanes": 0.191,
+            "multiballs": 0.0972
+          }
+        }
+      },
+      "boards": [
+        {
+          "title": "Neon Pursuit",
+          "duration": {
+            "percent": 9.601,
+            "ci95": [
+              -3.875,
+              28.154
+            ]
+          },
+          "score": {
+            "percent": 59.304,
+            "ci95": [
+              22.081,
+              127.295
+            ]
+          }
+        },
+        {
+          "title": "Orbital Robot",
+          "duration": {
+            "percent": -1.636,
+            "ci95": [
+              -11.864,
+              10.662
+            ]
+          },
+          "score": {
+            "percent": -34.462,
+            "ci95": [
+              -50.546,
+              -13.267
+            ]
+          }
+        },
+        {
+          "title": "Shuttle Run",
+          "duration": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          },
+          "score": {
+            "percent": 0.0,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "title": "Storm Riders",
+          "duration": {
+            "percent": -5.289,
+            "ci95": [
+              -9.668,
+              -1.758
+            ]
+          },
+          "score": {
+            "percent": -11.265,
+            "ci95": [
+              -30.52,
+              10.52
+            ]
+          }
+        },
+        {
+          "title": "Solar Temple",
+          "duration": {
+            "percent": 5.166,
+            "ci95": [
+              -13.093,
+              29.571
+            ]
+          },
+          "score": {
+            "percent": 33.783,
+            "ci95": [
+              6.829,
+              72.571
+            ]
+          }
+        },
+        {
+          "title": "Midnight Manor",
+          "duration": {
+            "percent": 44.713,
+            "ci95": [
+              17.438,
+              83.63
+            ]
+          },
+          "score": {
+            "percent": 84.633,
+            "ci95": [
+              28.009,
+              181.196
+            ]
+          }
+        },
+        {
+          "title": "Cosmic Carnival",
+          "duration": {
+            "percent": -29.344,
+            "ci95": [
+              -36.148,
+              -21.911
+            ]
+          },
+          "score": {
+            "percent": -28.132,
+            "ci95": [
+              -45.132,
+              -3.355
+            ]
+          }
+        },
+        {
+          "title": "Dragon Keep",
+          "duration": {
+            "percent": -10.78,
+            "ci95": [
+              -19.291,
+              -2.293
+            ]
+          },
+          "score": {
+            "percent": -47.568,
+            "ci95": [
+              -64.266,
+              -26.539
+            ]
+          }
+        },
+        {
+          "title": "Buccaneer Bay",
+          "duration": {
+            "percent": -15.912,
+            "ci95": [
+              -29.412,
+              0.524
+            ]
+          },
+          "score": {
+            "percent": -50.732,
+            "ci95": [
+              -61.169,
+              -35.186
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "findings": [
+    "Passive-only scatter changes a ball-diameter route in 100.0% of fixed-input games and changes score/lives/duration in 99.7%.",
+    "With the same conservative speed loss in the control, passive angles alone change ball-diameter routes in 100.0% of games and outcomes in 100.0%.",
+    "Powered scatter's largest fixture p95 displacement after one second is 5.926 px, against a 4 px half-ball review threshold.",
+    "powered_typical: worst geometry's p95 one-second shift is 2.318 px.",
+    "powered_max: worst geometry's p95 one-second shift is 5.926 px.",
+    "Review Orbital Robot: duration +5.0%, score -24.6% versus scatter off; see per-board confidence intervals and the half-power comparison.",
+    "Review Shuttle Run: duration +0.0%, score -47.3% versus scatter off; see per-board confidence intervals and the half-power comparison.",
+    "Review Dragon Keep: duration +2.1%, score -36.9% versus scatter off; see per-board confidence intervals and the half-power comparison.",
+    "Current reactive duration: +6.4% (95% CI +3.3 to +10.1%), within the review threshold (-15%).",
+    "Current reactive score: +14.5% (95% CI -6.5 to +42.7%), within the review threshold (-20%)."
+  ],
+  "compiler": "Apple clang version 15.0.0 (clang-1500.3.9.4)",
+  "baseline_comparison": {
+    "same_workload": true,
+    "same_current_measurements": true,
+    "same_measurements": true,
+    "previous_config": {
+      "passive": 4,
+      "powered": 16,
+      "eject": 8,
+      "angle_zero": 0
+    }
+  }
+}

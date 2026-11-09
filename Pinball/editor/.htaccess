@@ -1,0 +1,7 @@
+AddType application/wasm .wasm
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  <FilesMatch "\.(html|mjs|json|css)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

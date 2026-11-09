@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Classic rounded",
+    "description": "Rounded heel, gradual taper and a soft two-pixel nose.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrrr......................",
+        "...rssssssrrrrrr................",
+        "..rswwwwwwssssssrrrrrrr.........",
+        "..rwwwgwwwwwwwwwsssssssrrrrrrr..",
+        ".rwwwgggwwwwwwwwwwwwwwwsssssssr.",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwwr.",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwwr.",
+        "..rwwwgwwwwwwwwwwwwwwwwrrrrrrr..",
+        "..rwwwwwwwwwwwwwrrrrrrr.........",
+        "...rwwwwwwrrrrrr................",
+        "....rrrrrr......................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Slim tournament",
+    "description": "Narrow body with a small rounded tip.",
+    "frames": [
+      [
+        "................................",
+        "................................",
+        "....rrrrrr......................",
+        "...rssssssrrrrrrr...............",
+        "...rwwgwwwsssssssrrrrrrrrrrrr...",
+        "..rwwgggwwwwwwwwwssssssssssssr..",
+        "..rwgggggwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwgggwwwwwwwwwwwwwwwwwwwwwr..",
+        "...rwwgwwwwwwwwwwrrrrrrrrrrrr...",
+        "...rwwwwwwrrrrrrr...............",
+        "....rrrrrr......................",
+        "................................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Thick rubber",
+    "description": "Broad middle and a substantial, softly rounded nose.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrrrr.....................",
+        "...rsssssssrrrrrrrr.............",
+        "..rswwwwwwwssssssssrrrrrrrrr....",
+        "..rwwwgwwwwwwwwwwwwsssssssssr...",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwsr..",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwr..",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwwgwwwwwwwwwwwwwwwwwwwwwr...",
+        "..rwwwwwwwwwwwwwwwwrrrrrrrrr....",
+        "...rwwwwwwwrrrrrrrr.............",
+        "....rrrrrrr.....................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Long taper",
+    "description": "Earlier taper into a slender, rounded reach.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrr.......................",
+        "...rsssssrrrr...................",
+        "..rswwwwwssssrrrrrr.............",
+        "..rwwwgwwwwwwssssssrrrrrrrrrr...",
+        ".rwwwgggwwwwwwwwwwwssssssssssrr.",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwsr.",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwrr.",
+        "..rwwwgwwwwwwwwwwwwrrrrrrrrrr...",
+        "..rwwwwwwwwwwrrrrrr.............",
+        "...rwwwwwrrrr...................",
+        "....rrrrr.......................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Round nose",
+    "description": "A fuller end cap with a smooth three-pixel tip radius.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrrr......................",
+        "...rssssssrrrrrrr...............",
+        "..rswwwwwwsssssssrrrrrrrrrrrr...",
+        "..rwwwgwwwwwwwwwwssssssssssssr..",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwsr.",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwwr.",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwwr.",
+        "..rwwwgwwwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwwwwwwwwwwwwwrrrrrrrrrrrr...",
+        "...rwwwwwwrrrrrrr...............",
+        "....rrrrrr......................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Compact classic",
+    "description": "Shorter reach and a gentle taper to a round tip.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrr.......................",
+        "...rsssssrrrrr..................",
+        "..rswwwwwsssssrrrrrrr...........",
+        "..rwwwgwwwwwwwsssssssrrrrr......",
+        ".rwwwgggwwwwwwwwwwwwwsssssr.....",
+        ".rwwgggggwwwwwwwwwwwwwwwwwr.....",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwr.....",
+        "..rwwwgwwwwwwwwwwwwwwrrrrr......",
+        "..rwwwwwwwwwwwrrrrrrr...........",
+        "...rwwwwwrrrrr..................",
+        "....rrrrr.......................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Soft shoulder",
+    "description": "A large round heel flowing quickly into a lean middle.",
+    "frames": [
+      [
+        "................................",
+        "....rrrr........................",
+        "...rssssrrr.....................",
+        "..rswwwwsssrrrrrrrrrr...........",
+        "..rwwwgwwwwssssssssssrrrrrrrr...",
+        ".rwwwgggwwwwwwwwwwwwwssssssssr..",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwr..",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwwgwwwwwwwwwwwwwwrrrrrrrr...",
+        "..rwwwwwwwwrrrrrrrrrr...........",
+        "...rwwwwrrr.....................",
+        "....rrrr........................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Broad shoulder",
+    "description": "A fuller upper half that tapers later toward a small nose.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrrrrrr...................",
+        "...rsssssssssrrrrrr.............",
+        "..rswwwwwwwwwssssssrrrr.........",
+        "..rwwwgwwwwwwwwwwwwssssrrrrrr...",
+        ".rwwwgggwwwwwwwwwwwwwwwssssssr..",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwr..",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwwgwwwwwwwwwwwwwwwwrrrrrr...",
+        "..rwwwwwwwwwwwwwwwwrrrr.........",
+        "...rwwwwwwwwwrrrrrr.............",
+        "....rrrrrrrrr...................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Small heel",
+    "description": "A compact pivot cap with a continuous narrow body.",
+    "frames": [
+      [
+        "................................",
+        "................................",
+        ".....rrrrrrr....................",
+        "....rsssssssrrrrrrrrrr..........",
+        "...rswgwwwwwssssssssssrrrrrrr...",
+        "..rswgggwwwwwwwwwwwwwwsssssssr..",
+        "..rwgggggwwwwwwwwwwwwwwwwwwwwr..",
+        "..rwwgggwwwwwwwwwwwwwwwwwwwwwr..",
+        "...rwwgwwwwwwwwwwwwwwwrrrrrrr...",
+        "....rwwwwwwwrrrrrrrrrr..........",
+        ".....rrrrrrr....................",
+        "................................",
+        "................................"
+      ]
+    ]
+  },
+  {
+    "name": "Full curved bat",
+    "description": "A generous round heel and softly tapering, broad contact face.",
+    "frames": [
+      [
+        "................................",
+        "....rrrrrrrr....................",
+        "...rssssssssrrrrrrrr............",
+        "..rswwwwwwwwssssssssrrrrrrr.....",
+        "..rwwwgwwwwwwwwwwwwwsssssssrrr..",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwsssr.",
+        ".rwwgggggwwwwwwwwwwwwwwwwwwwwwr.",
+        ".rwwwgggwwwwwwwwwwwwwwwwwwwwwwr.",
+        "..rwwwgwwwwwwwwwwwwwwwwwwwwrrr..",
+        "..rwwwwwwwwwwwwwwwwwrrrrrrr.....",
+        "...rwwwwwwwwrrrrrrrr............",
+        "....rrrrrrrr....................",
+        "................................"
+      ]
+    ]
+  }
+]

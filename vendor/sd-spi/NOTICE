@@ -1,0 +1,4 @@
+CHSd SPI transport, adapted for SD journal writing.
+Copyright 2026 bateske; modifications Copyright 2026 Julien Dorra.
+Derived from CHSd via the Mystic Balloon save-card adaptation.
+See LICENSE (MIT) and chgame-sd-saves/NOTICE.

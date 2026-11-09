@@ -1,0 +1,3 @@
+[submodule "CHGame"]
+	path = CHGame
+	url = https://github.com/bateske/CHGame.git

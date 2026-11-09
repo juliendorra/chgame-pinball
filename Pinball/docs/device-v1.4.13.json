@@ -1,0 +1,22 @@
+{
+  "version": "1.4.13",
+  "sourceHash": "8859e58cd206c8da7cba11188f409f89794a215e72d11fcc338a8966eebd3b9d",
+  "firmware_sha256": "060b9479749e39ac77c46b88a44b57f4ddb8463dd09179afc0dfa6085990b00c",
+  "firmware_bytes": 50684,
+  "firmware_crc32": "DF0C3D27",
+  "config": {
+    "spin_grip": 16,
+    "spin_forget": 0,
+    "scatter_passive": 0,
+    "scatter_powered": 0,
+    "scatter_eject": 0
+  },
+  "sd_save_preserved": true,
+  "sd_cart_path": "GAMES/MYGAMESP/MIDNIGHT.CHG",
+  "sd_cart_sha256": "5a3072c0cc3b476b3d5989378c4ca4b9e1e13f485f95f4fef9b20e3d975999e6",
+  "prompt_render_hz": 59.47608754605274,
+  "prompt_physics_hz": 59.47608754605274,
+  "other_files_preserved": 95,
+  "solid_triangle_pixels_verified": 60,
+  "original_ram_table_restored": true
+}

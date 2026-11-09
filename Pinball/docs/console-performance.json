@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-08",
+  "cause": "The opaque ramp floor repeated many flash gfx_line/gfx_pixel calls. Physics shares the render frame loop, so missed rendering deadlines also slowed physics.",
+  "physics_settings_changed": false,
+  "before_firmware": "LIVE HELLO 1.4.10-spin.13 PBT1 RAM SD",
+  "after_firmware": "LIVE HELLO 1.4.10-spin.14 PBT1 RAM SD",
+  "before_samples": [
+    {
+      "case": "original",
+      "seconds": 2.0198933749998105,
+      "frames": 121,
+      "ticks": 121,
+      "fps": 59.904152118926255,
+      "physics_hz": 59.904152118926255,
+      "camera": 276
+    },
+    {
+      "case": "without_ramps",
+      "seconds": 2.007444333001331,
+      "frames": 121,
+      "ticks": 121,
+      "fps": 60.27564401703376,
+      "physics_hz": 60.27564401703376,
+      "camera": 276
+    },
+    {
+      "case": "one_visible_ramp",
+      "seconds": 2.0217282919984427,
+      "frames": 88,
+      "ticks": 88,
+      "fps": 43.52711506698734,
+      "physics_hz": 43.52711506698734,
+      "camera": 276
+    },
+    {
+      "case": "empty",
+      "seconds": 2.003263667000283,
+      "frames": 120,
+      "ticks": 120,
+      "fps": 59.90224950252794,
+      "physics_hz": 59.90224950252794,
+      "camera": 276
+    }
+  ],
+  "after_samples": [
+    {
+      "case": "original",
+      "seconds": 3.0143274999991263,
+      "render_hz": 60.046560965937665,
+      "physics_hz": 60.046560965937665,
+      "camera": 276
+    },
+    {
+      "case": "without_ramps",
+      "seconds": 3.01406862550175,
+      "render_hz": 60.05171828822214,
+      "physics_hz": 60.05171828822214,
+      "camera": 276
+    },
+    {
+      "case": "one_visible_ramp",
+      "seconds": 3.013781770499918,
+      "render_hz": 60.05743407558544,
+      "physics_hz": 60.05743407558544,
+      "camera": 276
+    },
+    {
+      "case": "two_visible_ramps",
+      "seconds": 3.0150150209992717,
+      "render_hz": 60.03286840674208,
+      "physics_hz": 60.03286840674208,
+      "camera": 276
+    },
+    {
+      "case": "empty",
+      "seconds": 3.0112775829984457,
+      "render_hz": 60.10737801852571,
+      "physics_hz": 60.10737801852571,
+      "camera": 276
+    }
+  ],
+  "threshold_hz": 57,
+  "target_hz": 60,
+  "pixel_review": {
+    "result": "passed",
+    "reviewed_frames": 482,
+    "all_nine_themes": true,
+    "zoom_levels": [
+      256,
+      384
+    ],
+    "non_shadow_art_identical": true,
+    "added_felt_shadow_pixels": 8832,
+    "sha256": "075df98b48d56b2253fda98ba6af523bd241f7d40cace730908322aad4660ef1"
+  },
+  "renderer_sha256": "c8ff30f207431f4e1a95166bbbdad5134076a5a0ff13832357d0999299f91a75",
+  "reproduce": "python3 Pinball/tools/verify_device_fps.py --port /dev/cu.usbmodem101 --out Pinball/out/device/fps.json",
+  "result": "passed"
+}

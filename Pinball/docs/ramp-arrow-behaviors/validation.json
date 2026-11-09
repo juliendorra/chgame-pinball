@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "physics_identical": true,
+  "capture_frame": 32,
+  "release_frame": 122,
+  "marker_offset": {
+    "x": 0,
+    "y": 4
+  },
+  "layer": "after all balls",
+  "hide": "any active rider on this ramp",
+  "trace_sha256": "0ce54f5b3b8b5d2a0d942035bd73c3e4db89a5f99b81301618d9784a55a263ee",
+  "renderer_sha256": "cae3c2e888db3a14969254a140ecacdde6b72b4258eaee1f28b8419168f0ef32",
+  "arrow_pixel_checks": 4200,
+  "ball_overlap_pixels": 171,
+  "ball_overlap_frames": [
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43
+  ],
+  "hide_on_first_capture": true
+}

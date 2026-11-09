@@ -1,0 +1,30 @@
+{
+  "result": "passed",
+  "cases": 4798,
+  "sizes": [
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26
+  ],
+  "poses_per_side": 9,
+  "maximum_visual_contact_error_pixels": 0.0655,
+  "worst_case": [
+    0,
+    1,
+    26,
+    [
+      13.65625,
+      13.5625
+    ],
+    4.065503697268027
+  ],
+  "method": "Real isolated engine collisions compared to opaque pixel squares, excluding shadows; each boundary edge checked for near miss and overlap; both sides and all allowed SD flipper sizes."
+}

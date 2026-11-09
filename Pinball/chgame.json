@@ -1,0 +1,39 @@
+{
+  "id": "midnight-pinball",
+  "title": "MIDNIGHT PINBALL",
+  "version": "1.4.15",
+  "description": "Original 80s arcade pinball: tall scrolling tables, upper flippers, target banks, lane combos and three-ball multiball. Load a library of PBT tables from SD without reflashing.",
+  "genre": "Arcade",
+  "cartImage": "docs/cart.png",
+  "sdcard": "sd",
+  "buttons": [
+    {
+      "control": "LEFT",
+      "action": "Left flippers"
+    },
+    {
+      "control": "B",
+      "action": "Right flippers"
+    },
+    {
+      "control": "A",
+      "action": "Launch in shooter lane; shake left during play"
+    },
+    {
+      "control": "DOWN",
+      "action": "Tap to launch at fixed power"
+    },
+    {
+      "control": "RIGHT",
+      "action": "Shake right; four rapid shakes tilt"
+    },
+    {
+      "control": "SELECT",
+      "action": "Table library / rescan SD"
+    },
+    {
+      "control": "START",
+      "action": "Pause; hold 3 seconds for CHGame menu"
+    }
+  ]
+}

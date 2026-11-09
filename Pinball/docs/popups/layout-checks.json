@@ -1,0 +1,8 @@
+{
+  "result": "passed",
+  "checks": "PASS 543015 popup layout checks across all themes and animation samples",
+  "renderer_sha256": "6239e2d0d388539825c5c0db69e05f003817c9eeb3f28a4baecbd45f08496c37",
+  "themes": 9,
+  "cases": 91,
+  "frames_per_case": 12
+}

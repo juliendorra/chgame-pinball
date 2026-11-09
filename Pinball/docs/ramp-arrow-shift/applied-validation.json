@@ -1,0 +1,12 @@
+{
+  "result": "passed",
+  "version": "1.4.13",
+  "actual_game_matches_reviewed_shift": true,
+  "compared_frames": 150,
+  "marker_offset": {
+    "x": -1,
+    "y": 4
+  },
+  "trace_sha256": "0ce54f5b3b8b5d2a0d942035bd73c3e4db89a5f99b81301618d9784a55a263ee",
+  "renderer_sha256": "6239e2d0d388539825c5c0db69e05f003817c9eeb3f28a4baecbd45f08496c37"
+}

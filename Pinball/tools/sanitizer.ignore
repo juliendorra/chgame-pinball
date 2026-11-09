@@ -1,0 +1,6 @@
+# Pinned upstream host flash is a byte array, unlike aligned device pages.
+[alignment]
+src:*/chgame/Save.cpp
+# Upstream Bresenham uses negative << 1 (defined by C++20, built as C++17).
+[shift-base]
+src:*/CHGfx_draw.cpp

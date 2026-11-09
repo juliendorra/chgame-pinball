@@ -1,0 +1,12 @@
+.arduino15/
+.cache/
+.toolchains/
+.venv/
+sketchbook/
+**/build/
+**/out/
+__pycache__/
+.DS_Store
+.env
+.env.*
+*.pem
