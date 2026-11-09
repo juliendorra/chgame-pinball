@@ -12,6 +12,7 @@ import unittest
 import zlib
 
 ROOT = Path(__file__).resolve().parents[1]
+COMPACT = os.environ.get('CHSAVE_TEST_COMPACT') == '1'
 sys.path[:0] = [str(ROOT / 'tools'), str(ROOT / 'tests/vendor')]
 import prepare
 from fatimg import build_image, FatVolume
@@ -40,6 +41,8 @@ class SaveTests(unittest.TestCase):
         common = compiler + ['-std=c++11', '-O1', '-Wall', '-Wextra', '-Werror',
                              '-fsanitize=undefined,bounds', '-fno-sanitize-recover=all',
                              '-I' + str(ROOT / 'src'), '-I' + str(ROOT / 'tests')]
+        if COMPACT:
+            common += ['-DCHSAVE_MAX_SLOT_SECTORS=1']
         core = ROOT / 'src/Journal.cpp'
         subprocess.run(common + [str(ROOT / 'tests/core.cpp'), str(core),
                                  '-o', str(cls.folder / 'core')], check=True)
@@ -179,6 +182,7 @@ class SaveTests(unittest.TestCase):
         self.assertEqual(self.run_save(path, 'store', MAGIC, 123, exe=self.host)[0], 1)
         self.assertEqual(self.run_save(path, exe=self.host)[:3], (1, 123, 7))
 
+    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
     def test_larger_variable_payloads_and_reserved_capacity(self):
         for fs, mbr, spc, fragment in [('fat16', False, 1, True), ('fat32', True, 4, True)]:
             raw = b'\xff' * prepare.file_size(4096)
@@ -200,6 +204,16 @@ class SaveTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare.prepare(folder, ['BIGG'], capacity=9000)
 
+    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
+    def test_maximum_payload(self):
+        path = self.fixture(first=b'\xff' * prepare.file_size(prepare.MAX_DATA))
+        self.assertEqual(self.run_save(path, 'large-store', MAGIC, 65516, 23)[0], 1)
+        self.assertEqual(self.run_save(path, 'large-load', MAGIC, 65516, 23)[0], 1)
+        before = path.read_bytes()
+        self.assertEqual(self.run_save(path, 'large-store', MAGIC, 65517, 23)[0], 0)
+        self.assertEqual(path.read_bytes(), before)
+
+    @unittest.skipIf(COMPACT, 'compact firmware supports one-sector slots')
     def test_multisector_interrupted_writes(self):
         path = self.fixture(first=b'\xff' * 2048)
         self.assertEqual(self.run_save(path, 'large-store', MAGIC, 700, 1)[0], 1)

@@ -8,6 +8,7 @@ python3 tests/test_saves.py
 ```
 
 Set `CXX=clang++` or `CXX=g++` to choose a compiler.
+Set `CHSAVE_TEST_COMPACT=1` to test the optional compact firmware profile.
 
 Tests compile the actual journal, FAT lookup and CHGame adapter. They check
 process restarts, FAT16/FAT32, partitions, fragmented files, unrelated data

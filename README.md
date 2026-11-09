@@ -61,3 +61,16 @@ The standalone packaging changes build paths, not game behavior.
 CHGame libraries and host tools are bundled at the exact revision used by
 the game; see [SDK provenance](CHGame/VENDOR.json).
 See [third-party notices](NOTICE) for dependency licenses.
+
+## SD saves
+
+Version 1.4.16 uses [CHSave 0.1.0](https://github.com/juliendorra/chgame-sd-saves).
+Progress and settings are stored in `MPIN.SAV`; existing saves are preserved.
+Prepare a mounted card before installing the new cartridge:
+
+```sh
+python3 tools/sd_saves.py prepare --card /path/to/card
+```
+
+The source includes the pinned library and SD adapter. Build through `pinball.py`
+so the SD backend is selected. Keep save files when replacing cartridges.

@@ -12,15 +12,22 @@ import struct
 import subprocess
 import sys
 import zlib
+try:
+    import fcntl
+except ImportError:
+    fcntl=None
 
 ROOT=Path(__file__).resolve().parents[1]
-SDK=ROOT/'CHGame/platform/board/arduino/CHGame/libraries'
+CONFIG=json.loads((ROOT/'save-config.json').read_text())
+SDK_ROOT=Path(os.environ.get('CHGAME_ROOT',str(ROOT/'CHGame'))).resolve()
+if not (SDK_ROOT/'tools/chgame.py').is_file() and (ROOT/'.deps/CHGame/tools/chgame.py').is_file():SDK_ROOT=ROOT/'.deps/CHGame'
+SDK=SDK_ROOT/'platform/board/arduino/CHGame/libraries'
 SOURCE=ROOT/'tools/sd_saves/src'
 PUBLIC=ROOT/'chgame-sd-saves'
 OVERLAY=ROOT/'.cache/sd-saves/libraries'
 
 def catalog():
-    return {'MPIN.SAV': {'game': 'Pinball', 'id': 'MPIN'}}
+    return {CONFIG['id']+'.SAV':{'game':CONFIG['game'],'id':CONFIG['id']}}
 
 def validate(raw,magic):
     spec=importlib.util.spec_from_file_location('chsave_prepare',PUBLIC/'tools/prepare.py')
@@ -38,9 +45,22 @@ def prepare(card):
         else:
             with path.open('xb') as f:f.write(b'\xff'*1024);f.flush();os.fsync(f.fileno())
             if path.read_bytes()!=b'\xff'*1024:raise OSError(f'Provisioning readback failed: {path}')
-    print(f'Prepared/preserved {len(catalog())} shared game journals on {card}')
+    if CONFIG['game']=='MysticBalloon':
+        spec=importlib.util.spec_from_file_location('mystic_prepare',ROOT/CONFIG['sketch']/'tools/prepare_saves.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);module.prepare_standard(card)
+    print('Prepared/preserved '+CONFIG['id']+'.SAV')
+
+def apply_sdk_patch():
+    pass # Standalone games do not patch the SDK examples.
 
 def overlay():
+    OVERLAY.parent.mkdir(parents=True,exist_ok=True)
+    with (OVERLAY.parent/'overlay.lock').open('a') as lock:
+        if fcntl:fcntl.flock(lock,fcntl.LOCK_EX)
+        return _overlay()
+
+def _overlay():
+    apply_sdk_patch()
     # Hash every input; rebuild after either the SDK or our implementation changes.
     sources=list((SDK/'CHGame/src').rglob('*'))+list(SOURCE.glob('*'))
     sources += [SDK/'CHGame/library.properties',Path(__file__)]
@@ -48,7 +68,7 @@ def overlay():
     sources += list((ROOT/'vendor/sd-spi').glob('SdSpi.*'))
     sources += list((PUBLIC/'src').rglob('*'))+[PUBLIC/'library.properties']
     digest=hashlib.sha256()
-    for path in sorted(p for p in sources if p.is_file()):digest.update(str(path.relative_to(ROOT)).encode());digest.update(path.read_bytes())
+    for path in sorted(p for p in sources if p.is_file()):digest.update(str(path).encode());digest.update(path.read_bytes())
     fingerprint=digest.hexdigest();stamp=OVERLAY/'fingerprint'
     if stamp.exists() and stamp.read_text()==fingerprint:return OVERLAY
     OVERLAY.mkdir(parents=True,exist_ok=True)
@@ -57,24 +77,42 @@ def overlay():
     shutil.copytree(SDK/'CHGame/src',dest/'src')
     shutil.copy2(SDK/'CHGame/library.properties',dest/'library.properties')
     for path in SOURCE.glob('*'):
-        if path.name!='LegacyOnly.cpp':shutil.copy2(path,dest/'src/chgame'/path.name)
+        if path.name not in ('LegacyOnly.cpp','CompactSdk.cpp'):shutil.copy2(path,dest/'src/chgame'/path.name)
     # Bundle the standalone library unchanged, with a board transport bridge
     # to reuse the SDK asset driver's SPI state and host card fixtures.
     shutil.copytree(PUBLIC/'src',dest/'src/chsave')
+    for name in ('LICENSE','NOTICE'):shutil.copy2(PUBLIC/name,dest/'src/chsave'/name)
+    # Current games all fit one sector per record. Build the public
+    # library's supported compact profile to stay within Rev0's flash.
+    config=dest/'src/chsave/Config.h'
+    config.write_text('#define CHSAVE_MAX_SLOT_SECTORS 1\n'+config.read_text())
     (dest/'src/CHSave.h').write_text('#pragma once\n#include "chsave/CHSave.h"\n')
     (dest/'src/chsave/detail/Host.cpp').unlink()
-    (dest/'src/chsave/detail/Block.cpp').write_text('''#include "Block.h"
-#if defined(CHSIM) && !defined(CHGAME_SAVE_SHARED_TEST)
-namespace save_sd {bool init();bool read(uint32_t,uint8_t*);bool write(uint32_t,const uint8_t*);}
-namespace transport=save_sd;
-#else
-#include <SdSpi.h>
-namespace transport=sd;
-#endif
-namespace chsave {namespace block {
-bool init(){return transport::init();}
-bool read(uint32_t lba,uint8_t *p){return transport::read(lba,p);}
-bool write(uint32_t lba,const uint8_t *p){return transport::write(lba,p);}
+    (dest/'src/chsave/detail/Block.cpp').unlink()
+    (dest/'src/chsave/detail/Fat.cpp').unlink()
+    (dest/'src/chsave/detail/Card.cpp').unlink()
+    (dest/'src/chsave/detail/WorkspaceStorage.cpp').write_text('''// Workspace adapter: share CHSd with asset streaming instead of linking
+// a second FAT parser. The journal implementation is the public library.
+#include "Card.h"
+#include "../../chgame/Card.h"
+namespace chsave {namespace detail {
+namespace {
+class WorkspaceCard final : public Storage {
+public:
+    Status open(uint32_t id,uint8_t *scratch) override {
+        switch(save_card::open(id,scratch)) {
+        case save::Ready:return Status::Ready;
+        case save::NoCard:return Status::NoCard;
+        case save::NeedsSetup:return Status::NeedsSetup;
+        case save::Damaged:return Status::Damaged;
+        default:return Status::IoError;
+        }
+    }
+    bool read(unsigned slot,uint8_t *p) override {return save_card::read(slot,p);}
+    bool write(unsigned slot,const uint8_t *p) override {return save_card::write(slot,p);}
+};
+}
+Storage &card(){static WorkspaceCard instance;return instance;}
 }}
 ''')
     private=dest/'src/chgame/card';private.mkdir()
@@ -112,6 +150,17 @@ bool write(uint32_t lba,const uint8_t *p){return transport::write(lba,p);}
         link=OVERLAY/'legacy'/name
         if link.is_symlink() and link.resolve()!=(OVERLAY/name).resolve():link.unlink()
         if not link.exists():link.symlink_to(OVERLAY/name,target_is_directory=True)
+    # Bundled SDK games retain their established small backend. Their disk
+    # format is compatible; only our games adopt CHSave in this batch.
+    bundled=OVERLAY/'sdk/CHGame'
+    if bundled.exists():shutil.rmtree(bundled)
+    shutil.copytree(dest,bundled)
+    shutil.rmtree(bundled/'src/chsave')
+    (bundled/'src/CHSave.h').unlink()
+    shutil.copy2(SOURCE/'CompactSdk.cpp',bundled/'src/chgame/Save.cpp')
+    for name in ('CHGfx','CHSd'):
+        link=OVERLAY/'sdk'/name
+        if not link.exists():link.symlink_to(OVERLAY/name,target_is_directory=True)
     stamp.write_text(fingerprint)
     return OVERLAY
 
@@ -126,13 +175,15 @@ def run():
         'ARDUINO_DIRECTORIES_DOWNLOADS':'.arduino15/staging','ARDUINO_DIRECTORIES_USER':'sketchbook',
         'ARDUINO_BUILD_CACHE_PATH':'.arduino15/cache','TMPDIR':'.cache/tmp',
     }.items():os.environ.setdefault(key,str(ROOT/relative))
+    (ROOT/'.cache/tmp').mkdir(parents=True,exist_ok=True)
     libraries=overlay()
-    # Mystic Balloon retains its larger established journal and only imports
-    # from the SDK's old pages. It never uses the generic 244-byte SD format.
+    os.environ['PYTHONPATH']=os.pathsep.join([str(SDK_ROOT/'tools'),str(SDK_ROOT/'tools/chsim'),str(SDK/'CHSd/tools'),os.environ.get('PYTHONPATH','')])
+    # Mystic Balloon's common journal imports old flash through a read-only API.
     if '--sketch' in sys.argv:
         sketch=sys.argv[sys.argv.index('--sketch')+1]
         if Path(sketch).name=='MysticBalloon':libraries=libraries/'legacy'
-    sys.path[:0]=[str(ROOT/'CHGame/tools'),str(ROOT/'CHGame/tools/chsim')]
+        elif False:pass
+    sys.path[:0]=[str(SDK_ROOT/'tools'),str(SDK_ROOT/'tools/chsim')]
     os.environ['CHSIM_CHGAME']=str(libraries/'CHGame/src')
     if not os.environ.get('CHGAME_SAVE_CARD') and not os.environ.get('CHGAME_SAVE_TEMPLATE'):
         template=OVERLAY.parent/('sim-'+hashlib.sha256(json.dumps(catalog(),sort_keys=True).encode()).hexdigest()[:12]+'.img')
@@ -147,10 +198,22 @@ def run():
     device.LIBRARIES=libraries
     build=device.build
     def build_with_sd(sketch,debug=False,flags=''):
-        if not debug and Path(sketch).name in {'CHBackgammon','CHBoardwalk','CHCraps','CHRoulette'}:
-            header=ROOT/'tools/sd_saves/NoRuntimeUsb.h'
-            flags+=' -include "'+str(header)+'"'
-        return build(sketch,debug,flags)
+        source=Path(sketch).resolve();name=next(source.glob('*.ino')).stem
+        stage=ROOT/'.cache/source-build'/name
+        if stage.exists():shutil.rmtree(stage)
+        stage.mkdir(parents=True)
+        for item in source.iterdir():
+            if item.is_file() and item.suffix in ('.ino','.cpp','.c','.h','.hpp','.json','.S'):
+                shutil.copy2(item,stage/item.name)
+        if (source/'src').exists():shutil.copytree(source/'src',stage/'src')
+        for item in (source/'tools').rglob('*.py'):
+            if any(part in ('build','out','__pycache__') for part in item.relative_to(source).parts):continue
+            target=stage/item.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(item,target)
+        result=build(stage,debug,flags)
+        target=source/'build'/('debug' if debug else 'release');target.mkdir(parents=True,exist_ok=True)
+        for item in result.iterdir():
+            if item.is_file():shutil.copy2(item,target/item.name)
+        return target
     device.build=build_with_sd
     hosttests.LIB=libraries/'CHGame/src'
     hosttests.INCLUDES['lib']=hosttests.LIB
