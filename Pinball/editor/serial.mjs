@@ -16,12 +16,14 @@ export class BrowserDevice {
  run(fn){const p=this.tail.then(fn);this.tail=p.catch(()=>{});return p;}
  async request(cmd){
   await this.writer.write(new TextEncoder().encode('@'+cmd+'\n'));const lines=[];
-  for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');return [...lines,line];}}
+  for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');if(cmd==='?')this.capabilities=new Set(line.split(' '));return [...lines,line];}}
   throw new Error('Unrecognized CHGame reply.');
  }
- async transfer(bytes,lba=null){await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
+ requireBoardSupport(bytes){if(bytes[7]&1&&!this.capabilities?.has('RUBBER'))throw new Error('Update Pinball on CHGame to use editable rubber slingshots, then reconnect.');}
+ async transfer(bytes,lba=null){if(lba===null)this.requireBoardSupport(bytes);await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
  upload(bytes){return this.run(async()=>{await this.transfer(bytes);const returned=unhex((await this.request('T')).at(-1).slice(10));if(hex(returned)!==hex(bytes))throw new Error('CHGame RAM readback differs.');return {bytes:bytes.length,verified:true};});}
  save(stem,bytes){return this.run(async()=>{
+  this.requireBoardSupport(bytes);
   const values=(await this.request('V')).at(-1).split(' ').slice(2).map(Number),paused=values[13];
   if(values.length!==15)throw new Error('Unexpected CHGame state reply');
   await this.request('X');await this.request('Q 1');

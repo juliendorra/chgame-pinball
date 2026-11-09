@@ -22,3 +22,11 @@ test('seeded restart verifies all 32 seed bits via little-endian readback',async
  await d.restart(0x87654321);assert.deepEqual(calls,['R 2271560481','Z']);
  d.request=async c=>[c==='Z'?'LIVE DATA 01000000':'LIVE OK'];await assert.rejects(()=>d.restart(123),/seed readback differs/);
 });
+
+test('Editable-rubber boards reject an older console before RAM or SD writes',async()=>{
+ const d=new BrowserDevice();d.tail=Promise.resolve();let requests=0;d.request=async()=>{requests++;return ['LIVE OK'];};
+ const bytes=new Uint8Array(96);bytes[7]=1;
+ await assert.rejects(()=>d.upload(bytes),/Update Pinball/);await assert.rejects(()=>d.save('TEST',bytes),/Update Pinball/);assert.equal(requests,0);
+ d.capabilities=new Set(['RUBBER']);assert.doesNotThrow(()=>d.requireBoardSupport(bytes));
+ assert.doesNotThrow(()=>new BrowserDevice().requireBoardSupport(new Uint8Array(96)),'old files still work on old firmware');
+});

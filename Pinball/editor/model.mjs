@@ -1,4 +1,4 @@
-export const KINDS=['wall','bumper','target','lane','scoop','flippers','ramp','spinner','drop_target','kickback','gate','saucer'];
+export const KINDS=['wall','bumper','target','lane','scoop','flippers','ramp','spinner','drop_target','kickback','gate','saucer','rubber'];
 export const CATALOG=[
  ['wall','Rail','Solid, rounded rubber rail','rail',40,145,74,112,0],
  ['bumper','Pop bumper','Powered rebound · scores on impact','bumper',64,110,8,280,180],
@@ -11,6 +11,7 @@ export const CATALOG=[
  ['drop_target','Drop target','Collapses on impact, then resets','drop_target',64,110,6,4,300],
  ['kickback','Kickback','One-shot outlane rescue','kickback',14,270,5,1200,500],
  ['gate','One-way gate','Hinged arm · direction arrow · target-bank lock','gate',64,90,84,90,0],
+ ['rubber','Rubber slingshot','Flexing rubber face · solid base · mirror left/right','rubber',30,240,15,27,0],
  ['saucer','Saucer','Timed hold · award · controlled eject','saucer',64,160,7,90,750],
 ].map(([kind,name,description,sprite,x,y,u,v,value])=>({kind,name,description,sprite,defaults:{kind,x,y,u,v,value,group:0}}));
 export const THEMES=['Neon Pursuit','Orbital Robot','Shuttle Run','Storm Riders','Solar Temple','Midnight Manor','Cosmic Carnival','Dragon Keep','Buccaneer Bay'];
@@ -19,6 +20,7 @@ export function createPart(kind,p,height){
  const def=CATALOG.find(c=>c.kind===kind),o=copy(def.defaults);
  o.x=Math.max(5,Math.min(108,p.x));o.y=Math.max(12,Math.min(height-55,p.y));
  if(kind==='flippers'){o.x=30;o.u=90;o.y=Math.max(80,o.y);}
+ else if(kind==='rubber'){o.x=Math.max(8,Math.min(108-o.u,o.x));o.y=Math.min(height-8-o.v,o.y);}
  else if(kind==='ramp'){o.y=Math.max(90,o.y);o.u=o.x<60?90:20;o.v=Math.max(12,o.y-80);}
  else if(['wall','gate'].includes(kind)){o.u=Math.min(110,o.x+24);o.v=Math.max(8,o.y-(kind==='wall'?22:0));}
  return o;
@@ -31,6 +33,7 @@ export function validate(b){
  bad(ascii(b.title,19),'Title needs 1–19 printable ASCII characters.');bad(ascii(b.mission,23),'Mission needs 1–23 printable ASCII characters.');
  bad(range(b.id,1,0xffffffff),'Board ID must be a nonzero unsigned integer.');bad(range(b.height,256,480),'Height must be 256–480.');bad(range(b.gravity,8,44),'Gravity must be 8–44.');bad(range(b.theme,0,8),'Choose one of nine themes.');
  bad(Array.isArray(b.palette)&&b.palette.length===16&&b.palette.every(c=>/^[0-9a-f]{3}$/i.test(c)),'Palette needs sixteen RGB444 colors.');
+ bad(range(b.flags??0,0,1),'Unknown board flags.');
  bad(Array.isArray(b.objects)&&b.objects.length<=72,'A board holds up to 72 elements.');
  for(const [i,o] of (b.objects||[]).entries()){
   let ok=KINDS.includes(o.kind)&&range(o.x,5,108)&&range(o.y,8,b.height-50)&&range(o.group,0,2)&&range(o.value,0,10000)&&range(o.u,-32768,32767)&&range(o.v,-32768,32767);
@@ -38,6 +41,7 @@ export function validate(b){
   else if(o.kind==='flippers')ok&&=range(o.x,20,38)&&range(o.u,82,100)&&range(o.v,16,26)&&o.y>=80&&o.x+2*o.v+16<=o.u;
   else if(o.kind==='ramp')ok&&=range(o.u,8,105)&&range(o.v,12,b.height-50)&&Math.abs(o.y-o.v)>=32;
   else if(['target','drop_target'].includes(o.kind))ok&&=range(o.u,3,12)&&range(o.v,3,12);
+  else if(o.kind==='rubber')ok&&=!!(b.flags&1)&&range(o.group,0,1)&&range(o.u,8,24)&&range(o.v,16,40)&&range(o.x+(o.group?-o.u:o.u),8,108)&&o.y+o.v<=b.height-8;
   else if(o.kind==='spinner')ok&&=range(o.u,6,16);
   else ok&&=range(o.u,3,12)&&range(o.v,0,1600);
   bad(ok,`Element ${i+1} (${o.kind}) is outside its position or size limits.`);
@@ -52,7 +56,7 @@ export function validate(b){
 export function encode(board){
  const {errors}=validate(board);if(errors.length)throw new Error(errors[0]);
  const bytes=new Uint8Array(96+board.objects.length*12),v=new DataView(bytes.buffer),text=new TextEncoder();
- bytes.set(text.encode('PBT1'));bytes[4]=1;bytes[5]=board.theme;bytes[6]=board.objects.length;
+ bytes.set(text.encode('PBT1'));bytes[4]=1;bytes[5]=board.theme;bytes[6]=board.objects.length;bytes[7]=board.flags??0;
  v.setUint16(8,board.height,true);v.setUint16(10,board.gravity,true);v.setUint32(12,board.id,true);
  bytes.set(text.encode(board.title),20);bytes.set(text.encode(board.mission),40);
  board.palette.forEach((c,i)=>v.setUint16(64+i*2,parseInt(c,16),true));
@@ -62,12 +66,28 @@ export function encode(board){
 export function decode(bytes,file='IMPORT'){
  if(!(bytes instanceof Uint8Array))bytes=new Uint8Array(bytes);if(bytes.length<96)throw new Error('Board file is truncated.');
  const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),text=new TextDecoder(),read=(at,n)=>text.decode(bytes.slice(at,at+n)).split('\0')[0];
- if(read(0,4)!=='PBT1'||bytes[4]!==1||bytes[7]||bytes.length!==96+bytes[6]*12||v.getUint32(16,true)!==fnv(bytes,true))throw new Error('Board file has an invalid header, size or checksum.');
+ if(read(0,4)!=='PBT1'||bytes[4]!==1||(bytes[7]&~1)||bytes.length!==96+bytes[6]*12||v.getUint32(16,true)!==fnv(bytes,true))throw new Error('Board file has an invalid header, size or checksum.');
  const b={file:file.replace(/\.pbt$/i,'').toUpperCase(),id:v.getUint32(12,true),theme:bytes[5],height:v.getUint16(8,true),gravity:v.getUint16(10,true),title:read(20,20),mission:read(40,24),palette:[],objects:[]};
+ if(bytes[7])b.flags=bytes[7];
  for(let i=0;i<16;i++)b.palette.push(v.getUint16(64+i*2,true).toString(16).padStart(3,'0').toUpperCase());
  for(let at=96;at<bytes.length;at+=12){const o={kind:KINDS[bytes[at]],group:bytes[at+1],value:v.getUint16(at+10,true)};['x','y','u','v'].forEach((k,i)=>o[k]=v.getInt16(at+2+i*2,true));b.objects.push(o);}
  const {errors}=validate(b);if(errors.length)throw new Error(errors[0]);return b;
 }
+// flags bit 0 distinguishes an intentionally empty rubber list from a legacy
+// board's fixed pair. Idempotent for browser drafts, SD imports and undo/redo.
+export function editableBoard(board){
+ const b=copy(board);if((b.flags??0)!==0)return b;
+ b.flags=1;
+ for(const group of [0,1])b.objects.push({kind:'rubber',group,x:group?88:30,y:b.height-75,u:15,v:27,value:0});
+ return b;
+}
+export function rubberPoint(o,t,bend=0){
+ // Match the integer shared C++ Bezier before scaling to the chosen footprint.
+ const a=256-t,x=Math.floor((a*a*88+2*a*t*(80-bend*2)+t*t*73)/65536);
+ const y=Math.floor((2*a*t*(11-bend)+t*t*22)/65536);
+ return {x:o.x+Math.trunc((o.group?-1:1)*(88-x)*o.u/15),y:o.y+Math.trunc(y*o.v/27)};
+}
+export function rubberOutline(o){return [o,{x:o.x,y:o.y+o.v},rubberPoint(o,256),...Array.from({length:5},(_,i)=>rubberPoint(o,256-i*64))];}
 export function newIdentity(board,boards,title=''){
  const result=copy(board);let id;do{id=crypto.getRandomValues(new Uint32Array(1))[0];}while(!id||boards.some(b=>b.id===id));result.id=id;
  const root=board.file.slice(0,5);let n=1;do{result.file=root+String(n++).padStart(3,'0');}while(boards.some(b=>b.file===result.file));
@@ -91,6 +111,7 @@ export function pick(board,x,y){
   let d;
   if(['wall','gate'].includes(o.kind))d=segmentDistance(x,y,o,{x:o.u,y:o.v})-3;
   else if(o.kind==='ramp'){d=Infinity;let a=o;for(let j=1;j<=16;j++){let b=rampPoint(o,j/16);d=Math.min(d,segmentDistance(x,y,a,b)-5);a=b;}}
+  else if(o.kind==='rubber'){const polygon=rubberOutline(o);d=Infinity;let inside=false;for(let j=0,k=polygon.length-1;j<polygon.length;k=j++){const a=polygon[k],b=polygon[j];d=Math.min(d,segmentDistance(x,y,a,b)-2);if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside;}if(inside)d=-3;}
   else if(o.kind==='flippers')d=Math.min(segmentDistance(x,y,o,{x:o.x+o.v,y:o.y+9}),segmentDistance(x,y,{x:o.u,y:o.y},{x:o.u-o.v,y:o.y+9}))-5;
   else d=Math.hypot(x-o.x,y-o.y)-(o.kind==='target'||o.kind==='drop_target'?6:o.u);
   if(d<=5&&d<nearest){chosen=i;nearest=d;}

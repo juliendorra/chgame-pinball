@@ -283,6 +283,23 @@ static __attribute__((noinline)) void flippers(Ball &b, int left, int right, int
     collideFlipper(b, left, y, length, false, game.left, previousLeft);
     collideFlipper(b, right, y, length, true, game.right, previousRight);
 }
+static __attribute__((noinline)) void collideRubber(Ball &b,const Object &o,uint8_t &ticks,uint8_t &strength) {
+    int bend=rubberBend(ticks,strength),x=o.x,y=o.y;
+    bool hit=false;
+    int speed=abs(b.vx)+abs(b.vy);
+    for(unsigned t=bend?64:256;t<=256;t+=64) {
+        int u,v;rubberPoint(o,t,bend,u,v);
+        hit |= segment(b,x,y,u,v,RADIUS+ONE,game.tilt>=3 || ticks>10?0:170);
+        x=u;y=v;
+    }
+    segment(b,o.x,o.y,o.x,o.y+o.v);
+    segment(b,o.x,o.y+o.v,x,y);
+    if(hit && ticks<=10) {
+        ticks=18;strength=speed>700?3:2;
+        audio::blip(o.group?1050:900,12,true);rumble::play(rumble::Effect::Sling);
+        addScore(o.value);
+    }
+}
 static __attribute__((noinline)) void bounds(Ball &b) {
     const int h = table.h.height;
     // Gutters stay open past the pivot. The former inward apron diagonal
@@ -293,27 +310,11 @@ static __attribute__((noinline)) void bounds(Ball &b) {
     segment(b, 98, 8, 124, 32);
     segment(b, 124, 32, 124, h - 8);
     segment(b, 112, 58, 112, h + 6);
-    for (unsigned side = 0; side < 2; ++side) {
-        int bend = rubberBend(game.rubberTicks[side], game.rubberStrength[side]);
-        int x=side?88:30, y=h-75;
-        bool hit = false;
-        int speed = (b.vx < 0 ? -b.vx : b.vx) + (b.vy < 0 ? -b.vy : b.vy);
-        for (unsigned t = bend?64:256; t <= 256; t += 64) {
-            int u, v; rubberPoint(side, h, t, bend, u, v);
-            hit |= segment(b, x, y, u, v, RADIUS + ONE, game.tilt >= 3 || game.rubberTicks[side] > 10 ? 0 : 170);
-            x = u; y = v;
-        }
-        if (hit && game.rubberTicks[side] <= 10) {
-            game.rubberTicks[side] = 18;
-            game.rubberStrength[side] = speed > 700 ? 3 : 2;
-            audio::blip(side ? 1050 : 900, 12, true);
-            rumble::play(rumble::Effect::Sling);
-        }
-    }
-    segment(b, 30, h - 75, 30, h - 48);
-    segment(b, 30, h - 48, RUBBER_TIP_X, h - 53);
-    segment(b, 88, h - 75, 88, h - 48);
-    segment(b, 88, h - 48, RUBBER_REFLECT_X-RUBBER_TIP_X, h - 53);
+    if (!(table.h.flags & EXPLICIT_RUBBERS)) for (unsigned side=0;side<2;++side) {
+        Object o=defaultRubber(side,h);
+        collideRubber(b,o,game.rubberTicks[side],game.rubberStrength[side]);
+    } else for(unsigned i=0;i<table.h.count;++i)if(table.objects[i].kind==Rubber)
+        collideRubber(b,table.objects[i],game.cooldown[i],game.elementState[i]);
     if (b.launching) {
         if (b.y < 58 * ONE && b.vy < 0) b.vx = -800;
         if (b.x < 108 * ONE) b.launching = false;
@@ -351,6 +352,7 @@ static void multiball(Ball &source) {
 static __attribute__((noinline)) void objects(Ball &b, int previousLeft, int previousRight) {
     for (unsigned i = 0; i < table.h.count; ++i) {
         const Object &o = table.objects[i];
+        if (o.kind == Rubber) continue;
         if (o.kind == Wall) { segment(b, o.x, o.y, o.u, o.v); continue; }
         if (o.kind == Gate) {
             GuideRail arm=gateArm(o,game.elementState[i]);

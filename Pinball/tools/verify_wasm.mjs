@@ -5,7 +5,7 @@ import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import assert from 'node:assert/strict';
-import {encode,copy,rampPoint} from '../editor/model.mjs';
+import {encode,copy,rampPoint,editableBoard} from '../editor/model.mjs';
 import {readState,STATE_FIELDS} from '../editor/wasm-engine.mjs';
 const [dist,native]=process.argv.slice(2);
 const {default:create}=await import(pathToFileURL(path.resolve(dist,'engine.mjs')));
@@ -82,6 +82,20 @@ for(let g=0;g<3;g++){
 }
 laneBoard.objects.pop();load(laneBoard);assert.equal(readState(m).lane_groups,3,'draft missing a lane cannot advertise an impossible mission');snapshot();
 console.log('Lane mission: missing A/B/C sprites, real set progress, next multiplier, launch tutorial and incomplete drafts match native/WASM.');
+// Slings are editable hardware, not cabinet art. Both runtimes execute every
+// contact and edit; moved/deleted faces must not leave invisible colliders.
+const rubbers=editableBoard(copy(boards[8]));rubbers.objects=rubbers.objects.filter(o=>o.kind==='rubber');
+function ballState(){const s=readState(m);return [s.xq,s.yq,s.vx,s.vy,s.spin_q16];}
+const legacyRubbers=copy(rubbers);legacyRubbers.flags=0;legacyRubbers.objects=[];
+function slingTrace(b){load(b);command('R',6789);place(41,b.height-63,-300,0);const trace=[];for(let i=0;i<24;i++){step();trace.push(ballState());}snapshot();return trace;}
+assert.deepEqual(slingTrace(rubbers),slingTrace(legacyRubbers),'default editable slings preserve legacy rebound and spin');
+rubbers.objects=[{kind:'rubber',group:0,x:40,y:180,u:15,v:27,value:50}];load(rubbers);command('R',6789);place(51,192,-300,0);step();
+assert.ok(readState(m).score>=50,'moved rubber powers the ball and scores at its new position');snapshot();
+const hit=ballState();rubbers.objects=[];load(rubbers);command('R',6789);place(51,192,-300,0);step();assert.notDeepEqual(ballState(),hit,'deleted rubber has no ghost collider');snapshot();
+place(41,rubbers.height-63,-300,0);step();const removed=ballState();
+load(legacyRubbers);command('R',6789);place(41,rubbers.height-63,-300,0);step();assert.notDeepEqual(ballState(),removed,'deleting both does not restore a hard-coded pair');snapshot();
+rubbers.objects=[{kind:'rubber',group:1,x:88,y:150,u:24,v:40,value:0}];load(rubbers);command('R',6789);place(67,178,300,0);for(let i=0;i<30;i++)step();snapshot();
+console.log('Editable rubber: legacy trajectory/pixels, relocated powered contact, resize, mirror, live removal and no ghost cabinet colliders match native/WASM.');
 // Exercise an occupied ramp explicitly, including an index shift on insertion.
 const fixture=copy(boards[0]);fixture.id=0x57534d31;
 const ramp={kind:'ramp',x:35,y:200,u:90,v:80,value:1000,group:0};fixture.objects=[ramp];

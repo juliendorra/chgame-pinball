@@ -28,9 +28,14 @@ for the pinned compiler setup and deployment to a static host.
   onto the board. While dragging, its transparent sprite follows at the board's
   zoom level, with an anchor marker and exact drop coordinates. Rails, ramps
   and flipper pairs preview their footprint too. Drop outside the board or press
-  Escape to cancel. All twelve game elements are available.
+  Escape to cancel. All thirteen game elements are available, including flexing rubber slingshots.
 - Select and drag existing parts. Rails, gates and ramps also have endpoint
   handles. Use the inspector for exact coordinates, dimensions, group and score.
+- The two rubber slingshots are selectable hardware too. Move, resize, mirror,
+  duplicate or remove them; add more from **Rubber slingshot**. Each flexes
+  independently, and its collision follows the visible band and metal base.
+  Existing browser drafts and imported SD boards gain editable versions of
+  their original pair automatically. Removing both stays removed on export.
 - Delete removes the selected part. Duplicate copies it. Cmd/Ctrl-Z undoes;
   Shift-Cmd/Ctrl-Z redoes. Both remain available during play.
 - Clone gives a board its own ID, SD filename and high-score identity. New

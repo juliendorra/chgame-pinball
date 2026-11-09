@@ -83,7 +83,7 @@ bool command(const char *p) {
     invalidatePreview();
     while(*p==' ')++p;
     char cmd=*p++;touched=millis();bool ok=false;
-    if(cmd=='?'){say("LIVE HELLO 1.4.15 PBT1 RAM SD\n");return true;}
+    if(cmd=='?'){say("LIVE HELLO 1.4.16 PBT1 RAM SD RUBBER\n");return true;}
     if(cmd=='H'){gfx_wait();data(gfx_fb,GFX_FB_BYTES);return true;}
     if(cmd=='M'){
         while(*p==' ')++p;bool minus=*p=='-';if(minus)++p;

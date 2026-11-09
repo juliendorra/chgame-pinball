@@ -10,6 +10,10 @@ constexpr int RUBBER_TIP_X=45, RUBBER_REFLECT_X=118;
 inline unsigned flipperPoseIndex(unsigned level) { return (level + 16) >> 5; }
 void rubberPoint(unsigned side, int height, unsigned t, int bend, int &x, int &y);
 int rubberBend(unsigned ticks, unsigned strength);
+inline Object defaultRubber(unsigned side, int height) {
+    return {Rubber,uint8_t(side),int16_t(30+side*58),int16_t(height-75),15,27,0};
+}
+void rubberPoint(const Object &rubber, unsigned t, int bend, int &x, int &y);
 // Geometry shared by the ramp renderer, ball transport and board preview.
 void rampPoint(const Object &ramp, unsigned t, int &x, int &y);
 struct GuideRail { int x, y, u, v; };

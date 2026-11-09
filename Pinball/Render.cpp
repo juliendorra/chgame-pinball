@@ -28,7 +28,7 @@ void drawOverview(void (*write)(const uint8_t *, unsigned, void *), void *contex
 #endif
 enum : uint8_t { BG, WHITE, GRID, METAL, CYAN, DIM, RED, PANEL, PINK, ORANGE, GOLD, GREEN, BLUE, PURPLE, SILVER, GLOW };
 static int clipX, clipY = 12, clipW = 128, clipH = 108;
-static bool mirrorSling;
+static int mirrorSling; // zero, or the reflection axis doubled
 static int sy(int y) { return y - game.camera + 12; }
 static uint8_t scoreColor(unsigned theme = table.h.theme);
 static __attribute__((noinline)) void resultText(int y,const char *text,uint8_t color) {
@@ -115,7 +115,7 @@ RAMFUNC(pinballBeam) static void beam(int x, int y, int u, int v, uint8_t c, boo
     }
 }
 static void railPart(int x, int y, int u, int v, uint8_t c, bool shadow, unsigned caps) {
-    if(mirrorSling){x=RUBBER_REFLECT_X-x;u=RUBBER_REFLECT_X-u;}
+    if(mirrorSling){x=mirrorSling-x;u=mirrorSling-u;}
     int a = sy(y), b = sy(v);
     if ((a < clipY - 5 && b < clipY - 5) || (a > clipY + clipH + 2 && b > clipY + clipH + 2) ||
         (x < clipX - 4 && u < clipX - 4) || (x > clipX + clipW + 2 && u > clipX + clipW + 2)) return;
@@ -288,26 +288,24 @@ static void bats(int left, int right, int y, int length) {
         sprite4(pose.data, x - pose.ax * scale / 256, py - pose.ay * scale / 256, nullptr, scale);
     }
 }
-static void sling(unsigned side, int h) {
-    // Rasterize the right-hand shape for both sides. Reflect its geometry
-    // and face shading; shadows still offset down/right in board space.
-    mirrorSling=!side;
-    int a = 88, b = RUBBER_REFLECT_X-RUBBER_TIP_X;
-    for (int world = h - 75; world <= h - 48; ++world) {
-        int y = sy(world); if (y < 12 || y >= 120) continue;
-        int t = world < h - 53 ? (world - h + 75) * 256 / 22 : (h - 48 - world) * 256 / 5;
-        int edge = a + (b - a) * t / 256;
-        gfx_hline(mirrorSling?RUBBER_REFLECT_X-a:edge,y,a-edge+1,PANEL);
+__attribute__((noinline)) static void sling(const Object &o,unsigned ticks,unsigned strength) {
+    // Rasterize one handed shape, including its face lighting; cast shadows
+    // always remain down/right in board space. Collision uses these same points.
+    mirrorSling=o.group?0:o.x*2;
+    int a=o.x,b=a-o.u,tip=o.y+22*o.v/27,bottom=o.y+o.v;
+    for(int world=o.y;world<=bottom;++world) {
+        int y=sy(world);if(y<12 || y>=120)continue;
+        int t=world<tip?(world-o.y)*256/(tip-o.y):(bottom-world)*256/(bottom-tip);
+        int edge=a+(b-a)*t/256;
+        gfx_hline(mirrorSling?mirrorSling-a:edge,y,a-edge+1,PANEL);
     }
-    RailPoint frame[3] = {{int16_t(a),int16_t(h-75)}, {int16_t(a),int16_t(h-48)}, {int16_t(b),int16_t(h-53)}};
-    RailPoint band[5];
-    int bend = rubberBend(game.rubberTicks[side],game.rubberStrength[side]);
-    for (unsigned i = 0; i < 5; ++i) {
-        int x,y;rubberPoint(1,h,i*64,bend,x,y); band[i]={int16_t(x),int16_t(y)};
+    RailPoint frame[3]={{int16_t(a),o.y},{int16_t(a),int16_t(bottom)},{int16_t(b),int16_t(tip)}};
+    RailPoint band[5];Object right=o;right.group=1;
+    int bend=rubberBend(ticks,strength);
+    for(unsigned i=0;i<5;++i) {
+        int x,y;rubberPoint(right,i*64,bend,x,y);band[i]={int16_t(x),int16_t(y)};
     }
-    // The rubber and its base share a joint: finish both shadows before
-    // either surface, so the band shadow cannot cut through the lower corner.
-    for (unsigned pass=0;pass<2;++pass) {
+    for(unsigned pass=0;pass<2;++pass) {
         railRun(frame,3,DIM,true,pass,pass+1);
         railRun(band,5,PINK,false,pass,pass+1);
     }
@@ -550,7 +548,7 @@ static __attribute__((noinline)) void footer(const char *text,uint8_t color) {
     }
     text35(18+(110-text35Width(text))/2,122,text,color);
 }
-static void borderSkins() {
+static __attribute__((noinline)) void borderSkins() {
     const BoardBorder &skin=BOARD_BORDERS[table.h.theme];
     uint8_t remap[16];for(unsigned i=0;i<16;++i)remap[i]=i;
     remap[8]=scoreColor();
@@ -584,7 +582,7 @@ static void borderSkins() {
         gfx_setClip(clipX,clipY,clipW,clipH);
     }
 }
-void drawTable() {
+__attribute__((noinline)) void drawTable() {
     const int h = table.h.height;
     gfx_clear(BG);
     clipX = 0; clipY = 12; clipW = 128; clipH = 108;
@@ -599,12 +597,15 @@ void drawTable() {
     GuideRail flap=shooterFlapArm(game.shooterFlap);
     rail(flap.x,flap.y,flap.u,flap.v,SILVER);
     gfx_fillRoundRect(122,sy(41),4,4,1,GOLD);
-    sling(0,h); sling(1,h);
+    if(!(table.h.flags & EXPLICIT_RUBBERS))for(unsigned side=0;side<2;++side)
+        sling(defaultRubber(side,h),game.rubberTicks[side],game.rubberStrength[side]);
+    for(unsigned i=0;i<table.h.count;++i)if(table.objects[i].kind==Rubber)
+        sling(table.objects[i],game.cooldown[i],game.elementState[i]);
     for (unsigned i = 0; i < table.h.count; ++i) {
         const Object &o = table.objects[i];
         int y = sy(o.y);
-        if (o.kind == Ramp) continue;
-        if (o.kind != Wall && o.kind != Gate && (y < -8 || y >= 140)) continue;
+        if (o.kind == Ramp || o.kind == Rubber) continue;
+        if (o.kind != Wall && o.kind != Gate && o.kind != Rubber && (y < -8 || y >= 140)) continue;
         uint8_t color = laneColors[o.group];
         bool flash = game.cooldown[i] && (game.cooldown[i] & 4);
         if (o.kind == Wall) rail(o.x, o.y, o.u, o.v, SILVER);

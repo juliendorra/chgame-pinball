@@ -21,6 +21,7 @@ sprite, with colors supplied by each table's RGB444 palette.
 | `drop_target` | same geometry as target | Falls on hit; ceases collision while down; resets on new ball or multiball | `drop_target`: up / falling / down |
 | `kickback` | center x,y; u trigger radius | One-shot outlane rescue; lane set rearms | `kickback`: armed / firing / spent |
 | `gate` | x,y to u,v; group 0 permits up, 1 permits down, 2 opens after all target colors | Directional flap or bank-controlled barrier | `gate`: shut / open, plus solid rail when shut |
+| `rubber` | outer top x,y; u width (8–24), v height (16–40); group 0 points right, 1 points left | Powered slingshot face, solid metal base; 18-frame compression/recoil, separate state per part; scoring disabled by tilt | Procedural thick base, board-tinted shadow and flexing band share the same scaled geometry with collision |
 | `saucer` | center x,y; u capture radius | 60-frame hold, escalating three-step award, ball save every third hit, controlled eject | `saucer`: steady metal bowl; cyan lamp for 2× value, gold for 3×, green for normal value plus four seconds of ball save |
 
 All kinds use `value` as the base score (0-10000), and most use `group` to
@@ -28,7 +29,23 @@ select cyan, pink or gold. Powered and trigger elements have independent
 cooldowns. Captured balls leave beyond the cup lip, with a four-second cup
 cooldown, so they cannot repeatedly collect a cup while still inside it.
 
-The shared lower assembly includes slingshots, a plunger, one-way shooter
+Slingshots are movable table objects: select either rubber triangle in Studio
+to move, resize, mirror, duplicate, remove or change its score. Add more using
+**Rubber slingshot** in the parts bin. The outer top corner is the placement
+anchor. Width and height include the base; rail thickness is retained when
+resizing. The curved band and the solid back/bottom contacts move together.
+
+PBT1 header flag bit 0 means the board explicitly lists its rubbers, including
+an intentionally empty list. Kind 12 is `rubber`. Old flag-zero boards keep
+the original fixed pair on the console; Studio materializes that pair as
+editable objects on opening/import without changing their layout. Exports
+retain the flag so deleting both never brings back invisible cabinet rubbers.
+The explicit parts count toward the 72-element limit. A completely full legacy
+board needs two other parts removed before its converted draft can be saved.
+Other flag bits are rejected. New-format layouts need a firmware build with
+editable-rubber support; older firmware rejects them safely.
+
+The shared lower assembly includes a plunger, one-way shooter
 flap, main flippers, return lanes and narrow outlanes. Outlane rail centers
 are 12 pixels apart for the eight-pixel collision diameter. Inlane guides
 continue into each pivot; upper pairs have continuous side guides too.
@@ -187,3 +204,21 @@ This is a repeatable design diagnostic, not a validated rating of human
 fun. A weak controller can miss a good shot, and a good proxy can still feel
 boring. Use the flags to choose what to inspect and compare changes under
 the same seeds, then play on the handheld for button feel, clarity and fun.
+
+### Editable-rubber regression coverage
+
+Studio model checks cover idempotent legacy conversion, empty-rubber round trips,
+picking the triangular footprint, dimensions, mirroring and the 72-part limit.
+The native/WASM replay checks default trajectories, moved powered contacts,
+resizing, live removal and the absence of ghost colliders. Native image checks
+compare implicit and editable defaults through all nineteen flex poses. An
+algebraic Bezier reduction is checked against the old geometry at every Q8
+sample, for both hands and seven bend levels.
+
+To fit the new element in the console cart, flippers share mirrored collision
+masks and store their already-converted hull corners. The generator verifies
+every mirrored span; traversal preserves the original tie order and scaling.
+The unchanged 4,798-probe art/collision check remains part of each build.
+The pre-packing WASM engine also matched the new native build across 5,645 ticks,
+116 live edits and 373 complete state/LCD/overview snapshots. Card error labels
+were shortened while retaining their meaning. No physics constants changed.

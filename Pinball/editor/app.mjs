@@ -1,6 +1,6 @@
 import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
-import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,controlsForKey,pick,handles,rampPoint} from './model.mjs';
+import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline} from './model.mjs';
 import {BrowserDevice} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
@@ -26,7 +26,7 @@ function edited(snapshot=true){
 }
 function showValidation({errors,warnings}){const box=$('#validation');box.replaceChildren();for(const text of [...errors,...warnings]){const p=document.createElement('p');p.textContent=(errors.includes(text)?'! ':'↳ ')+text;if(errors.includes(text))p.className='error';box.append(p);}}
 function refreshLibrary(){boardPicker.update(state.boards,state.id,borders);$('#boardCount').textContent=state.boards.length;}
-function choose(id){releaseKeys();state.id=Number(id);state.selected=-1;state.undo=[];state.redo=[];state.lastFrame=null;refresh();edited(false);fit();}
+function choose(id){releaseKeys();state.id=Number(id);state.selected=-1;state.undo=[];state.redo=[];state.lastFrame=null;refresh();if(validate(board()).errors.length&&state.validBoards[state.id])send({type:'board',board:copy(state.validBoards[state.id]),revision:state.revision});edited(false);fit();}
 function refresh(){
  refreshLibrary();historyButtons();const b=board();$('#boardHeading').textContent=b.title;
  for(const [selector,key] of [['#titleInput','title'],['#missionInput','mission'],['#heightInput','height'],['#gravityInput','gravity'],['#fileInput','file'],['#themeSelect','theme']])$(selector).value=b[key];
@@ -42,8 +42,8 @@ function inspector(){
  if(!o){const title=document.createElement('div');title.className='section-title';title.textContent='MAKE IT YOURS';const p=document.createElement('p');p.className='description';p.textContent='Click any part to tune it. Drag to move. The ball keeps going.';box.append(title,p);return;}
  const definition=CATALOG.find(c=>c.kind===o.kind),title=document.createElement('div'),p=document.createElement('p');title.className='section-title';title.textContent=definition.name.toUpperCase();p.className='description';p.textContent=definition.description;box.append(title,p);
  const row=document.createElement('div');row.className='field-row';row.append(field('X','x',o),field('Y','y',o));box.append(row);
- const names={wall:['End X','End Y'],gate:['End X','End Y'],ramp:['Exit X','Exit Y'],flippers:['Right pivot X','Bat length'],target:['Width','Height'],drop_target:['Width','Height'],spinner:['Half-width','Kick'],scoop:['Radius','Kick'],saucer:['Radius','Hold / kick'],kickback:['Radius','Kick'],bumper:['Radius','Kick'],lane:['Radius','Kick']}[o.kind];
- const dimensions=document.createElement('div');dimensions.className='field-row';if(o.kind!=='spinner')dimensions.append(field(names[0],'u',o));if(['wall','gate','ramp','flippers','target','drop_target','bumper'].includes(o.kind))dimensions.append(field(names[1],'v',o));box.append(dimensions);if(!['wall','flippers','spinner','kickback'].includes(o.kind))box.append(field(o.kind==='ramp'?'Curve':o.kind==='gate'?'Gate rule':'Color bank','group',o,o.kind==='ramp'?['Left side','Right side','Center']:o.kind==='gate'?['Pass toward upper side','Pass toward lower side','Unlock with all target banks']:['Cyan','Pink','Gold']));if(!['wall','gate','flippers'].includes(o.kind))box.append(field('Points','value',o));
+ const names={rubber:['Width','Height'],wall:['End X','End Y'],gate:['End X','End Y'],ramp:['Exit X','Exit Y'],flippers:['Right pivot X','Bat length'],target:['Width','Height'],drop_target:['Width','Height'],spinner:['Half-width','Kick'],scoop:['Radius','Kick'],saucer:['Radius','Hold / kick'],kickback:['Radius','Kick'],bumper:['Radius','Kick'],lane:['Radius','Kick']}[o.kind];
+ const dimensions=document.createElement('div');dimensions.className='field-row';if(o.kind!=='spinner')dimensions.append(field(names[0],'u',o));if(['wall','gate','ramp','flippers','target','drop_target','bumper','rubber'].includes(o.kind))dimensions.append(field(names[1],'v',o));box.append(dimensions);if(!['wall','flippers','spinner','kickback'].includes(o.kind))box.append(field(o.kind==='ramp'?'Curve':o.kind==='gate'?'Gate rule':o.kind==='rubber'?'Facing':'Color bank','group',o,o.kind==='ramp'?['Left side','Right side','Center']:o.kind==='rubber'?['Left · points right','Right · points left']:o.kind==='gate'?['Pass toward upper side','Pass toward lower side','Unlock with all target banks']:['Cyan','Pink','Gold']));if(!['wall','gate','flippers'].includes(o.kind))box.append(field('Points','value',o));
  const actions=document.createElement('div');actions.className='selection-actions';const duplicate=document.createElement('button'),remove=document.createElement('button');duplicate.textContent='⧉ Duplicate';duplicate.onclick=duplicatePart;remove.textContent='Remove';remove.className='delete';remove.onclick=removePart;actions.append(duplicate,remove);box.append(actions);
 }
 function refreshCoordinates(){const o=board().objects[state.selected];if(!o)return;for(const k of ['x','y','u','v']){const input=$('#prop-'+k);if(input&&document.activeElement!==input)input.value=o[k];}}
@@ -51,6 +51,7 @@ function selection(){
  const svg=$('#selection');svg.replaceChildren();const o=board().objects[state.selected];if(!o)return;
  const shape=document.createElementNS(NS,'path');shape.setAttribute('class','selection-outline');
  if(o.kind==='ramp'){let d='M '+o.x+' '+o.y;for(let i=1;i<=16;i++){const p=rampPoint(o,i/16);d+=` L ${p.x} ${p.y}`;}shape.setAttribute('d',d);shape.setAttribute('fill','none');shape.style.strokeWidth=1;svg.append(shape);}
+ else if(o.kind==='rubber'){shape.setAttribute('d',rubberOutline(o).map((p,i)=>`${i?'L':'M'} ${p.x} ${p.y}`).join(' ')+' Z');shape.setAttribute('fill','none');svg.append(shape);}
  else if(['wall','gate'].includes(o.kind)){shape.setAttribute('d',`M ${o.x} ${o.y} L ${o.u} ${o.v}`);shape.style.strokeWidth=8;svg.append(shape);}
  else{const rect=document.createElementNS(NS,'rect');const fl=o.kind==='flippers',r=fl?6:Math.max(6,o.u)+3;rect.setAttribute('x',o.x-r);rect.setAttribute('y',o.y-r);rect.setAttribute('width',fl?o.u-o.x+r*2:r*2);rect.setAttribute('height',fl?25:r*2);rect.setAttribute('rx','3');rect.setAttribute('class','selection-outline');svg.append(rect);}
  for(const p of handles(o)){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r','2.4');c.setAttribute('class','selection-handle');svg.append(c);}
@@ -88,6 +89,7 @@ canvas.addEventListener('dblclick',e=>{const p=point(e);if(pick(board(),p.x,p.y)
 function dropBall(p=dropPoint()){const x=Math.max(10,Math.min(108,p.x)),y=Math.max(12,Math.min(board().height-20,p.y));send({type:'place',x,y});if(state.device)deviceAction('place',{x,y}).catch(e=>toast(e.message));}
 function paintIcons(){if(!sprites||!board())return;const inks={'.':-1,'0':2,w:1,m:3,t:4,d:7,i:5,c:4,o:9,g:10,b:12,p:13,s:14,r:6};
  for(const def of CATALOG){const c=document.querySelector(`[data-part="${def.kind}"] canvas`),ctx=c.getContext('2d'),frame=sprites[def.sprite]?.[0];ctx.clearRect(0,0,c.width,c.height);
+ if(def.kind==='rubber'){drawPartPreview(c,{...def.defaults,x:12,y:3,u:12,v:21},sprites,board().palette);continue;}
  if(def.kind==='gate'){drawPartPreview(c,{...def.defaults,x:8,y:18,u:33,v:18},sprites,board().palette);continue;}
  if(def.kind==='ramp'){drawPartPreview(c,{...def.defaults,x:20,y:18,u:24,v:-10},sprites,board().palette);continue;}
  if(!frame){ctx.strokeStyle='#baff76';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(6,22);ctx.quadraticCurveTo(14,5,33,6);ctx.stroke();continue;}
@@ -198,12 +200,22 @@ async function saveSd(){
  catch(e){toast(e.message);}finally{button.disabled=!state.device;button.textContent='Save to SD';}}
 async function retrieve(){const b=$('#readBoards');b.disabled=true;b.textContent='Reading…';try{
  const entries=await deviceAction('boards');let added=0;
- for(const entry of entries){const incoming=entry.board,existing=state.boards.find(v=>v.id===incoming.id);if(existing){if(JSON.stringify(encode(existing))===JSON.stringify(encode(incoming)))continue;const duplicate=newIdentity(incoming,state.boards,(incoming.title+' SD').slice(0,19));state.boards.push(duplicate);}else{if(state.boards.some(v=>v.file===incoming.file))incoming.file=newIdentity(incoming,state.boards).file;state.boards.push(incoming);}added++;}
+ for(const entry of entries){let incoming=editableBoard(entry.board);const existing=state.boards.find(v=>v.id===incoming.id);
+  if(existing){const before=validate(existing).errors.length?state.validBoards[existing.id]:existing,after=validate(incoming).errors.length?entry.board:incoming;if(before&&JSON.stringify(encode(before))===JSON.stringify(encode(after)))continue;incoming=newIdentity(incoming,state.boards,(incoming.title+' SD').slice(0,19));}
+  else if(state.boards.some(v=>v.file===incoming.file))incoming.file=newIdentity(incoming,state.boards).file;
+  keepImported(entry.board,incoming);added++;
+ }
  persist();refreshLibrary();toast(`Read ${entries.length} boards from CHGame. ${added} added to your library.`);
  }catch(e){toast(e.message);}finally{b.disabled=!state.device;b.textContent='↓ Get boards';}}
+function keepImported(raw,editable){
+ state.boards.push(editable);
+ // A full legacy board can temporarily exceed 72 after exposing its pair.
+ // Keep playing its valid source until the player removes two other parts.
+ state.validBoards[editable.id]=validate(editable).errors.length?{...copy(raw),id:editable.id,file:editable.file,title:editable.title}:copy(editable);
+}
 async function importFile(file){
  try{let imported;if(file.name.toLowerCase().endsWith('.json')){const j=JSON.parse(await file.text());imported=Array.isArray(j)?j:[j];}else imported=[decode(new Uint8Array(await file.arrayBuffer()),file.name)];
- for(let b of imported){const errors=validate(b).errors;if(errors.length)throw new Error(errors[0]);if(state.boards.some(v=>v.id===b.id||v.file===b.file))b=newIdentity(b,state.boards,b.title);state.boards.push(b);state.id=b.id;}
+ for(const raw of imported){const errors=validate(raw).errors;if(errors.length)throw new Error(errors[0]);let b=editableBoard(raw);if(state.boards.some(v=>v.id===b.id||v.file===b.file))b=newIdentity(b,state.boards,b.title);keepImported(raw,b);state.id=b.id;}
  choose(state.id);toast(`Imported ${imported.length} board${imported.length===1?'':'s'}.`);
  }catch(e){toast(e.message);}}
 $('#cloneButton').onclick=()=>create();$('#newButton').onclick=()=>create(true);$('#undoButton').onclick=()=>restore();$('#redoButton').onclick=()=>restore(true);$('#fitButton').onclick=fit;$('#zoomIn').onclick=()=>zoom(1);$('#zoomOut').onclick=()=>zoom(-1);
@@ -220,7 +232,7 @@ try{
  const asset=async name=>{const r=await fetch(new URL('./assets/'+name,import.meta.url));if(!r.ok)throw new Error('Missing Studio asset: '+name);return r.json();};
  const [templates,art,skins]=await Promise.all([asset('boards.json'),asset('elements.json'),asset('borders.json')]);bases=copy(templates);sprites=art;borders=Object.values(skins);
  let saved;try{saved=JSON.parse(localStorage.getItem('midnight-studio-v1'));}catch{}
- state.boards=saved?.boards?.length&&saved.boards.every(b=>b&&Number.isInteger(b.id)&&Array.isArray(b.objects))?saved.boards:templates;state.validBoards=saved?.validBoards||{};for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.id=state.boards.some(b=>b.id===saved?.id)?saved.id:state.boards.at(-1).id;
+ state.boards=saved?.boards?.length&&saved.boards.every(b=>b&&Number.isInteger(b.id)&&Array.isArray(b.objects))?saved.boards:templates;state.validBoards=saved?.validBoards||{};for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.boards=state.boards.map(editableBoard);for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.id=state.boards.some(b=>b.id===saved?.id)?saved.id:state.boards.at(-1).id;
  THEMES.forEach((name,i)=>$('#themeSelect').add(new Option(name,i)));paletteButtons();refresh();fit();await connectSimulator();
 }catch(e){$('#engineLoading').textContent=e.message;status(e.message,true);}
 // Read-only test/accessibility handle. All changes still use the public UI.

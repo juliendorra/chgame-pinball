@@ -7,7 +7,9 @@ namespace pinball {
 constexpr unsigned MAX_OBJECTS = 72;
 constexpr unsigned MAX_TABLES = 96;
 enum Kind : uint8_t { Wall, Bumper, Target, Lane, Scoop, Flippers,
-    Ramp, Spinner, DropTarget, Kickback, Gate, Saucer, KIND_COUNT };
+    Ramp, Spinner, DropTarget, Kickback, Gate, Saucer, Rubber, KIND_COUNT };
+
+constexpr uint8_t EXPLICIT_RUBBERS = 1; // Otherwise retain the legacy cabinet pair.
 
 // PBT1 is explicitly little endian, with no compiler-dependent padding.
 // Wire sizes stay fixed; aligned storage lets the MCU load 16/32-bit fields

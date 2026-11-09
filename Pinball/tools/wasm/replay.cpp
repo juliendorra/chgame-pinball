@@ -6,6 +6,7 @@
 #include "Physics.h"
 #include "Render.h"
 #include <math.h>
+#include <string.h>
 #include <initializer_list>
 extern "C" {
 void pb_init();uint8_t *pb_input();int pb_apply(unsigned);void pb_step(unsigned);
@@ -54,6 +55,10 @@ int main(){
         pinball::rubberPoint(0,432,t,bend,lx,ly);
         pinball::rubberPoint(1,432,t,bend,rx,ry);
         if(lx+rx!=pinball::RUBBER_REFLECT_X || ly!=ry)return 10;
+        int x,y;pinball::rubberPoint(pinball::defaultRubber(0,432),t,bend,x,y);
+        if(x!=lx || y!=ly)return 13;
+        pinball::rubberPoint(pinball::defaultRubber(1,432),t,bend,x,y);
+        if(x!=rx || y!=ry)return 14;
     }
     fprintf(stderr,"Rubber geometry: 1799 mirrored curve samples, including both lower joints, passed\n");
     const auto savedTable=pinball::table;
@@ -66,7 +71,12 @@ int main(){
         pinball::game.rubberTicks[0]=pinball::game.rubberTicks[1]=ticks;
         pinball::game.rubberStrength[0]=pinball::game.rubberStrength[1]=3;
         for(auto &b:pinball::game.balls)b.active=false;
+        pinball::table.h.flags=0;pinball::table.h.count=0;
         pinball::drawTable();
+        uint8_t legacy[GFX_FB_BYTES];memcpy(legacy,gfx_fb,sizeof legacy);
+        pinball::table.h.flags=pinball::EXPLICIT_RUBBERS;pinball::table.h.count=2;
+        for(unsigned side=0;side<2;++side){pinball::table.objects[side]=pinball::defaultRubber(side,432);pinball::game.cooldown[side]=ticks;pinball::game.elementState[side]=3;}
+        pinball::drawTable();if(memcmp(legacy,gfx_fb,sizeof legacy))return 12;
         for(int y=42;y<76;++y)for(int x=69;x<94;++x){
             auto pixel=[&](int u){return gfx_fb[y*64+(u>>1)]>>((u&1)*4)&15;};
             unsigned right=pixel(x),left=pixel(pinball::RUBBER_REFLECT_X-x);

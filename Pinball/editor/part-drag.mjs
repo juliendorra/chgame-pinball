@@ -1,5 +1,5 @@
 // Palette drag artwork only. Play continues to use the native C++ renderer.
-import {CATALOG,rampPoint} from './model.mjs';
+import {CATALOG,rampPoint,rubberPoint} from './model.mjs';
 const INKS={'.':-1,'0':2,w:1,m:3,t:4,d:7,i:5,c:4,o:9,g:10,b:12,p:13,s:14,r:6};
 
 export function drawPartPreview(canvas,part,sprites,palette){
@@ -35,6 +35,10 @@ export function drawPartPreview(canvas,part,sprites,palette){
   sprite('ramp',part.x,part.y);
   for(const side of [-1,1])rail(path.map(p=>({x:p.x+side*p.w,y:p.y})),side<0?5:14);
   sprite('ramp',part.x-1,part.y+4,1,4,1);
+ }else if(part.kind==='rubber'){
+  const band=Array.from({length:5},(_,i)=>rubberPoint(part,i*64)),frame=[part,{x:part.x,y:part.y+part.v},band.at(-1)];
+  ctx.beginPath();[...frame,...band.toReversed()].forEach((p,i)=>ctx[i?'lineTo':'moveTo'](p.x,p.y));ctx.closePath();ctx.fillStyle=color(7);ctx.fill();
+  rail(frame,5);rail(band,8);
  }else if(part.kind==='flippers'){
   const rows=sprites.flipper[0],scale=part.v/23;
   for(const [pivot,side] of [[part.x,1],[part.u,-1]]){

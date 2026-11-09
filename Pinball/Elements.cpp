@@ -15,6 +15,7 @@ const ElementDefinition ELEMENT_LIBRARY[KIND_COUNT] = {
     {"Kickback", "one-shot outlane rescue; lane set rearms", "kickback"},
     {"One-way gate", "directional flap or bank-controlled lock", "gate"},
     {"Saucer", "timed hold; escalating award; controlled eject", "saucer"},
+    {"Rubber slingshot", "flexing band; powered face; solid metal base", "rubber"},
 };
 int rubberBend(unsigned ticks, unsigned strength) {
     // Compress, spring outward, then damp back to the resting band.
@@ -29,6 +30,12 @@ void rubberPoint(unsigned side, int h, unsigned t, int bend, int &x, int &y) {
     x = (a * a * ax + 2 * a * int(t) * cx + int(t*t) * bx) >> 16;
     if(!side)x=RUBBER_REFLECT_X-x;
     y = (a * a * (h-75) + 2 * a * int(t) * cy + int(t*t) * (h-53)) >> 16;
+}
+__attribute__((noinline)) void rubberPoint(const Object &o, unsigned t, int bend, int &x, int &y) {
+    int a=256-t,curve=2*a*int(t),end=t*t;
+    int distance=(curve*(8+bend*2)+end*15+65535)>>16;
+    x=o.x+(o.group?-1:1)*distance*o.u/15;
+    y=o.y+((curve*(11-bend)+end*22)>>16)*o.v/27;
 }
 void rampPoint(const Object &o, unsigned t, int &x, int &y) {
     int a = 256 - t;

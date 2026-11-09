@@ -14,8 +14,9 @@ NAMES=list(KINDS)
 def decode(data,filename='CUSTOM'):
     if len(data)<96 or data[:4]!=b'PBT1':raise ValueError('Not a PBT1 board')
     magic,version,theme,count,flags,height,gravity,ident,crc,title,mission,*pal=struct.unpack_from('<4sBBBBHHII20s24s16H',data)
-    if version!=1 or flags or len(data)!=96+12*count or checksum(data)!=crc:raise ValueError('Invalid PBT size, version or checksum')
+    if version!=1 or flags & ~1 or len(data)!=96+12*count or checksum(data)!=crc:raise ValueError('Invalid PBT size, version or checksum')
     board=dict(file=filename.removesuffix('.PBT'),id=ident,title=title.split(b'\0')[0].decode('ascii'),mission=mission.split(b'\0')[0].decode('ascii'),theme=theme,height=height,gravity=gravity,palette=[f'{v:03X}' for v in pal],objects=[])
+    if flags: board["flags"]=flags
     for at in range(96,len(data),12):
         kind,group,x,y,u,v,value=struct.unpack_from('<BBhhhhH',data,at)
         if kind>=len(NAMES):raise ValueError('Unknown element')

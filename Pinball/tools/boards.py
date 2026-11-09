@@ -10,7 +10,7 @@ import sys
 GAME = Path(__file__).resolve().parents[1]
 ROOT = GAME.parent
 KINDS = {name: i for i, name in enumerate(("wall", "bumper", "target", "lane", "scoop", "flippers",
-                                        "ramp", "spinner", "drop_target", "kickback", "gate", "saucer"))}
+                                        "ramp", "spinner", "drop_target", "kickback", "gate", "saucer", "rubber"))}
 
 
 def checksum(data):
@@ -33,6 +33,8 @@ def encode(t):
     height, gravity, theme = t["height"], t.get("gravity", 14), t["theme"]
     if not 256 <= height <= 480 or not 8 <= gravity <= 44 or not 0 <= theme <= 8:
         raise ValueError("height, gravity or theme out of range")
+    flags=t.get("flags",0)
+    if flags not in (0,1): raise ValueError("unknown board flags")
     objects = t["objects"]
     if not 0 <= len(objects) <= 72:
         raise ValueError("expected 0..72 objects")
@@ -42,7 +44,7 @@ def encode(t):
     ident = t["id"]
     if not 0 < ident <= 0xFFFFFFFF:
         raise ValueError("id must be a nonzero uint32")
-    out = bytearray(struct.pack("<4sBBBBHHII20s24s16H", b"PBT1", 1, theme, len(objects), 0,
+    out = bytearray(struct.pack("<4sBBBBHHII20s24s16H", b"PBT1", 1, theme, len(objects), flags,
                                 height, gravity, ident, 0, label(t["title"], 20),
                                 label(t["mission"], 24), *palette))
     groups, lanes, scoop = set(), set(), False
@@ -65,6 +67,9 @@ def encode(t):
             if not 3 <= u <= 12 or not 3 <= v <= 12:
                 raise ValueError(f"invalid target: {o}")
             groups.add(group)
+        elif kind == KINDS["rubber"]:
+            if not flags & 1 or group > 1 or not 8 <= u <= 24 or not 16 <= v <= 40 or not 8 <= x + (-u if group else u) <= 108 or y + v > height-8:
+                raise ValueError(f"invalid rubber slingshot: {o}")
         elif kind == KINDS["spinner"]:
             if not 6 <= u <= 16:
                 raise ValueError(f"invalid spinner: {o}")
