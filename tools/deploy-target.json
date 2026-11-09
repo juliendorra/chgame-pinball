@@ -1,0 +1,6 @@
+{
+  "host": "ftp.cluster102.hosting.ovh.net",
+  "username": "juliendo-pinball",
+  "sftpHome": "/home/juliendo-pinball",
+  "ovhDirectory": "www/chgame-pinball"
+}

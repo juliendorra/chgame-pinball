@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/probe-sftp.yml'
       - 'tools/probe_sftp.py'
+      - 'tools/deploy_sftp.py'
+      - 'tools/deploy-target.json'
       - 'tools/deploy_known_hosts'
 permissions:
   contents: read
@@ -20,6 +22,7 @@ jobs:
         with:
           python-version: '3.14'
       - run: python -m pip install -r tools/requirements-deploy.txt
+      - run: python tools/test_deploy_sftp.py
       - name: Test actual directory permissions without reading file contents
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}

@@ -7,12 +7,39 @@ from pathlib import Path,PurePosixPath
 import stat
 import uuid
 ROOT=Path(__file__).resolve().parents[1]
+TARGET=json.loads((ROOT/'tools/deploy-target.json').read_text())
+
+def directory_access(sftp,path):
+    # Open/close a directory without READDIR: no sibling names or files read.
+    from paramiko.sftp import CMD_OPENDIR,CMD_HANDLE,CMD_CLOSE
+    try:
+        kind,message=sftp._request(CMD_OPENDIR,path)
+    except OSError as error:
+        if error.errno in (2,13):return False
+        raise
+    if kind!=CMD_HANDLE:raise RuntimeError('Unexpected SFTP directory response')
+    sftp._request(CMD_CLOSE,message.get_binary())
+    return True
+
 def confined(sftp):
-    home=sftp.normalize('.')
-    for path in ('..','/','/../..'):
-        try:resolved=sftp.normalize(path)
-        except OSError:continue
-        if resolved!=home:raise RuntimeError('SFTP can leave its configured root; no files uploaded')
+    import posixpath
+    home=posixpath.normpath(sftp.normalize('.'))
+    if home!=TARGET['sftpHome']:raise RuntimeError('Unexpected SFTP login namespace; no files uploaded')
+    parent=posixpath.dirname(home);info=sftp.lstat(parent);own=sftp.lstat(home)
+    # OVH exposes a shared /home container above each isolated virtual home.
+    # That container must be root-owned, non-writable by this account, and
+    # expose exactly this account's home, rather than other site directories.
+    if (not stat.S_ISDIR(info.st_mode) or not stat.S_ISDIR(own.st_mode) or info.st_uid!=0 or own.st_uid==0
+            or info.st_mode & 0o022):
+        raise RuntimeError('SFTP parent is writable or unexpected; no files uploaded')
+    names=set(sftp.listdir(parent))-set(('.', '..'))
+    if names!={posixpath.basename(home)}:
+        raise RuntimeError('SFTP exposes other account namespaces; no files uploaded')
+    for path in ('/','/../..','/home/juliendo','/home/juliendo-today','/home/juliendo/www','/www'):
+        if directory_access(sftp,path):
+            raise RuntimeError('SFTP can open an outside directory; no files uploaded')
+    sftp.chdir(home)
+    print('SFTP namespace verified: own home only; parent read-only; root and other accounts denied.')
     return home
 
 def artifacts(folder):
@@ -58,6 +85,8 @@ def main():
     with paramiko.SSHClient() as client:
         client.load_host_keys(str(ROOT/'tools/deploy_known_hosts'))
         client.set_missing_host_key_policy(paramiko.RejectPolicy())
+        if os.environ['FTP_SERVER']!=TARGET['host'] or os.environ['FTP_USERNAME']!=TARGET['username']:
+            raise RuntimeError('Deployment must use the dedicated Pinball host and account')
         client.connect(os.environ['FTP_SERVER'],port=22,username=os.environ['FTP_USERNAME'],
                        password=os.environ['FTP_PASSWORD'],allow_agent=False,look_for_keys=False,
                        timeout=30,banner_timeout=30,auth_timeout=30)
