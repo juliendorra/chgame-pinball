@@ -20,7 +20,8 @@ second nested `www/chgame-pinball` path.
 Set repository Actions secrets `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.
 Use the OVH FTP hostname matching the server's TLS certificate. Credentials
 belong in GitHub Secrets, never in this repository or in deployment logs.
-Verify the scoped login cannot traverse into the hosting account's parent.
+The workflow verifies TLS and rejects the login if parent traversal can leave
+its configured root, before uploading any file.
 
 ## Trigger scope
 
