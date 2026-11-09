@@ -40,6 +40,9 @@
 #include <io.h>
 #endif
 #include "sim.h"
+// Arduino macros must not rewrite C++ standard-library declarations.
+#undef min
+#undef max
 #include <chrono>
 
 void setup();

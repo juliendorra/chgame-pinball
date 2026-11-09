@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+// Arduino macros must not rewrite C++ standard-library declarations.
+#undef min
+#undef max
 #include <vector>
 using namespace pinball;
 extern "C" void pb_init();
