@@ -19,4 +19,5 @@ for name,expected in local['artifacts'].items():
     raw,mime=get(name)
     assert hashlib.sha256(raw).hexdigest()==expected,f'Wrong artifact: {name}'
     if name.endswith('.wasm'):assert mime=='application/wasm',f'Wrong WASM MIME: {mime}'
+    if name.endswith(('.mjs','.js')):assert mime in ('text/javascript','application/javascript'),f'Wrong JavaScript MIME for {name}: {mime}'
 print(f'Verified {len(local["artifacts"])} published artifacts: {base}')

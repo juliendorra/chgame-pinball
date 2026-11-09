@@ -1,4 +1,5 @@
 AddType application/wasm .wasm
+AddType text/javascript .mjs .js
 <IfModule mod_headers.c>
   Header set X-Content-Type-Options "nosniff"
   <FilesMatch "\.(html|mjs|json|css)$">
