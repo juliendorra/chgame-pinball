@@ -118,7 +118,8 @@ boards are deduplicated; differing versions are imported as separate copies
 so local work is retained.
 
 The save panel distinguishes the browser draft, console RAM and SD file.
-**Auto-save to SD** is enabled by default. After the editing debounce, it checks
+**Auto-save to SD** is off by default. Enable it in the save panel and confirm
+the notice about interruptions during SD writes. After the editing debounce, it checks
 the console state inside the USB queue. While a game is running (including a
 ball waiting in the launcher), the save stays queued without pausing or releasing
 the player's controls. It writes when the tester pauses or the game has no balls

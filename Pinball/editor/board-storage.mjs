@@ -7,7 +7,7 @@ export function matchesSd(board,bytes){
 const key=b=>`${b.id}:${b.file}`;
 export class BoardStorage{
  constructor({saved={},onChange=()=>{},delay=1500}={}){
-  this.records=new Map();this.saved=saved.records||{};this.auto=saved.auto!==false;
+  this.records=new Map();this.saved=saved.records||{};this.auto=saved.autoSaveOptIn===true;
   this.onChange=onChange;this.delay=delay;this.tail=Promise.resolve();this.epoch=0;
  }
  record(board){
@@ -19,7 +19,7 @@ export class BoardStorage{
   }
   r.board=copy(board);return r;
  }
- export(){const records={};for(const [k,r] of this.records)records[k]={id:r.id,file:r.file,dirty:r.dirty,expected:r.expected,checkpoint:r.checkpoint,volume:r.volume,savedAt:r.savedAt};return {auto:this.auto,records};}
+ export(){const records={};for(const [k,r] of this.records)records[k]={id:r.id,file:r.file,dirty:r.dirty,expected:r.expected,checkpoint:r.checkpoint,volume:r.volume,savedAt:r.savedAt};return {autoSaveOptIn:this.auto,records};}
  notify(){this.onChange();}
  select(board){this.record(board);this.notify();}
  changed(board){for(const old of this.records.values())if(old.id===board.id&&old.file!==board.file){clearTimeout(old.timer);old.dirty=false;old.obsolete=true;}

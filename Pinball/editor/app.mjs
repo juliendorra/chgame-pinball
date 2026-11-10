@@ -386,7 +386,16 @@ $('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;se
 $('#separatePlay').onchange=async e=>{releaseKeys();state.separatePlay=e.target.checked;persist();try{if(state.separatePlay)await play.separate(copy(state.validBoards[state.id]||board()),state.revision);else await play.start(copy(state.validBoards[state.id]||board()),state.revision);}catch(error){toast(error.message);}renderPlayMode();};
 $('#resyncPlay').onclick=async()=>{releaseKeys();await play.start(copy(state.validBoards[state.id]||board()),state.revision);};
 $('#connectButton').onclick=connectDevice;$('#readBoards').onclick=retrieve;$('#saveSd').onclick=saveSd;
-$('#autoSaveSd').onchange=e=>storage.setAuto(e.target.checked);
+const autoSaveDialog=$('#autoSaveDialog');
+$('#autoSaveSd').onchange=e=>{
+ if(!e.target.checked){storage.setAuto(false);return;}
+ e.target.checked=false;
+ autoSaveDialog.returnValue='';
+ autoSaveDialog.showModal();
+};
+autoSaveDialog.addEventListener('close',()=>{
+ if(autoSaveDialog.returnValue==='enable')storage.setAuto(true);
+});
 $('#resetLayout').onclick=()=>{const base=bases.find(b=>b.id===board().id);if(!base||!confirm('Use the current shipped layout? Your draft stays in Undo. If auto-save is on and CHGame is connected, the new layout will also be saved to SD.'))return;remember();state.boards[state.boards.findIndex(b=>b.id===state.id)]=editableBoard(copy(base));state.selected=-1;refresh();edited(false);};
 $('#revertSd').onclick=revertSd;$('#checkSd').onclick=()=>storage.check();
 $('#saveAllSd').onclick=()=>storage.saveAll();

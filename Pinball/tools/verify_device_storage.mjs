@@ -34,8 +34,9 @@ try{
  storage=new BoardStorage({delay:100});storage.select(board);await storage.connect(device);assert.equal(writes,0);check('Connecting/selecting reads the SD without writing');
  // Ownership is claimed only after verifying that both filenames are absent.
  owned.add('PBAUTOT');storage.changed(board);
+ storage.setAuto(true);
  await wait(()=>storage.view(board).kind==='saved');await storage.idle();
- const first=encode(board);assert.deepEqual(await ram(),original);check('Default auto-save verifies SD without switching the active RAM board');
+ const first=encode(board);assert.deepEqual(await ram(),original);check('Opted-in auto-save verifies SD without switching the active RAM board');
  board.title='AUTOSAVE SECOND';storage.changed(board);await wait(()=>storage.view(board).kind==='saved');await storage.idle();
  await device.withCard(async card=>{assert.deepEqual(await card.saved(board.file),encode(board));assert.deepEqual(await card.saved(board.file,'PBK'),first);});
  check('Second auto-save preserves the original SD revert point');

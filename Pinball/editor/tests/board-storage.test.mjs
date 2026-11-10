@@ -26,12 +26,15 @@ test('Connecting and selecting never auto-overwrite a board; legacy conversion i
  const raw=copy(templates[0]),b=editableBoard(raw),{storage,device}=setup([raw]);
  storage.select(b);await storage.connect(device);await tick();assert.equal(device.writes.length,0);assert.equal(storage.view(b).kind,'saved');assert.ok(matchesSd(b,encode(raw)));storage.disconnect();
 });
-test('Default auto-save debounces edits, keeps the initial checkpoint and survives reconnect',async()=>{
+test('Auto-save requires opt-in and preserves the checkpoint and preference on reconnect',async()=>{
  const b=board(8),original=Array.from(encode(b)),{storage,device}=setup([b]);await storage.connect(device);
+ assert.equal(storage.auto,false);assert.equal(new BoardStorage({saved:{auto:true}}).auto,false);
  for(let n=0;n<12;n++){b.objects[0].x=26+n;storage.changed(b);}
+ await tick();assert.equal(device.writes.length,0);
+ storage.setAuto(true);
  await tick();await storage.idle();assert.equal(device.writes.length,1);assert.deepEqual(device.writes[0].data,Array.from(encode(b)));assert.deepEqual(device.writes[0].checkpoint,original);assert.equal(storage.view(b).kind,'saved');
  b.objects[0].x++;storage.changed(b);await storage.save(b);assert.deepEqual(device.writes[1].checkpoint,original);
- const persisted=storage.export();storage.disconnect();const again=new BoardStorage({saved:persisted,delay:15});again.record(b);await again.connect(device);assert.ok(again.view(b).revert);assert.equal(again.view(b).kind,'saved');again.disconnect();
+ const persisted=storage.export();storage.disconnect();const again=new BoardStorage({saved:persisted,delay:15});again.record(b);await again.connect(device);assert.ok(again.auto);assert.ok(again.view(b).revert);assert.equal(again.view(b).kind,'saved');again.disconnect();
 });
 test('An edit arriving during a write stays pending and is saved next',async()=>{
  const b=board(8),{storage,device}=setup([b]);await storage.connect(device);storage.setAuto(false);
@@ -41,6 +44,7 @@ test('An edit arriving during a write stays pending and is saved next',async()=>
 });
 test('Switching boards keeps each pending save attached to its own filename',async()=>{
  const a=board(0),b=board(8),{storage,device}=setup([a,b]);await storage.connect(device);
+ storage.setAuto(true);
  a.objects[0].x++;storage.changed(a);storage.select(b);b.objects[0].x++;storage.changed(b);await tick();await storage.idle();
  assert.deepEqual(new Set(device.writes.map(w=>w.file)),new Set([a.file,b.file]));assert.equal(storage.pending().length,0);storage.disconnect();
 });
@@ -70,6 +74,7 @@ test('Undo or an explicit default restore matching SD clears the conflict withou
 
 test('Auto-save stays queued during console play and writes the latest draft after pause',async()=>{
  const b=board(8),{storage,device}=setup([b]);device.playing=true;await storage.connect(device);
+ storage.setAuto(true);
  b.objects[0].x++;storage.changed(b);await tick();await storage.idle();
  assert.equal(device.writes.length,0);assert.equal(storage.pending().length,1);
  assert.equal(storage.view(b).kind,'pending');assert.match(storage.view(b).label,/pause console/);assert.equal(storage.record(b).error,null);
@@ -80,6 +85,7 @@ test('Auto-save stays queued during console play and writes the latest draft aft
 
 test('Manual save remains available during play, and deferred drafts survive disconnect',async()=>{
  const b=board(8),{storage,device}=setup([b]);device.playing=true;await storage.connect(device);
+ storage.setAuto(true);
  b.objects[0].x++;storage.changed(b);await tick();await storage.save(b);assert.equal(device.writes.length,1);
  b.objects[0].x++;storage.changed(b);await tick();const persisted=storage.export();storage.disconnect();
  const restored=new BoardStorage({saved:persisted});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/);restored.disconnect();
