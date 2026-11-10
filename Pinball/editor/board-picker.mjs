@@ -39,7 +39,7 @@ export class BoardPicker{
   this.menu.style.width=width+'px';this.menu.style.left=Math.min(r.left,innerWidth-width-8)+'px';
   this.menu.style.top=(r.bottom+6)+'px';this.menu.style.maxHeight=Math.max(80,Math.min(560,innerHeight-r.bottom-18))+'px';
  }
- update(boards,id,art){
+ update(boards,id,art,stateFor){
   this.menu.replaceChildren();
   const active=boards.find(board=>board.id===id);
   if(!active)return;
@@ -50,6 +50,7 @@ export class BoardPicker{
    const row=document.createElement('button'),icon=document.createElement('canvas'),label=document.createElement('span');
    row.type='button';row.className='board-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(board.id===id));row.dataset.boardId=board.id;
    icon.setAttribute('aria-hidden','true');label.textContent=board.title;paintEmblem(icon,board,art);
+   if(stateFor){const saved=stateFor(board),note=document.createElement('small');note.className='board-save-note';note.textContent=saved.label;note.dataset.state=saved.kind;label.append(note);}
    row.append(icon,label);row.onclick=()=>{this.root.open=false;this.onChoose(board.id);};this.menu.append(row);
   }
   if(this.root.open)this.position();

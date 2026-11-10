@@ -102,11 +102,20 @@ restart, pause and ball placement are sent to the device as well.
 boards are deduplicated; differing versions are imported as separate copies
 so local work is retained.
 
-**Save to SD** writes `PINBALL/<filename>.PBT`, verifies it, rescans the game
-library and applies it for play. This saves the board after power-off. Clone
-first to preserve an original under its original filename. SD persistence uses browser-side FAT code on the same USB connection. The
-handheld pauses during the save and its previous pause state is restored. No drive mount, game exit,
-firmware reflash, or bootloader change is needed for board edits or SD saves.
+The save panel distinguishes the browser draft, console RAM and SD file.
+**Auto-save to SD** is enabled by default and saves valid edits after a short
+delay; connecting or selecting a board alone never overwrites a layout.
+**Save to SD now** and **All boards → Save all pending** are also available.
+The previous SD version is protected as `<filename>.PBK` before the first
+overwrite. **Revert…** restores that checkpoint; later auto-saves retain it.
+Different SD versions or changed cards require review rather than overwriting
+them silently. Existing browser drafts survive updated shipped defaults.
+
+SD persistence uses browser-side FAT code on the same USB connection. It
+writes `PINBALL/<filename>.PBT`, verifies it and rescans the library without
+switching the active RAM board. The handheld pauses during the save and its
+previous pause state is restored. No drive mount, game exit, firmware reflash
+or bootloader change is needed for board edits or SD saves.
 
 The save path supports FAT16/FAT32, mirrored FATs, existing or new PINBALL
 folders, directory growth, fragmented files, and boards up to 960 bytes.

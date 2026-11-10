@@ -29,6 +29,7 @@ export class BoardCard {
   this.fsinfo=this.bits===32&&u16(b,48)<this.reserved?this.base+u16(b,48):null;
   this.backup=this.bits===32&&u16(b,50)+u16(b,48)<this.reserved?this.base+u16(b,50)+u16(b,48):null;
   this.end=this.bits===16?0xffff:0x0fffffff;this.nextFree=2;
+  this.volume=[u32(b,this.bits===16?39:67),this.base,this.total,this.spc].join('-');
  }
  checkCluster(n){if(!Number.isInteger(n)||n<2||n>=this.clusterCount+2)throw new Error('Invalid FAT cluster');}
  async get(n){this.checkCluster(n);const offset=n*(this.bits/8),b=await this.read(this.fatBase+Math.floor(offset/512));return this.bits===16?u16(b,offset%512):u32(b,offset%512)&0x0fffffff;}
@@ -50,8 +51,9 @@ export class BoardCard {
  entry(name,cluster,size,folder=false){const e=new Uint8Array(32);e.set(name);e[11]=folder?16:32;put16(e,26,cluster&65535);if(this.bits===32)put16(e,20,cluster>>>16);put32(e,28,size);return e;}
  async publish([sector,at],entry){const b=(await this.read(sector)).slice();b.set(entry,at);await this.write(sector,b);}
  cluster(e){return u16(e,26)|(this.bits===32?u16(e,20)<<16:0);}
- async folder(){
+ async folder(create=true){
   const found=await this.find(this.root,ascii('PINBALL    '));if(found){if(!(found[2][11]&16))throw new Error('PINBALL exists but is not a folder');return this.cluster(found[2]);}
+  if(!create)return null;
   const slot=await this.slot(this.root),cluster=(await this.allocate(1))[0],first=this.sector(cluster);
   for(let n=0;n<this.spc;n++)await this.write(first+n,new Uint8Array(512));const b=new Uint8Array(512);b.set(this.entry(ascii('.          '),cluster,0,true));b.set(this.entry(ascii('..         '),this.root,0,true),32);await this.write(first,b);
   await this.publish(slot,this.entry(ascii('PINBALL    '),cluster,0,true));return cluster;
@@ -59,9 +61,52 @@ export class BoardCard {
  async file(e){const size=u32(e,28);if(size>960||!size)throw new Error('Existing PBT file has an invalid size');const out=new Uint8Array(size);let at=0;
   for(const c of await this.chain(this.cluster(e)))for(let n=0;n<this.spc;n++){const b=await this.read(this.sector(c)+n),count=Math.min(512,size-at);out.set(b.subarray(0,count),at);at+=count;if(at>=size)return out;}throw new Error('Incomplete file');
  }
- async save(stem,data){
+ async saved(stem,extension='PBT'){
+  if(!/^[A-Z0-9_]{1,8}$/.test(stem)||!['PBT','PBK'].includes(extension))throw new Error('Invalid board filename');
+  const folder=await this.folder(false);if(folder===null)return null;
+  const found=await this.find(folder,ascii(stem.padEnd(8)+extension));
+  if(!found)return null;if(found[2][11]&16)throw new Error('Board destination is a folder');
+  const data=await this.file(found[2]);decode(data,stem);return data;
+ }
+ async inventory(){
+  const folder=await this.folder(false),items=[];if(folder===null)return {volume:this.volume,items};
+  for await(const sector of this.directory(folder)){const b=await this.read(sector);for(let at=0;at<512;at+=32){
+   if(!b[at])return {volume:this.volume,items};
+   if(b[at]===229||b[at+11]&24||!equal(b.subarray(at+8,at+11),ascii('PBT')))continue;
+   const file=new TextDecoder().decode(b.subarray(at,at+8)).trim();
+   try{items.push({file,data:Array.from(await this.saved(file)),checkpoint:Array.from(await this.saved(file,'PBK')||[])});}
+   catch(e){items.push({file,error:e.message});}
+  }}return {volume:this.volume,items};
+ }
+ async saveProtected(stem,data,{volume,expected}={}){
+  decode(data,stem);
+  if(volume!==this.volume)throw Object.assign(new Error('The SD card changed. Check its boards before saving.'),{code:'card_changed'});
+  const current=await this.saved(stem),checkpoint=await this.saved(stem,'PBK');
+  if(current&&!equal(current,data)&&(!expected||!equal(current,new Uint8Array(expected))))throw Object.assign(new Error('This board changed on SD. Load that version or save a copy.'),{code:'conflict'});
+  if(!current&&expected)throw Object.assign(new Error('This board was removed from SD. Check the card before saving.'),{code:'conflict'});
+  const id=decode(data,stem).id;
+  if(current&&decode(current,stem).id!==id||checkpoint&&decode(checkpoint,stem).id!==id)throw Object.assign(new Error('This filename belongs to another board. Save a copy with a new filename.'),{code:'conflict'});
+  // The first pre-edit version remains recoverable across auto-saves, browser
+  // restarts and reconnects. Creating/verifying it precedes any PBT overwrite.
+  if(!checkpoint)await this.save(stem,current||data,'PBK');
+  if(!current||!equal(current,data))await this.save(stem,data);
+  this.cache.clear();const verified=await this.saved(stem);
+  if(!verified||!equal(verified,data))throw new Error('Published SD board readback differs');
+  return {volume:this.volume,data:Array.from(verified),checkpoint:Array.from(await this.saved(stem,'PBK')),verified:true,path:`PINBALL/${stem}.PBT`};
+ }
+ async revertProtected(stem,options){
+  const checkpoint=await this.saved(stem,'PBK');if(!checkpoint)throw new Error('No revert point exists on this SD card.');
+  return this.saveProtected(stem,checkpoint,options);
+ }
+ async checkpointProtected(stem,options){
+  const current=await this.saved(stem);if(!current)throw new Error('Save this board to SD first.');
+  if(options.volume!==this.volume||!options.expected||!equal(current,new Uint8Array(options.expected)))throw Object.assign(new Error('The SD version changed. Check the card first.'),{code:'conflict'});
+  await this.save(stem,current,'PBK');return {volume:this.volume,data:Array.from(current),checkpoint:Array.from(current)};
+ }
+ async save(stem,data,extension='PBT'){
   if(!/^[A-Z0-9_]{1,8}$/.test(stem))throw new Error('Use a 1–8 character uppercase SD filename');decode(data,stem);
-  const folder=await this.folder(),name=ascii(stem.padEnd(8)+'PBT'),old=await this.find(folder,name);
+  if(!['PBT','PBK'].includes(extension))throw new Error('Invalid board extension');
+  const folder=await this.folder(),name=ascii(stem.padEnd(8)+extension),old=await this.find(folder,name);
   if(old){if(old[2][11]&16)throw new Error('Destination is a folder');decode(await this.file(old[2]),stem);}
   const slot=old?old.slice(0,2):await this.slot(folder),clusters=await this.allocate(Math.ceil(data.length/(512*this.spc)));let attempted=false;
   try{
@@ -72,6 +117,6 @@ export class BoardCard {
   }catch(e){if(!attempted)for(const n of clusters)await this.set(n,0);throw e;}
   if(old)for(const n of await this.chain(this.cluster(old[2])))await this.set(n,0);
   for(const sector of new Set([this.fsinfo,this.backup].filter(n=>n!==null))){const b=(await this.read(sector)).slice();if(equal(b.subarray(0,4),ascii('RRaA'))&&equal(b.subarray(484,488),ascii('rrAa'))){b.fill(255,488,496);await this.write(sector,b);}}
-  this.cache.clear();return {path:`PINBALL/${stem}.PBT`,bytes:data.length,verified:true};
+  this.cache.clear();return {path:`PINBALL/${stem}.${extension}`,bytes:data.length,verified:true};
  }
 }

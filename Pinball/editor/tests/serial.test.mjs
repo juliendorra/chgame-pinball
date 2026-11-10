@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {BrowserDevice,hex} from '../serial.mjs';
+import {BoardCard} from '../card.mjs';
 import {fnv} from '../model.mjs';
 test('sector transfers use the bounded raw-sector protocol and exact checksum',async()=>{
  const d=new BrowserDevice(),calls=[];d.request=async command=>{calls.push(command);return ['LIVE OK'];};
@@ -29,4 +30,11 @@ test('Editable-rubber boards reject an older console before RAM or SD writes',as
  await assert.rejects(()=>d.upload(bytes),/Update Pinball/);await assert.rejects(()=>d.save('TEST',bytes),/Update Pinball/);assert.equal(requests,0);
  d.capabilities=new Set(['RUBBER']);assert.doesNotThrow(()=>d.requireBoardSupport(bytes));
  assert.doesNotThrow(()=>new BrowserDevice().requireBoardSupport(new Uint8Array(96)),'old files still work on old firmware');
+});
+
+test('SD saving restores pause and never switches the console RAM board',async()=>{
+ const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+ d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,0,0,256,0,22].join(' '):'LIVE OK'];};
+ const open=BoardCard.open;BoardCard.open=async()=>({saveProtected:async()=>({verified:true})});
+ try{const result=await d.save('TEST',new Uint8Array(96),{volume:'test',expected:null});assert.equal(result.verified,true);assert.deepEqual(calls,['V','X','Q 1','I','L','Q 0']);}finally{BoardCard.open=open;}
 });

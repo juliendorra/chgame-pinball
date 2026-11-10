@@ -22,17 +22,20 @@ export class BrowserDevice {
  requireBoardSupport(bytes){if(bytes[7]&1&&!this.capabilities?.has('RUBBER'))throw new Error('Update Pinball on CHGame to use editable rubber slingshots, then reconnect.');}
  async transfer(bytes,lba=null){if(lba===null)this.requireBoardSupport(bytes);await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
  upload(bytes){return this.run(async()=>{await this.transfer(bytes);const returned=unhex((await this.request('T')).at(-1).slice(10));if(hex(returned)!==hex(bytes))throw new Error('CHGame RAM readback differs.');return {bytes:bytes.length,verified:true};});}
- save(stem,bytes){return this.run(async()=>{
-  this.requireBoardSupport(bytes);
+ withCard(task){return this.run(async()=>{
   const values=(await this.request('V')).at(-1).split(' ').slice(2).map(Number),paused=values[13];
   if(values.length!==15)throw new Error('Unexpected CHGame state reply');
   await this.request('X');await this.request('Q 1');
   try{
    await this.request('I');
    const card=await BoardCard.open({read:async lba=>unhex((await this.request('S '+lba)).at(-1).slice(10)),write:(lba,data)=>this.transfer(data,lba)});
-   const result=await card.save(stem,bytes);await this.request('L');await this.transfer(bytes);return result;
+   return await task(card);
   }finally{await this.request('Q '+paused);}
  });}
+ inspectStorage(){return this.withCard(card=>card.inventory());}
+ async save(stem,bytes,options){this.requireBoardSupport(bytes);return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;});}
+ revertSd(stem,options){return this.withCard(async card=>{const result=await card.revertProtected(stem,options);await this.request('L');return result;});}
+ checkpointSd(stem,options){return this.withCard(card=>card.checkpointProtected(stem,options));}
  boards(){return this.run(async()=>{const list=await this.request('L'),result=[];for(const line of list){if(!line.startsWith('LIVE BOARD '))continue;const [,index,file]=line.match(/^LIVE BOARD (\d+) (.*)$/);const reply=await this.request('G '+index);result.push({index:Number(index),file:file.trim(),data:unhex(reply.at(-1).slice(10))});}return result;});}
  keys(mask){if(this.keyBusy)return Promise.resolve();this.keyBusy=true;return this.run(()=>this.request('K '+mask)).finally(()=>this.keyBusy=false);}
  restart(seed=0){return this.run(async()=>{await this.request(seed?'R '+seed:'R');if(seed){const data=unhex((await this.request('Z')).at(-1).slice(10));if(data.length!==8||new DataView(data.buffer,data.byteOffset,4).getUint32(0,true)!==(seed>>>0))throw new Error('CHGame seed readback differs. Install Pinball 1.4.9 or newer.');}});}

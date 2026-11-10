@@ -139,8 +139,33 @@ before publishing the directory entry. The handheld is paused during the SD
 transaction and its previous pause state is restored afterward. No drive
 mount, serial emulation, firmware reflash or Python bridge is involved.
 
-The SD writer supports mirrored FAT16/FAT32 volumes and PINBALL folder
-creation/growth. An uncertain directory-write failure can leave an allocated
-orphan rather than free a potentially published file, matching the existing
-Python writer's conservative behavior. Clone a board before overwriting an
-original if you want to keep both.
+The save panel above the board shows browser, console RAM and SD state
+separately. **Auto-save to SD** is on by default: a valid edit is saved after
+1.5 seconds without another edit. Merely opening Studio, selecting a board or
+connecting does not overwrite an SD layout. **All boards** shows pending
+drafts and failures even when another board is selected. **Save to SD now**
+and **Save all pending** remain available for manual use.
+
+Before the first overwrite, the writer stores and verifies the previous board
+as `PINBALL/NAME.PBK`. Further auto-saves retain that revert point across
+restarts and reconnects. **Revert…** restores it; the current browser draft
+remains in Undo. **Set new revert point…** explicitly replaces the checkpoint.
+PBK contains normal PBT bytes but stays out of the console board picker.
+
+Different SD versions, changed cards and filename/board-ID collisions block
+unattended overwrite. Load the SD version while retaining a separate browser
+draft, or save a copy with a new identity and filename. Invalid drafts stay in
+the browser while the previous valid geometry keeps playing. Disconnect and
+page-close warnings make pending SD changes visible. Existing browser drafts
+are preserved when shipped defaults change; **Use shipped layout…** is an
+explicit, undoable replacement.
+
+The writer supports mirrored FAT16/FAT32 volumes and PINBALL folder
+creation/growth. It verifies file data before publishing the directory entry
+and reads the published board back. An uncertain directory-write failure can
+leave an allocated orphan rather than free a potentially published file,
+matching the Python writer's conservative behavior. A single SD card cannot
+guarantee recovery from every possible controller or filesystem failure.
+
+For rendering measurements and the difference between mirrored controls and
+tick-synchronized play, see [performance and synchronization](performance-and-sync.md).
