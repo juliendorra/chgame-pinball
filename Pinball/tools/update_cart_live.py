@@ -4,7 +4,7 @@
 Uses the editor's tested FAT allocator. No mounted drive or reader firmware
 is needed. FAT links are batched per sector and flushed before publication. All payload bytes are read back before the directory is changed.
 """
-import argparse,hashlib,json,math,struct,sys
+import argparse,hashlib,importlib.util,json,math,struct,sys
 from pathlib import Path
 G=Path(__file__).resolve().parents[1];R=G.parent
 sys.path[:0]=[str(R/'CHGame/tools/chsim'),str(R/'CHGame/tools'),str(G/'editor')]
@@ -103,32 +103,40 @@ def main():
     assert not any(i.error for i in issues) and len(cart.games)==1,issues
     game=cart.games[0];payload=runtime.chg_file(game,'rev0')
     assert runtime.flash_image(game,'rev0')==(G/'build/release/Pinball.ino.bin').read_bytes()
-    t=SerialTransport(a.port);c=LiveClient(t)
+    save_config=json.loads((R/'save-config.json').read_text())
+    spec=importlib.util.spec_from_file_location('pinball_save_prepare',R/'chgame-sd-saves/tools/prepare.py')
+    saves=importlib.util.module_from_spec(spec);spec.loader.exec_module(saves)
+    save_name=saves.filename(save_config['id'])
+    out=G/'out/device';out.mkdir(parents=True,exist_ok=True)
+    t=SerialTransport(a.port);c=LiveClient(t);paused=None
     try:
-        assert game.version in c.hello();c.request('Q 1');c.request('I');card=CartCard(c)
-        baseline={}
-        for root in ('GAMES','PINBALL'):
-            directory=card.cluster(card.path(root)[2])
-            for name,entry in card.files(directory,root):
-                if name==a.destination:continue
-                data=card.file(entry);baseline[name]=dict(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
-                if len(baseline)%10==0:print(f'Captured existing file {len(baseline)}: {name}',flush=True)
-        (G/'out/device/sd-before-shake.json').write_text(json.dumps(baseline,indent=2)+'\n')
+        assert game.version in c.hello();paused=c.state()['paused'];c.request('K 0');c.request('Q 1');c.request('I');card=CartCard(c)
+        # User layouts are not expected to equal the shipped templates. Keep
+        # every current board/checkpoint and the namespaced save unchanged.
+        folder=card.cluster(card.path('PINBALL')[2])
+        baseline={name:card.file(entry) for name,entry in card.files(folder,'PINBALL')}
+        save=card.file(card.path(save_name)[2]);saves.validate(save,save_config['id'])
+        games_folder=card.cluster(card.path('GAMES')[2])
+        entries={name:entry for name,entry in card.files(games_folder,'GAMES') if name!=a.destination}
+        previous=card.file(card.path(a.destination)[2]);old_hash=hashlib.sha256(previous).hexdigest()
+        (out/('previous-'+old_hash[:12]+'.CHG')).write_bytes(previous)
         report=card.install(payload,a.destination);report['version']=game.version;print('Cart written and verified',report,flush=True)
         actual=card.file(card.path(a.destination)[2]);loaded,_,issues=game_from_chg(actual,device='rev0')
         assert loaded.binaries['rev0']==game.binaries['rev0'] and not any(i.error for i in issues)
         card.cache.clear()
-        for i,(name,expected) in enumerate(baseline.items()):
-            data=card.file(card.path(name)[2]);assert len(data)==expected['bytes'] and hashlib.sha256(data).hexdigest()==expected['sha256'],name
-            if i%10==0:print(f'Preserved file check {i+1}/{len(baseline)}: {name}',flush=True)
-        for path in (G/'sd/PINBALL').glob('*.PBT'):assert card.file(card.path('PINBALL/'+path.name)[2])==path.read_bytes(),path.name
-        custom=json.loads((G/'out/device/custom-boards-before.json').read_text())
-        for name in ('EDITLAB.PBT','PIRAT001.PBT'):
-            data=card.file(card.path('PINBALL/'+name)[2]);assert hashlib.sha256(data).hexdigest()==custom[name]['sha256'],name
-        report.update(firmware_matches_final_release=True,preserved_existing_files=len(baseline),original_boards=9,custom_boards=2,transport='Pinball USB sector API')
-        (G/'out/device/sd-installed.json').write_text(json.dumps(report,indent=2)+'\n')
-        print(f'PASS: exact cart/firmware, all {len(baseline)} current game/board assets, 9 original boards and both custom boards',flush=True)
+        for name,expected in baseline.items():assert card.file(card.path(name)[2])==expected,name
+        assert card.file(card.path(save_name)[2])==save,'Save journal changed'
+        assert {name:entry for name,entry in card.files(games_folder,'GAMES') if name!=a.destination}==entries,'Other game entries changed'
+        (G/'build/MIDNIGHT.CHG').write_bytes(payload)
+        report.update(result='passed',firmware_sha256=hashlib.sha256(runtime.flash_image(game,'rev0')).hexdigest(),
+                      preserved_board_files=len(baseline),preserved_other_game_entries=len(entries),
+                      save_file=save_name,save_sha256=hashlib.sha256(save).hexdigest(),save_journal_preserved=True,
+                      transport='Pinball USB sector API')
+        (out/'sd-installed.json').write_text(json.dumps(report,indent=2)+'\n')
+        print(f'PASS: exact cart/firmware, {len(baseline)} existing board files, save journal and {len(entries)} other game entries preserved',flush=True)
     finally:
-        try:c.request('K 0');c.request('Q 0');c.request('L');c.request('R')
+        try:
+            c.request('K 0');c.request('L')
+            if paused is not None:c.request('Q '+str(paused))
         finally:t.close()
 if __name__=='__main__':main()
