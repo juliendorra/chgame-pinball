@@ -1,7 +1,7 @@
 import {BoardStorage} from './board-storage.mjs';
 import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
-import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline} from './model.mjs';
+import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
 import {BrowserDevice} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
@@ -22,7 +22,7 @@ function historyButtons(){$('#undoButton').disabled=!state.undo.length;$('#redoB
 function restore(redo=false){const source=redo?state.redo:state.undo,target=redo?state.undo:state.redo;if(!source.length)return;target.push(copy(board()));state.boards[state.boards.findIndex(b=>b.id===state.id)]=source.pop();state.selected=-1;refresh();edited(false);}
 function send(data){if(play)Promise.resolve(play.send(data)).catch(e=>toast(e.message));else engine?.send(data);}
 function edited(snapshot=true,isEdit=true){
- if(snapshot)remember();state.revision++;refreshLibrary();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} / 72 elements`;
+ if(snapshot)remember();state.revision++;refreshLibrary();refreshFieldLimits();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} / 72 elements`;
  const result=validate(board());if(!result.errors.length)state.validBoards[state.id]=copy(board());persist();showValidation(result);selection();
  clearTimeout(deviceTimer);deviceTimer=undefined;
  if(isEdit)storage.changed(board());else storage.select(board());
@@ -37,13 +37,64 @@ function choose(id){releaseKeys();state.id=Number(id);state.selected=-1;state.un
 function refresh(){
  refreshLibrary();historyButtons();const b=board();$('#boardHeading').textContent=b.title;
  for(const [selector,key] of [['#titleInput','title'],['#missionInput','mission'],['#heightInput','height'],['#gravityInput','gravity'],['#fileInput','file'],['#themeSelect','theme']])$(selector).value=b[key];
- $('#elementCount').textContent=`${b.objects.length} / 72 elements`;themeStrip();inspector();showValidation(validate(b));resizeCanvas();selection();paintIcons();renderStorage();
+ $('#elementCount').textContent=`${b.objects.length} / 72 elements`;themeStrip();inspector();refreshFieldLimits();showValidation(validate(b));resizeCanvas();selection();paintIcons();renderStorage();
 }
 function themeStrip(){const strip=$('#themeStrip');strip.replaceChildren();board().palette.slice(0,15).forEach(c=>{const s=document.createElement('span');s.style.background='#'+c;strip.append(s);});}
 function resizeCanvas(){const c=$('#boardCanvas'),height=Number.isInteger(board().height)&&board().height>=256&&board().height<=480?board().height:(state.validBoards[state.id]?.height||384);if(c.height!==height){c.height=height;$('#selection').setAttribute('viewBox',`0 0 128 ${height}`);}c.style.width=128*state.zoom+'px';c.style.height=height*state.zoom+'px';$('#headerCanvas').style.width=128*state.zoom+'px';$('#headerCanvas').style.height=HEADER_HEIGHT*state.zoom+'px';$('#fitButton').textContent=state.fit?'Fit':Math.round(state.zoom*100)+'%';}
 function fit(){state.fit=true;const box=$('#boardViewport'),padding=getComputedStyle($('#boardSurface'));if(!box.clientWidth||!box.clientHeight)return;state.zoom=fitBoard(box.clientWidth,box.clientHeight,canvas.height,parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom));resizeCanvas();selection();}
 function zoom(direction){state.fit=false;state.zoom=Math.max(.2,Math.min(5,state.zoom+direction*.35));resizeCanvas();selection();if(state.lastState)followViewport(state.lastState,true);}
-function field(label,key,o,options){const container=document.createElement('div');container.className='field';const l=document.createElement('label'),input=document.createElement(options?'select':'input');input.id='prop-'+key;l.htmlFor=input.id;l.textContent=label;if(options)options.forEach((text,i)=>input.add(new Option(text,i)));else{input.type='number';input.step=1;}input.value=o[key];input.dataset.property=key;input.addEventListener('focus',()=>{input._before=false;});input.addEventListener('input',()=>{if(!input._before){remember();input._before=true;}board().objects[state.selected][key]=Number(input.value);edited(false);});container.append(l,input);return container;}
+function setNumberLimits(input,[min,max]){
+ input.min=String(min);input.max=String(max);input.step='1';
+}
+function bindNumber(input,read,write){
+ let recorded=false;
+ input.addEventListener('focus',()=>{recorded=false;});
+ const record=()=>{if(!recorded){remember();recorded=true;}};
+ function update(commit){
+  const current=read();
+  if(current===undefined)return;
+  const min=Number(input.min),max=Number(input.max);
+  let value=input.valueAsNumber;
+  if(commit&&Number.isFinite(value)&&min<=max)value=Math.max(min,Math.min(max,Math.round(value)));
+  if(Number.isInteger(value)&&value>=min&&value<=max&&value!==current)write(value,record);
+  if(commit)input.value=read();
+ }
+ input.addEventListener('input',()=>update(false));
+ input.addEventListener('blur',()=>update(true));
+ input.addEventListener('keydown',event=>{if(event.key==='Enter')input.blur();});
+}
+function field(label,key,o,options){
+ const container=document.createElement('div'),l=document.createElement('label');
+ const input=document.createElement(options?'select':'input');
+ container.className='field';input.id='prop-'+key;l.htmlFor=input.id;l.textContent=label;
+ const read=()=>board().objects[state.selected]?.[key];
+ const write=(value,record)=>{
+  const part=board().objects[state.selected];
+  if(!part)return;
+  const candidate={...part,[key]:value};
+  if(!validElement(candidate,board())&&validElement(part,board()))return;
+  record();part[key]=value;edited(false);
+ };
+ if(options){
+  options.forEach((text,i)=>input.add(new Option(text,i)));
+  input.addEventListener('change',()=>{if(Number(input.value)!==read())write(Number(input.value),remember);input.value=read();});
+ }else{
+  input.type='number';
+  setNumberLimits(input,elementLimits(o,board().height)[key]);
+  bindNumber(input,read,write);
+ }
+ input.value=o[key];input.dataset.property=key;container.append(l,input);return container;
+}
+function refreshFieldLimits(){
+ const b=board(),part=b.objects[state.selected];
+ for(const key of ['height','gravity'])setNumberLimits($('#'+key+'Input'),boardNumberLimits(b,key));
+ if(!part)return;
+ const limits=elementLimits(part,b.height);
+ for(const input of $('#inspector').querySelectorAll('[data-property]')){
+  if(input.type==='number')setNumberLimits(input,limits[input.dataset.property]);
+  else for(const option of input.options)option.disabled=Number(option.value)!==part.group&&!validElement({...part,group:Number(option.value)},b);
+ }
+}
 function inspector(){
  const box=$('#inspector'),o=board().objects[state.selected];box.replaceChildren();
  if(!o)return;
@@ -52,7 +103,7 @@ function inspector(){
  const row=document.createElement('div');row.className='field-row';row.append(field('X','x',o),field('Y','y',o));box.append(row);
  const names={rubber:['Width','Height'],wall:['End X','End Y'],gate:['End X','End Y'],ramp:['Exit X','Exit Y'],flippers:['Right pivot X','Bat length'],target:['Width','Height'],drop_target:['Width','Height'],spinner:['Half-width','Kick'],scoop:['Radius','Kick'],saucer:['Radius','Hold / kick'],kickback:['Radius','Kick'],bumper:['Radius','Kick'],lane:['Radius','Kick']}[o.kind];
  const dimensions=document.createElement('div');dimensions.className='field-row';if(o.kind!=='spinner')dimensions.append(field(names[0],'u',o));if(['wall','gate','ramp','flippers','target','drop_target','bumper','rubber'].includes(o.kind))dimensions.append(field(names[1],'v',o));box.append(dimensions);if(!['wall','flippers','spinner','kickback'].includes(o.kind))box.append(field(o.kind==='ramp'?'Curve':o.kind==='gate'?'Gate rule':o.kind==='rubber'?'Facing':'Color bank','group',o,o.kind==='ramp'?['Left side','Right side','Center']:o.kind==='rubber'?['Left · points right','Right · points left']:o.kind==='gate'?['Pass toward upper side','Pass toward lower side','Unlock with all target banks']:['Cyan','Pink','Gold']));if(!['wall','gate','flippers'].includes(o.kind))box.append(field('Points','value',o));
- const actions=document.createElement('div');actions.className='selection-actions';const duplicate=document.createElement('button'),remove=document.createElement('button');duplicate.textContent='⧉ Duplicate';duplicate.onclick=duplicatePart;remove.textContent='Remove';remove.className='delete';remove.onclick=removePart;actions.append(duplicate,remove);box.append(actions);
+ const actions=document.createElement('div');actions.className='selection-actions';const duplicate=document.createElement('button'),remove=document.createElement('button');duplicate.textContent='⧉ Duplicate';duplicate.onclick=duplicatePart;remove.textContent='Remove';remove.className='delete';remove.onclick=removePart;actions.append(duplicate,remove);box.append(actions);refreshFieldLimits();
 }
 function refreshCoordinates(){const o=board().objects[state.selected];if(!o)return;for(const k of ['x','y','u','v']){const input=$('#prop-'+k);if(input&&document.activeElement!==input)input.value=o[k];}}
 function selection(){
@@ -82,10 +133,21 @@ function point(event){const rect=$('#boardCanvas').getBoundingClientRect();retur
 function dropPoint(){const viewport=$('#boardViewport'),canvas=$('#boardCanvas').getBoundingClientRect(),area=viewport.getBoundingClientRect();return {x:64,y:Math.max(15,Math.min(board().height-65,Math.round((area.top+area.height*.4-canvas.top)/state.zoom)))};}
 function add(kind,p=dropPoint()){
  if(board().objects.length>=72)return toast('This board already has 72 elements.');const o=createPart(kind,p,board().height);
+ if(!validElement(o,board()))return toast('This part does not fit at that position.');
  remember();board().objects.push(o);state.selected=board().objects.length-1;inspector();edited(false);$('#boardCanvas').focus({preventScroll:true});
 }
 function removePart(){if(state.selected<0)return;remember();board().objects.splice(state.selected,1);state.selected=-1;inspector();edited(false);}
-function duplicatePart(){if(state.selected<0||board().objects.length>=72)return;remember();const o=copy(board().objects[state.selected]);o.x+=6;o.y+=8;if(['wall','gate','ramp'].includes(o.kind)){o.u+=6;o.v+=8;}if(o.kind==='flippers'){o.x-=6;}board().objects.push(o);state.selected=board().objects.length-1;inspector();edited(false);}
+function duplicatePart(){
+ const b=board(),part=b.objects[state.selected];
+ if(!part||b.objects.length>=72)return;
+ for(const [dx,dy] of [[6,8],[-6,8],[6,-8],[-6,-8],[0,8],[0,-8]]){
+  const o={...part,x:part.x+(part.kind==='flippers'?0:dx),y:part.y+dy};
+  if(['wall','gate','ramp'].includes(o.kind)){o.u+=dx;o.v+=dy;}
+  if(!validElement(o,b))continue;
+  remember();b.objects.push(o);state.selected=b.objects.length-1;inspector();edited(false);return;
+ }
+ toast('Move this part away from the edge to duplicate it.');
+}
 function create(blank=false){const b=newIdentity(board(),state.boards,blank?'Untitled board':'');if(blank){b.objects=[];b.mission='BUILD YOUR OWN RUN';}state.boards.push(b);choose(b.id);storage.changed(b);toast(blank?'A blank board, ready to build.':'Cloned with its own board ID and high score.');}
 const canvas=$('#boardCanvas');
 canvas.addEventListener('pointerdown',e=>{
@@ -104,7 +166,7 @@ canvas.addEventListener('pointermove',e=>{
  else{o.x+=dx;o.y+=dy;if(['wall','ramp','gate'].includes(o.kind)){o.u+=dx;o.v+=dy;}else if(o.kind==='flippers')o.u+=dx;}
  const current=board().objects[state.selected];
  if(['x','y','u','v'].every(key=>o[key]===current[key]))return;
- const candidate=copy(board());candidate.objects[state.selected]=o;if(validate(candidate).errors.length)return;
+ if(!validElement(o,board()))return;
  if(!state.drag.moved)remember();board().objects[state.selected]=o;state.drag.moved=true;refreshCoordinates();edited(false);
 });
 function endDrag(){
@@ -336,7 +398,26 @@ window.addEventListener('beforeunload',e=>{if(storage.pending().length||[...stor
 $('#browserUsb').hidden=true;$('#browserUsb').onclick=connectDevice;
 $('#importButton').onclick=()=>$('#importFile').click();$('#importFile').onchange=e=>{if(e.target.files[0])importFile(e.target.files[0]);e.target.value='';};
 $('#exportButton').onclick=e=>{try{const bytes=e.shiftKey?JSON.stringify(board(),null,2):encode(board());const url=URL.createObjectURL(new Blob([bytes],{type:e.shiftKey?'application/json':'application/octet-stream'}));const a=document.createElement('a');a.href=url;a.download=board().file+(e.shiftKey?'.json':'.PBT');a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Board exported. Shift-click Export for editable JSON.');}catch(e){toast(e.message);}};
-for(const [id,key]of [['titleInput','title'],['missionInput','mission'],['heightInput','height'],['gravityInput','gravity'],['fileInput','file']]){const input=$('#'+id);input.onfocus=()=>input._before=false;input.oninput=()=>{if(!input._before){remember();input._before=true;}board()[key]=['height','gravity'].includes(key)?Number(input.value):key==='file'?input.value.toUpperCase():input.value;if(key==='file')input.value=board().file;if(key==='height'){resizeCanvas();if(state.fit)fit();}edited(false);};}
+for(const key of ['height','gravity']){
+ const input=$('#'+key+'Input');
+ bindNumber(input,()=>board()?.[key],(value,record)=>{
+  record();board()[key]=value;
+  if(key==='height'){resizeCanvas();if(state.fit)fit();}
+  edited(false);
+ });
+}
+for(const [id,key,pattern] of [['titleInput','title',/^[\x20-\x7e]{1,19}$/],['missionInput','mission',/^[\x20-\x7e]{1,23}$/],['fileInput','file',/^[A-Z0-9_]{1,8}$/]]){
+ const input=$('#'+id);
+ input.onfocus=()=>input._before=false;
+ input.oninput=()=>{
+  const value=key==='file'?input.value.toUpperCase():input.value;
+  if(key==='file')input.value=value;
+  if(!pattern.test(value)||value===board()[key])return;
+  if(!input._before){remember();input._before=true;}
+  board()[key]=value;edited(false);
+ };
+ input.onblur=()=>{if(board())input.value=board()[key];};
+}
 $('#themeSelect').onchange=e=>{remember();board().theme=Number(e.target.value);board().palette=copy(bases.find(b=>b.theme===board().theme).palette);themeStrip();paintIcons();edited(false);canvas.focus({preventScroll:true});};
 $('#liveDevice').onchange=()=>{if(state.device&&$('#liveDevice').checked)uploadDevice();renderStorage();};
 new ResizeObserver(()=>{if(state.fit&&board())fit();}).observe($('#boardViewport'));

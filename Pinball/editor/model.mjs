@@ -27,25 +27,66 @@ export function createPart(kind,p,height){
 }
 export function fnv(bytes,table=false){let hash=2166136261;for(let i=0;i<bytes.length;i++)hash=Math.imul(hash^(table&&i>=16&&i<20?0:bytes[i]),16777619)>>>0;return hash;}
 const ascii=(s,max)=>typeof s==='string'&&s.length>0&&s.length<=max&&/^[\x20-\x7e]+$/.test(s);
+const range=(v,min,max)=>Number.isInteger(v)&&v>=min&&v<=max;
+
+export function boardNumberLimits(board,key){
+ if(key==='gravity')return [8,44];
+ let minimum=256;
+ for(const part of board.objects){
+  minimum=Math.max(minimum,part.y+50);
+  if(part.kind==='ramp')minimum=Math.max(minimum,part.v+50);
+  if(part.kind==='wall'||part.kind==='gate')minimum=Math.max(minimum,part.v+40);
+  if(part.kind==='rubber')minimum=Math.max(minimum,part.y+part.v+8);
+ }
+ return [minimum,480];
+}
+
+export function elementLimits(part,height){
+ const limits={x:[5,108],y:[8,height-50],u:[3,12],v:[0,1600],group:[0,2],value:[0,10000]};
+ switch(part.kind){
+  case 'wall':case 'gate':
+   limits.u=[5,110];limits.v=[8,height-40];break;
+  case 'flippers':
+   limits.x=[20,Math.min(38,part.u-2*part.v-16)];
+   limits.y=[80,height-50];
+   limits.u=[Math.max(82,part.x+2*part.v+16),100];
+   limits.v=[16,Math.min(26,Math.floor((part.u-part.x-16)/2))];
+   break;
+  case 'ramp':
+   limits.u=[8,105];limits.v=[12,height-50];break;
+  case 'target':case 'drop_target':
+   limits.v=[3,12];break;
+  case 'rubber':
+   limits.group=[0,1];
+   limits.x=part.group?[Math.max(5,8+part.u),108]:[Math.max(5,8-part.u),Math.min(108,108-part.u)];
+   limits.y=[8,Math.min(height-50,height-8-part.v)];
+   limits.u=part.group?[Math.max(8,part.x-108),Math.min(24,part.x-8)]:[Math.max(8,8-part.x),Math.min(24,108-part.x)];
+   limits.v=[16,Math.min(40,height-8-part.y)];
+   break;
+  case 'spinner':
+   limits.u=[6,16];limits.v=[-32768,32767];break;
+ }
+ return limits;
+}
+
+export function validElement(part,board){
+ if(!KINDS.includes(part.kind))return false;
+ if(!Object.entries(elementLimits(part,board.height)).every(([key,bounds])=>range(part[key],...bounds)))return false;
+ if(part.kind==='wall'||part.kind==='gate')return part.x!==part.u||part.y!==part.v;
+ if(part.kind==='ramp')return Math.abs(part.y-part.v)>=32;
+ if(part.kind==='rubber')return Boolean(board.flags&1);
+ return true;
+}
+
 export function validate(b){
- const errors=[],warnings=[];const bad=(ok,msg)=>{if(!ok)errors.push(msg);};const range=(v,l,h)=>Number.isInteger(v)&&v>=l&&v<=h;
+ const errors=[],warnings=[];const bad=(ok,msg)=>{if(!ok)errors.push(msg);};
  bad(/^[A-Z0-9_]{1,8}$/.test(b.file),'SD filename needs 1–8 uppercase letters, numbers or underscores.');
  bad(ascii(b.title,19),'Title needs 1–19 printable ASCII characters.');bad(ascii(b.mission,23),'Mission needs 1–23 printable ASCII characters.');
  bad(range(b.id,1,0xffffffff),'Board ID must be a nonzero unsigned integer.');bad(range(b.height,256,480),'Height must be 256–480.');bad(range(b.gravity,8,44),'Gravity must be 8–44.');bad(range(b.theme,0,8),'Choose one of nine themes.');
  bad(Array.isArray(b.palette)&&b.palette.length===16&&b.palette.every(c=>/^[0-9a-f]{3}$/i.test(c)),'Palette needs sixteen RGB444 colors.');
  bad(range(b.flags??0,0,1),'Unknown board flags.');
  bad(Array.isArray(b.objects)&&b.objects.length<=72,'A board holds up to 72 elements.');
- for(const [i,o] of (b.objects||[]).entries()){
-  let ok=KINDS.includes(o.kind)&&range(o.x,5,108)&&range(o.y,8,b.height-50)&&range(o.group,0,2)&&range(o.value,0,10000)&&range(o.u,-32768,32767)&&range(o.v,-32768,32767);
-  if(['wall','gate'].includes(o.kind))ok&&=range(o.u,5,110)&&range(o.v,8,b.height-40)&&(o.x!==o.u||o.y!==o.v);
-  else if(o.kind==='flippers')ok&&=range(o.x,20,38)&&range(o.u,82,100)&&range(o.v,16,26)&&o.y>=80&&o.x+2*o.v+16<=o.u;
-  else if(o.kind==='ramp')ok&&=range(o.u,8,105)&&range(o.v,12,b.height-50)&&Math.abs(o.y-o.v)>=32;
-  else if(['target','drop_target'].includes(o.kind))ok&&=range(o.u,3,12)&&range(o.v,3,12);
-  else if(o.kind==='rubber')ok&&=!!(b.flags&1)&&range(o.group,0,1)&&range(o.u,8,24)&&range(o.v,16,40)&&range(o.x+(o.group?-o.u:o.u),8,108)&&o.y+o.v<=b.height-8;
-  else if(o.kind==='spinner')ok&&=range(o.u,6,16);
-  else ok&&=range(o.u,3,12)&&range(o.v,0,1600);
-  bad(ok,`Element ${i+1} (${o.kind}) is outside its position or size limits.`);
- }
+ for(const [i,o] of (b.objects||[]).entries())bad(validElement(o,b),`Element ${i+1} (${o.kind}) is outside its position or size limits.`);
  for(const [kind,label] of [['target','target bank'],['lane','rollover']]){
   const groups=new Set(b.objects?.filter(o=>o.kind===kind||(kind==='target'&&o.kind==='drop_target')).map(o=>o.group));
   if(groups.size<3)warnings.push(`Add all three ${label} colors to enable its completion award.`);

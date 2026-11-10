@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {encode,decode,validate,controlsForKey,newIdentity,pick,editableBoard,createPart,rubberPoint} from '../model.mjs';
+import {encode,decode,validate,controlsForKey,newIdentity,pick,editableBoard,createPart,rubberPoint,elementLimits,boardNumberLimits,validElement} from '../model.mjs';
 const boards=JSON.parse(fs.readFileSync(new URL('../../boards/tables.json',import.meta.url)));
 for(const board of boards)test(`${board.title}: byte-identical PBT codec`,()=>{
  const bytes=encode(board),reference=fs.readFileSync(new URL('../../sd/PINBALL/'+board.file+'.PBT',import.meta.url));assert.deepEqual(Buffer.from(bytes),reference);assert.deepEqual(encode(decode(bytes,board.file)),bytes);
@@ -15,6 +15,22 @@ test('Clones keep their art and geometry, but have unique IDs/files/scores',()=>
 test('Blank and incomplete boards remain playable, with mission warnings',()=>{const b=structuredClone(boards[0]);b.objects=[];assert.deepEqual(validate(b).errors,[]);assert.equal(validate(b).warnings.length,3);assert.equal(encode(b).length,96);});
 test('Picking follows long rails and curved ramps, not only their anchor',()=>{const b=structuredClone(boards[0]);b.objects=[{kind:'wall',x:20,y:70,u:90,v:170}];assert.equal(pick(b,55,120),0);assert.equal(pick(b,100,80),-1);});
 test('Unsafe board sizes, geometry and non-ASCII labels are refused',()=>{for(const patch of [{height:900},{gravity:0},{file:'../X'},{title:'⚓'}])assert.ok(validate({...boards[0],...patch}).errors.length);});
+test('Inspector limits account for connected coordinates and the occupied board height',()=>{
+ const b={...copyBoard(),flags:1,height:384,objects:[]};
+ const flippers={kind:'flippers',x:30,y:280,u:90,v:20,group:0,value:0};
+ assert.deepEqual(elementLimits(flippers,b.height).v,[16,22]);
+ assert.ok(validElement({...flippers,v:22},b));
+ assert.ok(!validElement({...flippers,v:23},b));
+ const rubber={kind:'rubber',x:94,y:300,u:14,v:24,group:0,value:0};
+ assert.deepEqual(elementLimits(rubber,b.height).u,[8,14]);
+ assert.ok(!validElement({...rubber,u:15},b));
+ const ramp={kind:'ramp',x:65,y:225,u:94,v:320,group:1,value:400};
+ b.objects=[flippers,rubber,ramp];
+ assert.deepEqual(boardNumberLimits(b,'height'),[370,480]);
+ assert.deepEqual(validate({...b,height:370}).errors,[]);
+ assert.ok(validate({...b,height:369}).errors.length);
+ assert.ok(!validElement({...ramp,v:ramp.y+31},b));
+});
 
 test('Legacy slings become two independent, movable parts exactly once',()=>{
  const original=copyBoard(),b=editableBoard(original),rubbers=b.objects.filter(o=>o.kind==='rubber');
