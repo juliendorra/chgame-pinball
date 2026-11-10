@@ -35,7 +35,7 @@ test('console mode replays acknowledged events and does not predict local input'
  const {p,device,calls,events,timers}=fixture();await p.connect(device,board,1);
  assert.equal(p.mode,'console');assert.equal(p.controlsConsole,true);
  await p.send({type:'keys',mask:16});await p.send({type:'board',board,revision:2});
- assert.equal(events.filter(e=>e[0]==='web').length,0);
+ assert.deepEqual(events.filter(e=>e[0]==='web'),[['web',{type:'board',board,revision:2}]],'only layout previews are sent locally');
  await p.send({type:'restart',seed:7});await p.send({type:'pause',paused:true});await p.send({type:'place',x:40,y:100});
  assert.deepEqual(calls.slice(1),[['restart',7],['pause',true],['place',40,100]]);
  device.onReplay({type:'steps',session:12345,frame:2,runs:[{mask:16,count:2}]});

@@ -68,6 +68,24 @@ for(const [i,base] of boards.entries()){
  }
  command('R');step();snapshot();
 }
+// A local draft must render through the game art without committing a table
+// or disturbing the replay state or the faithful LCD view.
+const draftBase=copy(boards[0]);load(draftBase);place(60,200,70,150);step();
+const draft=copy(draftBase);draft.objects[0].x+=1;
+const draftBytes=encode(draft);
+const stateBeforeDraft=readState(m);
+const tableBeforeDraft=m.HEAPU8.slice(m._pb_table(),m._pb_table()+m._pb_table_size());
+const lcdBeforeDraft=m.HEAPU8.slice(m._pb_lcd(),m._pb_lcd()+m._pb_lcd_size());
+m.HEAPU8.set(draftBytes,m._pb_input());
+const draftPtr=m._pb_render_draft(draftBytes.length);assert.ok(draftPtr);
+const draftPixels=m.HEAPU8.slice(draftPtr,draftPtr+m._pb_render_size());
+assert.deepEqual(readState(m),stateBeforeDraft);
+assert.deepEqual(m.HEAPU8.slice(m._pb_table(),m._pb_table()+m._pb_table_size()),tableBeforeDraft);
+assert.deepEqual(m.HEAPU8.slice(m._pb_lcd(),m._pb_lcd()+m._pb_lcd_size()),lcdBeforeDraft);
+load(draft);
+const confirmedPtr=m._pb_render();
+assert.deepEqual(draftPixels,m.HEAPU8.slice(confirmedPtr,confirmedPtr+m._pb_render_size()),'draft geometry matches its confirmed render');
+console.log('Draft preview: identical layout pixels after confirmation, preserved game state, table and LCD.');
 // Lane goals are the same live mission in the LCD and the editor ABI.
 const laneBoard=copy(boards[0]);laneBoard.id=0x4c414e45;laneBoard.height=480;
 laneBoard.objects=[0,1,2].map(group=>({kind:'lane',group,x:25+group*30,y:180,u:8,v:0,value:100}));

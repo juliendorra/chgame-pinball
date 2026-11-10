@@ -1,5 +1,7 @@
 import {encode} from './model.mjs';
 
+const TRACE_POLL_MS=16;
+
 // The console keeps its own clock. Only this browser replay waits for input
 // samples; independent play never forwards keyboard or play commands.
 export class PlaySession{
@@ -10,7 +12,7 @@ export class PlaySession{
  get followsConsole(){return this.mode==='console'||this.mode==='starting'||this.mode==='error';}
  changed(){this.onChange(this);}
  send(event){
-  if(!this.followsConsole){this.engine.send(event);return;}
+  if(!this.followsConsole||event.type==='board'){this.engine.send(event);return;}
   if(!this.controlsConsole||!this.device)return;
   if(event.type==='restart')return this.device.restart(event.seed||0);
   if(event.type==='pause')return this.device.pause(event.paused);
@@ -39,7 +41,7 @@ export class PlaySession{
    if(epoch!==this.epoch||!this.controlsConsole)return;
    try{await this.device.pullTrace();if(epoch===this.epoch&&this.controlsConsole)this.poll(epoch);}
    catch(error){if(epoch===this.epoch)this.failed(error);}
-  },35);
+  },TRACE_POLL_MS);
  }
  failed(error){this.mode='error';this.error=error.message;this.cancel(this.timer);this.engine.setFollowing(true);this.device?.endFollow().catch(()=>{});this.changed();this.onError(error);}
  async separate(board,revision){

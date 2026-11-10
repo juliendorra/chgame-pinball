@@ -38,15 +38,49 @@ test('console replay waits for sampled ticks and preserves edits, pauses and res
   engine.consoleEvent({type:'pause',paused:1});engine.consoleEvent({type:'place',x:40,y:100});
   engine.consoleEvent({type:'restart',seed:456});
   engine.consoleEvent({type:'steps',frame:4,runs:[{mask:2,count:1}]});engine.frame(10017);
+  assert.equal(engine.appliedFrame,0,'hold the initial burst briefly to absorb USB jitter');
+  for(const [i,time] of [10051,10068,10085,10102].entries()){
+   engine.frame(time);
+   assert.equal(engine.appliedFrame,i+1,'draw one replay tick per normal display frame');
+  }
   assert.deepEqual(events,['board',['pause',1],['step',0],['restart',123],
    ['step',16],['step',16],['step',0],'board',['pause',1],['place',40,100],['restart',456],['step',2]]);
   assert.equal(engine.appliedFrame,4);assert.equal(engine.receivedFrame,4);
   const done=events.length;engine.frame(20000);assert.equal(events.length,done);
   engine.consoleEvent({type:'steps',frame:34,runs:[{mask:18,count:30}]});engine.frame(20017);
   assert.equal(engine.appliedFrame,16,'one RAF catches up at most twelve input frames');
-  engine.frame(20034);engine.frame(20051);assert.equal(engine.appliedFrame,34);
+  engine.frame(20034);assert.equal(engine.appliedFrame,28);
+  for(let i=1;i<=6;i++)engine.frame(20034+17*i);
+  assert.equal(engine.appliedFrame,34);
   engine.consoleEvent({type:'steps',frame:40,runs:[{mask:2,count:6}]});
-  engine.setFollowing(false);engine.send({type:'keys',mask:16});engine.frame(20068);
+  engine.setFollowing(false);engine.send({type:'keys',mask:16});engine.frame(20153);
   assert.deepEqual(events.at(-1),['step',16],'separate play discards stale console samples');
+ }finally{globalThis.requestAnimationFrame=oldRAF;}
+});
+test('a newer draft renders while an SD save delays the console acknowledgement',()=>{
+ const oldRAF=globalThis.requestAnimationFrame;
+ globalThis.requestAnimationFrame=()=>1;
+ try{
+  const heap=new Int32Array(16384),events=[];
+  const module={HEAP32:heap,HEAPU8:new Uint8Array(heap.buffer),_pb_input:()=>2048,_pb_state:()=>0,
+   _pb_apply:()=>1,_pb_step:()=>{heap[5]++;},_pb_pause:()=>{},_pb_restart:()=>{},
+   _pb_render:()=>4096,_pb_render_size:()=>0,_pb_render_draft:()=>4096};
+  const engine=new WasmEngine(module,(state,bytes,draft)=>events.push(['render',draft?.title]),revision=>events.push(['applied',revision]),e=>{throw e;});
+  engine.setFollowing(true);
+  engine.consoleEvent({type:'reset',board,revision:1,seed:123});
+  engine.frame(0);
+  const earlier={...board,title:'First draft'},latest={...board,title:'Latest draft'};
+  engine.send({type:'board',board:earlier,revision:2});
+  engine.send({type:'board',board:latest,revision:3});
+  engine.frame(17);
+  assert.deepEqual(events.at(-1),['render','Latest draft']);
+  assert.equal(engine.appliedFrame,0,'a preview cannot advance console replay');
+  assert.deepEqual(events.filter(e=>e[0]==='applied'),[['applied',1]]);
+  engine.consoleEvent({type:'board',board:earlier,revision:2});
+  engine.frame(34);
+  assert.deepEqual(events.slice(-2),[['applied',2],['render','Latest draft']]);
+  engine.consoleEvent({type:'board',board:latest,revision:3});
+  engine.frame(51);
+  assert.deepEqual(events.slice(-2),[['applied',3],['render',undefined]]);
  }finally{globalThis.requestAnimationFrame=oldRAF;}
 });

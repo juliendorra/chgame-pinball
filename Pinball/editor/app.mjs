@@ -24,11 +24,12 @@ function send(data){if(play)Promise.resolve(play.send(data)).catch(e=>toast(e.me
 function edited(snapshot=true,isEdit=true){
  if(snapshot)remember();state.revision++;refreshLibrary();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} / 72 elements`;
  const result=validate(board());if(!result.errors.length)state.validBoards[state.id]=copy(board());persist();showValidation(result);selection();
- clearTimeout(deviceTimer);
+ clearTimeout(deviceTimer);deviceTimer=undefined;
  if(isEdit)storage.changed(board());else storage.select(board());
  if(result.errors.length){status('Fix the highlighted limits · previous valid board is still playing',true);return;}
- status('Applying live edit…');send({type:'board',board:copy(board()),revision:state.revision});
- if(state.device&&$('#liveDevice').checked)deviceTimer=setTimeout(()=>uploadDevice(),180);
+ status(play?.followsConsole?'Draft preview · waiting for CHGame':'Applying live edit…');
+ send({type:'board',board:copy(board()),revision:state.revision});
+ if(state.device&&$('#liveDevice').checked)deviceTimer=setTimeout(()=>{deviceTimer=undefined;uploadDevice();},180);
 }
 function showValidation({errors,warnings}){const box=$('#validation');box.replaceChildren();for(const text of [...errors,...warnings]){const p=document.createElement('p');p.textContent=(errors.includes(text)?'! ':'↳ ')+text;if(errors.includes(text))p.className='error';box.append(p);}}
 function refreshLibrary(){boardPicker.update(state.boards,state.id,borders,b=>storage.view(b));$('#boardCount').textContent=state.boards.length;}
@@ -101,10 +102,23 @@ canvas.addEventListener('pointermove',e=>{
  if(d.handle==='end'){o.u+=dx;o.v+=dy;}
  else if(d.handle==='start'){o.x+=dx;o.y+=dy;}
  else{o.x+=dx;o.y+=dy;if(['wall','ramp','gate'].includes(o.kind)){o.u+=dx;o.v+=dy;}else if(o.kind==='flippers')o.u+=dx;}
+ const current=board().objects[state.selected];
+ if(['x','y','u','v'].every(key=>o[key]===current[key]))return;
  const candidate=copy(board());candidate.objects[state.selected]=o;if(validate(candidate).errors.length)return;
  if(!state.drag.moved)remember();board().objects[state.selected]=o;state.drag.moved=true;refreshCoordinates();edited(false);
 });
-function endDrag(){state.drag=null;state.cameraHoldUntil=performance.now()+600;selection();}
+function endDrag(){
+ const drag=state.drag;
+ if(!drag)return;
+ state.drag=null;
+ state.cameraHoldUntil=performance.now()+600;
+ selection();
+ if(drag.moved&&deviceTimer!==undefined){
+  clearTimeout(deviceTimer);
+  deviceTimer=undefined;
+  uploadDevice();
+ }
+}
 canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);canvas.addEventListener('lostpointercapture',endDrag);
 canvas.addEventListener('dblclick',e=>{const p=point(e);if(pick(board(),p.x,p.y)<0)dropBall(p);});
 function dropBall(p=dropPoint()){const x=Math.round(Math.max(10,Math.min(108,p.x))),y=Math.round(Math.max(12,Math.min(board().height-20,p.y)));send({type:'place',x,y});}
@@ -155,9 +169,17 @@ function bindPartDrag(button,kind){
  button.addEventListener('click',e=>{if(e.detail&&dragClick){e.preventDefault();e.stopImmediatePropagation();dragClick=false;}},true);
  window.addEventListener('blur',e=>end(e,true));window.addEventListener('keydown',e=>{if(e.key==='Escape')end(e,true);});
 }
-function image(bytes,width,height){
+function image(bytes,width,height,draftPalette){
  const pixels=bytes.subarray(0,width*height/2),palette=new DataView(bytes.buffer,bytes.byteOffset+width*height/2,32),colors=[];
- for(let i=0;i<16;i++){let v=palette.getUint16(i*2,true);colors.push([((v>>12)&15)*17,((v>>7)&15)*17,((v>>1)&15)*17,255]);}
+ for(let i=0;i<16;i++){
+  let rgb;
+  if(draftPalette)rgb=i===2?(parseInt(draftPalette[0],16)>>1)&0x777:parseInt(draftPalette[i],16);
+  else{
+   const v=palette.getUint16(i*2,true);
+   rgb=((v>>12)<<8)|(((v>>7)&15)<<4)|((v>>1)&15);
+  }
+  colors.push([((rgb>>8)&15)*17,((rgb>>4)&15)*17,(rgb&15)*17,255]);
+ }
  const result=new ImageData(width,height);for(let i=0;i<width*height;i++){const col=colors[(pixels[i>>1]>>((i&1)*4))&15];result.data.set(col,i*4);}return result;
 }
 function showShake(s){
@@ -168,9 +190,11 @@ function showShake(s){
  if(active){const direction=s.shake_direction<0?'←':'→',label=s.tilt>=3?'TILT · WAIT FOR DRAIN':`${direction} ${s.shake_level>=3?'DANGER':'SHAKE'} · ${s.shake_level}/3`;
   if(badge.textContent!==label)badge.textContent=label;badge.dataset.danger=String(s.shake_level>=3||s.tilt>=3);}
 }
-function engineFrame(game,bytes){
- if((game.id>>>0)!==(board().id>>>0)||game.height!==canvas.height)return;
- const full=image(bytes,128,game.height+HEADER_HEIGHT);$('#headerCanvas').getContext('2d').putImageData(full,0,0);canvas.getContext('2d').putImageData(full,0,-HEADER_HEIGHT);
+function engineFrame(game,bytes,draft){
+ const visible=draft||game;
+ if((visible.id>>>0)!==(board().id>>>0)||visible.height!==canvas.height)return;
+ const full=image(bytes,128,visible.height+HEADER_HEIGHT,draft?.palette);$('#headerCanvas').getContext('2d').putImageData(full,0,0);canvas.getContext('2d').putImageData(full,0,-HEADER_HEIGHT);
+ if(game.id!==visible.id||game.height!==visible.height)return;
  state.lastState=game;const pause=$('#pauseButton'),pauseLabel=game.paused?'▶ Resume':'Ⅱ Pause';if(pause.textContent!==pauseLabel)pause.textContent=pauseLabel;pause.setAttribute('aria-label',game.paused?'Resume':'Pause');pause.dataset.paused=String(Boolean(game.paused));
  $('#playScore').textContent=game.score.toLocaleString();$('#playBall').textContent=game.over?'GAME OVER':`${game.lives} BALL${game.lives===1?'':'S'} · ×${game.effective_mult}`;
  const mission=$('#laneMission');mission.hidden=game.lane_groups!==7;
