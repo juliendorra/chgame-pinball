@@ -11,6 +11,7 @@ class Device{
  constructor(boards=[]){this.volume='card-A';this.items=boards.map(b=>({file:b.file,data:Array.from(encode(b)),checkpoint:null}));this.writes=[];}
  async inspectStorage(){return copy({volume:this.volume,items:this.items});}
  async save(file,bytes,options){
+  if(options.automatic&&this.playing)throw Object.assign(new Error('Console playing'),{code:'play_active'});
   if(this.gate)await this.gate;
   const current=this.items.find(b=>b.file===file);
   if(options.volume!==this.volume||current&&!equal(current.data,options.expected))throw Object.assign(new Error('External SD change'),{code:'conflict'});
@@ -65,4 +66,21 @@ test('Offline drafts persist as pending without claiming SD success',async()=>{
 test('Undo or an explicit default restore matching SD clears the conflict without a write',async()=>{
  const original=board(8),draft={...copy(original),title:'Another local draft'},{storage,device}=setup([original]);storage.record(draft);await storage.connect(device);assert.equal(storage.view(draft).kind,'conflict');
  storage.changed(original);assert.equal(storage.view(original).kind,'saved');await tick();assert.equal(device.writes.length,0);storage.disconnect();
+});
+
+test('Auto-save stays queued during console play and writes the latest draft after pause',async()=>{
+ const b=board(8),{storage,device}=setup([b]);device.playing=true;await storage.connect(device);
+ b.objects[0].x++;storage.changed(b);await tick();await storage.idle();
+ assert.equal(device.writes.length,0);assert.equal(storage.pending().length,1);
+ assert.equal(storage.view(b).kind,'pending');assert.match(storage.view(b).label,/pause console/);assert.equal(storage.record(b).error,null);
+ b.objects[0].x++;storage.changed(b);await tick();assert.equal(device.writes.length,0);
+ device.playing=false;await tick();await storage.idle();
+ assert.equal(device.writes.length,1);assert.deepEqual(device.writes[0].data,Array.from(encode(b)));assert.equal(storage.view(b).kind,'saved');storage.disconnect();
+});
+
+test('Manual save remains available during play, and deferred drafts survive disconnect',async()=>{
+ const b=board(8),{storage,device}=setup([b]);device.playing=true;await storage.connect(device);
+ b.objects[0].x++;storage.changed(b);await tick();await storage.save(b);assert.equal(device.writes.length,1);
+ b.objects[0].x++;storage.changed(b);await tick();const persisted=storage.export();storage.disconnect();
+ const restored=new BoardStorage({saved:persisted});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/);restored.disconnect();
 });

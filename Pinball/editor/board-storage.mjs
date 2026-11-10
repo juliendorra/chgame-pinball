@@ -35,7 +35,7 @@ export class BoardStorage{
   else if(!this.device){kind=r.dirty?'pending':'offline';label=r.dirty?'Browser draft · not saved to SD':r.expected?'Last saved to SD · offline':'SD not checked · offline';}
   else if(this.checking){kind='checking';label='Checking SD…';}
   else if(matchesSd(board,r.expected)){kind='saved';label='Saved to SD';}
-  else if(r.dirty){kind='pending';label=this.auto?'Waiting to auto-save':'Changes not saved to SD';}
+  else if(r.dirty){kind='pending';label=this.auto?(r.deferred?'Auto-save queued · pause console to save':'Waiting to auto-save'):'Changes not saved to SD';}
   else if(r.expected){kind='conflict';label='Different version on SD';}
   else{kind='new';label='Not on SD yet';}
   return {kind,label,detail:r.conflict||r.error||this.error||'',revert:!!r.checkpoint?.length,savedAt:r.savedAt,canSave:!!this.device&&!this.checking&&!invalid&&!r.conflict&&!r.saving&&!this.error};
@@ -63,22 +63,24 @@ export class BoardStorage{
  setAuto(on){this.auto=on;for(const r of this.records.values()){clearTimeout(r.timer);this.schedule(r);}this.notify();}
  schedule(r){
   clearTimeout(r.timer);
-  if(this.auto&&this.device&&!this.checking&&!this.error&&r.dirty&&!r.conflict&&!r.error&&!r.job&&!r.saving&&!validate(r.board).errors.length){r.timer=setTimeout(()=>this.save(r.board).catch(()=>{}),this.delay);}
+  if(this.auto&&this.device&&!this.checking&&!this.error&&r.dirty&&!r.conflict&&!r.error&&!r.job&&!r.saving&&!validate(r.board).errors.length){r.timer=setTimeout(()=>this.save(r.board,{automatic:true}).catch(()=>{}),this.delay);}
  }
- async save(board){
+ async save(board,{automatic=false}={}){
   const r=this.record(board);clearTimeout(r.timer);
-  if(r.job){await r.job;if(r.dirty)return this.save(r.board);return;}
+  if(r.job){await r.job;if(r.dirty)return this.save(r.board,{automatic});return;}
+  if(automatic&&!this.auto)return;
   if(!this.device||this.checking||this.error)throw new Error(this.error||'Connect CHGame and check the SD card first.');
   if(r.conflict)throw new Error(r.conflict);
   const errors=validate(board).errors;if(errors.length)throw new Error(errors[0]);
   if(r.volume!==this.volume||r.expected===undefined){await this.check();if(r.conflict||this.error)throw new Error(r.conflict||this.error);}
   r.error=null;r.saving=true;this.notify();const epoch=this.epoch,device=this.device;
   const job=this.tail.then(async()=>{
-   if(epoch!==this.epoch)throw new Error('CHGame disconnected before saving.');if(r.obsolete)return;
-   const snapshot=copy(r.board),result=await device.save(snapshot.file,encode(snapshot),{volume:r.volume,expected:r.expected});
+   if(epoch!==this.epoch)throw new Error('CHGame disconnected before saving.');if(r.obsolete||automatic&&!this.auto)return;
+   const snapshot=copy(r.board),result=await device.save(snapshot.file,encode(snapshot),{volume:r.volume,expected:r.expected,automatic});
+   r.deferred=false;
    r.expected=result.data;r.checkpoint=result.checkpoint;r.volume=result.volume;r.savedAt=Date.now();r.dirty=!matchesSd(r.board,result.data);
    this.inventory=this.inventory.filter(i=>i.file!==r.file).concat({file:r.file,data:result.data,checkpoint:result.checkpoint});
-  }).catch(e=>{r.error=e.message;if(['conflict','card_changed'].includes(e.code))r.conflict=e.message;throw e;})
+  }).catch(e=>{if(automatic&&e.code==='play_active'){r.deferred=true;return;}r.error=e.message;if(['conflict','card_changed'].includes(e.code))r.conflict=e.message;throw e;})
    .finally(()=>{r.saving=false;r.job=null;this.schedule(r);this.notify();});
   r.job=job;this.tail=job.catch(()=>{});return job;
  }

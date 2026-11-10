@@ -118,9 +118,15 @@ boards are deduplicated; differing versions are imported as separate copies
 so local work is retained.
 
 The save panel distinguishes the browser draft, console RAM and SD file.
-**Auto-save to SD** is enabled by default and saves valid edits after a short
-delay; connecting or selecting a board alone never overwrites a layout.
-**Save to SD now** and **All boards → Save all pending** are also available.
+**Auto-save to SD** is enabled by default. After the editing debounce, it checks
+the console state inside the USB queue. While a game is running (including a
+ball waiting in the launcher), the save stays queued without pausing or releasing
+the player's controls. It writes when the tester pauses or the game has no balls
+left. The save panel says **Auto-save queued · pause console to save**; browser
+drafts keep saving and RAM live edits continue in both console-play and separate
+web-play modes. Connecting or selecting a board alone never overwrites a layout.
+**Save to SD now** and **All boards → Save all pending** explicitly save
+immediately and may briefly pause a running game.
 The previous SD version is protected as `<filename>.PBK` before the first
 overwrite. **Revert…** restores that checkpoint; later auto-saves retain it.
 Different SD versions or changed cards require review rather than overwriting

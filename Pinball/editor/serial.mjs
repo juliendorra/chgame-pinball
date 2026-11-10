@@ -49,9 +49,12 @@ export class BrowserDevice {
  pullTrace(){return this.run(async()=>{if(this.following)this.trace((await this.request('Y 1')).at(-1));});}
  endFollow(){this.following=false;return this.run(async()=>{await this.request('K 0');if(this.capabilities?.has('TRACE'))await this.request('Y 0');});}
  upload(bytes,revision){return this.run(async()=>{await this.transfer(bytes);if(this.following)this.replay({type:'board',board:decode(bytes),revision});const returned=unhex((await this.request('T')).at(-1).slice(10));if(hex(returned)!==hex(bytes))throw new Error('CHGame RAM readback differs.');return {bytes:bytes.length,verified:true};});}
- withCard(task){return this.run(async()=>{
+ withCard(task,{automatic=false}={}){return this.run(async()=>{
   const values=(await this.request('V')).at(-1).split(' ').slice(2).map(Number),paused=values[13];
-  if(values.length!==15)throw new Error('Unexpected CHGame state reply');
+  if(values.length!==15||!values.every(Number.isFinite))throw new Error('Unexpected CHGame state reply');
+  // Check inside the serial queue, immediately before any pause or card I/O.
+  // A waiting plunger is still play: the tester may launch at any moment.
+  if(automatic&&!paused&&values[2]>0)throw Object.assign(new Error('Auto-save queued · pause the console to save'),{code:'play_active'});
   await this.request('X');await this.request('Q 1');
   try{
    await this.request('I');
@@ -60,7 +63,7 @@ export class BrowserDevice {
   }finally{await this.request('Q '+paused);}
  });}
  inspectStorage(){return this.withCard(card=>card.inventory());}
- async save(stem,bytes,options){this.requireBoardSupport(bytes);return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;});}
+ async save(stem,bytes,{automatic=false,...options}={}){this.requireBoardSupport(bytes);return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;},{automatic});}
  revertSd(stem,options){return this.withCard(async card=>{const result=await card.revertProtected(stem,options);await this.request('L');return result;});}
  checkpointSd(stem,options){return this.withCard(card=>card.checkpointProtected(stem,options));}
  boards(){return this.run(async()=>{const list=await this.request('L'),result=[];for(const line of list){if(!line.startsWith('LIVE BOARD '))continue;const [,index,file]=line.match(/^LIVE BOARD (\d+) (.*)$/);const reply=await this.request('G '+index);result.push({index:Number(index),file:file.trim(),data:unhex(reply.at(-1).slice(10))});}return result;});}

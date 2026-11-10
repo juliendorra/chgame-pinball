@@ -4,6 +4,24 @@ import {BrowserDevice,hex} from '../serial.mjs';
 import {BoardCard} from '../card.mjs';
 import {fnv,encode} from '../model.mjs';
 import fs from 'node:fs';
+test('Automatic SD saves never pause active console play, including the launch lane',async()=>{
+ for(const shooter of [0,1]){
+  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+  d.request=async command=>{calls.push(command);return ['LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,shooter,0,256,0,22].join(' ')];};
+  await assert.rejects(()=>d.save('TEST',new Uint8Array(96),{automatic:true}),e=>e.code==='play_active');
+  assert.deepEqual(calls,['V'],'no release, pause, card initialization or write');
+ }
+});
+test('Automatic SD saves proceed when paused or out of balls and retain the previous pause state',async()=>{
+ const open=BoardCard.open;
+ try{for(const [lives,paused] of [[3,1],[0,0]]){
+  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+  d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,lives,22,100,200,0,0,0,0,0,0,256,paused,22].join(' '):'LIVE OK'];};
+  BoardCard.open=async()=>({saveProtected:async(file,bytes,options)=>{assert.equal(options.automatic,undefined);return {verified:true};}});
+  assert.equal((await d.save('TEST',new Uint8Array(96),{automatic:true})).verified,true);
+  assert.deepEqual(calls,['V','X','Q 1','I','L','Q '+paused]);
+ }}finally{BoardCard.open=open;}
+});
 test('sector transfers use the bounded raw-sector protocol and exact checksum',async()=>{
  const d=new BrowserDevice(),calls=[];d.request=async command=>{calls.push(command);return ['LIVE OK'];};
  const bytes=Uint8Array.from({length:512},(_,i)=>i&255);await d.transfer(bytes,123);
