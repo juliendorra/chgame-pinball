@@ -72,6 +72,18 @@ node Pinball/tools/verify_device_storage.mjs /path/to/python /dev/cu.usbmodem101
   Pinball/out/device/storage.json
 ```
 
+After an explicit CHSave migration, the normal release can also be checked
+without adding a diagnostic command to the game. This test stages zero-score
+game-over screens and compares their BEST digits with the report's expected
+values, then verifies the journal is byte-identical and restores the RAM
+board. It restarts the current game; it does not submit a new high score.
+
+```sh
+python3 Pinball/tools/verify_device_score_load.py --port /dev/cu.usbmodem101 \
+  --migration-report /path/to/device-migration.json \
+  --out Pinball/out/device/score-load.json
+```
+
 To run only the post-build play/work suite:
 
 ```sh

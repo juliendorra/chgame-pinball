@@ -54,6 +54,7 @@ try{
     await card.publish(entry.slice(0,2),deleted);for(const cluster of chain)await card.set(cluster,0);
    }
   });
+  if(owned.size)await device.request('L');
   if(inventory){const after=await device.inspectStorage();assert.equal(inventoryKey(after.items),inventoryKey(inventory.items));check('Temporary test files removed; every existing board/checkpoint is unchanged');}
   if(original){assert.deepEqual(await ram(),original);const values=(await device.request('V')).at(-1).split(' ').map(Number);assert.equal(values.at(-2),paused);check('Console RAM board and pause state preserved');}
  }catch(error){report.result='failed';report.cleanup_error=error.message;throw error;}
