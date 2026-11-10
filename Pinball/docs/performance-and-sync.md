@@ -99,17 +99,29 @@ amplify that difference without any randomness.
 | Approach | Exact independent replay? | Trade-off |
 | --- | --- | --- |
 | Shared seed plus simultaneous Restart | No | Easy diagnostic; input arrival and edits still occur on different ticks |
+| Replay inputs sampled by the console | Yes, with the same reset and build | Small optional input/frame trace on the console; the browser follows slightly behind without delaying console controls |
 | Inputs and edits scheduled by tick | Yes, with the same initial state and build | Add session ID, target tick, ordered commands, acknowledgement of the applied tick, small input buffer, late-command handling and periodic full physics-state hashes |
 | Console-authoritative browser display | One simulation is authoritative | Stream complete state/snapshots, including all balls and spin; the browser can render the full editor view but must reconcile any local prediction |
 | Recorded tick-by-tick replay | Yes, offline | Best regression test; reproduces input and edit ordering without providing live synchronization |
 
-For side-by-side comparisons, prefer tick-scheduled replay. Start both from a
-reset with the same board bytes, physics/build fingerprint, seed and released
-button state. Assign every control edge, edit, pause and restart to a tick.
-Apply an acknowledged edit on both sides at the same boundary. Compare state
-hashes at equal tick numbers, not equal wall-clock times. Report divergence
-instead of silently resynchronizing a test. A slower console can make the
-browser wait; it must not change which tick receives an input.
+To minimize changes to ordinary console play, prefer replay of inputs actually
+sampled by the console. An explicitly enabled editor trace reports the sampled
+button mask and numbered frame; the browser advances the shared simulation
+from that trace rather than its own wall clock. The console continues normally
+and never waits for a browser acknowledgement. Reporting is inactive during
+standalone play. The trade-off is a slightly delayed browser view and some
+additional firmware bytes; flash and RAM fit must be checked before implementing
+it. This is a proposed protocol addition, not a shipped synchronization feature.
+
+Start both from a reset with the same board bytes, physics/build fingerprint,
+seed and released button state. Record accepted edits, pauses and restarts at
+their actual application boundaries too; echoing buttons alone would still
+diverge during editing. Use frame sequencing that continues during pause, not
+only the frozen `game.ticks` counter. Include progress watermarks and detect
+lost events or trace-buffer overflow. Compare state at equal step numbers,
+not equal wall-clock times, and report divergence rather than silently
+resynchronizing a test. A slower console can make the browser wait; it must
+not change which step receives an input.
 
 Visual frames need not arrive at the same instant for their physics states to
 match at the same tick. Any local prediction used for responsiveness must be
