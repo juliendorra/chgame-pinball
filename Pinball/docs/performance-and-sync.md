@@ -147,3 +147,9 @@ against installed firmware and its matched Studio bundle. The test compares
 sixteen state/RNG fields at acknowledged pause boundaries, exercises live edits,
 restart, placement and SD-read pauses, restores the original RAM board and
 never writes SD boards or the save journal.
+
+`python Pinball/tools/verify_trace.py` checks the actual firmware recorder on
+the host: sampled masks, pause-inclusive frame numbers, mutation barriers,
+fixed buffer capacity, explicit overflow and stopping the trace. It changes
+only the host Serial output sink and does not substitute gameplay or protocol
+logic. Physical-console parity still requires the device test above.
