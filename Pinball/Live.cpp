@@ -4,6 +4,7 @@
 #include "Live.h"
 #include "src/rumble/Rumble.h"
 #include "Physics.h"
+#include "SyncBuild.h"
 
 #ifndef CHSIM
 extern "C" {
@@ -18,6 +19,7 @@ void CDC_flush(void);
 namespace pinball { namespace live {
 bool command(const char *){return false;}
 void poll(){}
+void sample(bool){}
 bool changed(){return false;}
 bool busy(){return false;}
 } }
@@ -26,6 +28,9 @@ namespace pinball { namespace live {
 static uint16_t expected, received;
 static uint32_t block, touched, keysAt;
 static bool raw, applied, keys;
+static struct { uint32_t frame, build; uint8_t flags, runs[64]; } trace;
+static uint8_t traceUsed;
+static bool tracing;
 static uint8_t *staging() { return reinterpret_cast<uint8_t *>(&editData()); }
 static void output(const char *p,unsigned n) {
 #ifdef CHSIM
@@ -55,6 +60,20 @@ static void data(const uint8_t *p,unsigned n) {
     while(n){unsigned count=n>32?32:n;for(unsigned i=0;i<count;++i){out[i*2]=hex[p[i]>>4];out[i*2+1]=hex[p[i]&15];}output(out,count*2);p+=count;n-=count;}
     say("\n");
 }
+static void traceReply() {
+    data(reinterpret_cast<const uint8_t *>(&trace),9+traceUsed);
+    traceUsed=0;
+}
+void sample(bool playing) {
+    if(!tracing)return;
+    if(millis()-touched>3000){tracing=false;return;}
+    ++trace.frame;
+    if(!playing)trace.flags|=2;
+    unsigned mask=chgame.buttons();
+    if(traceUsed && trace.runs[traceUsed-2]==mask && trace.runs[traceUsed-1]<255)++trace.runs[traceUsed-1];
+    else if(traceUsed<sizeof trace.runs){trace.runs[traceUsed++]=mask;trace.runs[traceUsed++]=1;}
+    else trace.flags|=1;
+}
 static uint32_t hash(const uint8_t *p,unsigned n) {uint32_t h=2166136261u;while(n--)h=(h^*p++)*16777619u;return h;}
 bool busy() {return expected && millis()-touched<3000;}
 bool changed() {bool result=applied;applied=false;return result;}
@@ -83,7 +102,19 @@ bool command(const char *p) {
     invalidatePreview();
     while(*p==' ')++p;
     char cmd=*p++;touched=millis();bool ok=false;
-    if(cmd=='?'){say("LIVE HELLO 1.4.17 PBT1 RAM SD RUBBER\n");return true;}
+    if(cmd=='?'){say("LIVE HELLO 1.4.18 PBT1 RAM SD RUBBER TRACE\n");return true;}
+    if(cmd=='Y') {
+        uint32_t seed=number(p);
+        if(seed>1) {
+            if(chgame.buttons()){reply(false);return false;}
+            newGame(seed);applied=true;trace.frame=0;trace.build=PINBALL_GAME_HASH;
+            trace.flags=traceUsed=0;tracing=true;
+        }
+        if(seed!=1 || tracing) {
+            traceReply();if(!seed)tracing=false;return true;
+        }
+        reply(false);return false;
+    }
     if(cmd=='H'){gfx_wait();data(gfx_fb,GFX_FB_BYTES);return true;}
     if(cmd=='M'){
         while(*p==' ')++p;bool minus=*p=='-';if(minus)++p;
@@ -146,7 +177,9 @@ bool command(const char *p) {
         unsigned x=number(p),y=number(p);ok=x>=10&&x<=108&&y>=12&&y<table.h.height-12;
         if(ok){placeBall(0,x,y,0,0);applied=true;}
     } else if(cmd=='X'){expected=received=0;chgame.injected=0;keys=false;ok=true;}
-    reply(ok);return ok;
+    if(ok && tracing && (cmd=='C' || cmd=='R' || cmd=='Q' || cmd=='P'))traceReply();
+    else reply(ok);
+    return ok;
 }
 __attribute__((noinline)) void poll() {
     if(expected && millis()-touched>=3000)expected=received=0;

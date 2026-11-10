@@ -5,20 +5,21 @@ import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,contro
 import {BrowserDevice} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
+import {PlaySession} from './play-session.mjs';
 const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',HEADER_HEIGHT=24;
 const state={boards:[],validBoards:{},id:null,selected:-1,undo:[],redo:[],revision:0,zoom:1.5,fit:true,mask:0,pressed:new Map(),device:false,direct:null,uploading:false,lastState:null,lastFrame:null,drag:null,ready:false};
 const board=()=>state.boards.find(b=>b.id===state.id);
-let engine,deviceTimer,toastTimer,sprites,bases,borders;
+let engine,play,deviceTimer,toastTimer,sprites,bases,borders;
 let storage=new BoardStorage({onChange:storageChanged});
 state.browserSaved=true;
 const boardPicker=new BoardPicker($('#boardPicker'),id=>{choose(id);canvas.focus({preventScroll:true});},releaseKeys);
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4200);}
 function status(text,error=false){$('#syncStatus').textContent=text;$('#syncStatus').classList.toggle('error',error);}
-function persist(){try{localStorage.setItem('midnight-studio-v1',JSON.stringify({boards:state.boards,validBoards:state.validBoards,id:state.id,storage:storage.export()}));state.browserSaved=true;}catch{state.browserSaved=false;}}
+function persist(){try{localStorage.setItem('midnight-studio-v1',JSON.stringify({boards:state.boards,validBoards:state.validBoards,id:state.id,storage:storage.export(),separatePlay:!!state.separatePlay}));state.browserSaved=true;}catch{state.browserSaved=false;}}
 function remember(){state.undo.push(copy(board()));if(state.undo.length>80)state.undo.shift();state.redo=[];historyButtons();}
 function historyButtons(){$('#undoButton').disabled=!state.undo.length;$('#redoButton').disabled=!state.redo.length;}
 function restore(redo=false){const source=redo?state.redo:state.undo,target=redo?state.undo:state.redo;if(!source.length)return;target.push(copy(board()));state.boards[state.boards.findIndex(b=>b.id===state.id)]=source.pop();state.selected=-1;refresh();edited(false);}
-function send(data){engine?.send(data);}
+function send(data){if(play)Promise.resolve(play.send(data)).catch(e=>toast(e.message));else engine?.send(data);}
 function edited(snapshot=true,isEdit=true){
  if(snapshot)remember();state.revision++;refreshLibrary();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} / 72 elements`;
  const result=validate(board());if(!result.errors.length)state.validBoards[state.id]=copy(board());persist();showValidation(result);selection();
@@ -90,7 +91,7 @@ canvas.addEventListener('pointermove',e=>{
 function endDrag(){state.drag=null;}
 canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);canvas.addEventListener('lostpointercapture',endDrag);
 canvas.addEventListener('dblclick',e=>{const p=point(e);if(pick(board(),p.x,p.y)<0)dropBall(p);});
-function dropBall(p=dropPoint()){const x=Math.max(10,Math.min(108,p.x)),y=Math.max(12,Math.min(board().height-20,p.y));send({type:'place',x,y});if(state.device)deviceAction('place',{x,y}).catch(e=>toast(e.message));}
+function dropBall(p=dropPoint()){const x=Math.round(Math.max(10,Math.min(108,p.x))),y=Math.round(Math.max(12,Math.min(board().height-20,p.y)));send({type:'place',x,y});}
 function paintIcons(){if(!sprites||!board())return;const inks={'.':-1,'0':2,w:1,m:3,t:4,d:7,i:5,c:4,o:9,g:10,b:12,p:13,s:14,r:6};
  for(const def of CATALOG){const c=document.querySelector(`[data-part="${def.kind}"] canvas`),ctx=c.getContext('2d'),frame=sprites[def.sprite]?.[0];ctx.clearRect(0,0,c.width,c.height);
  if(def.kind==='rubber'){drawPartPreview(c,{...def.defaults,x:12,y:3,u:12,v:21},sprites,board().palette);continue;}
@@ -160,15 +161,27 @@ function engineFrame(game,bytes){
  $('.canvas-wrap').style.transform=`translate(${game.shake_x*state.zoom}px,${game.shake_y*state.zoom}px)`;showShake(game);
  for(const [key,value] of Object.entries({shakeLevel:game.shake_level,tilt:game.tilt,ticks:game.ticks,score:game.score,ballX:game.x,ballY:game.y,left:game.left,right:game.right,shooter:game.shooter,shooterFlap:game.shooter_flap,seed:game.seed}))canvas.dataset[key]=value;
  state.lastFrame=performance.now();$('#engineLoading').hidden=true;
+ renderPlayMode();
+}
+function renderPlayMode(){
+ const mode=play?.mode||'web',panel=$('#playStatus');panel.dataset.mode=mode;
+ $('#playModeTitle').textContent=mode==='console'?'CONSOLE PLAY':mode==='starting'?'STARTING CONSOLE PLAY':mode==='error'?'CONSOLE PLAY INTERRUPTED':state.device?'WEB PLAY · SEPARATE GAMES':'WEB PLAY';
+ const lag=Math.max(0,(engine?.receivedFrame||0)-(engine?.appliedFrame||0));
+ $('#playModeDescription').textContent=mode==='console'?'Keyboard controls CHGame. This view follows its actual inputs'+(lag>12?' · catching up.':'.'):mode==='starting'?'Starting both games together. Release the console buttons.':mode==='error'?(play.error+' Choose web-only play or restart console play.'):state.device?'Keyboard controls this browser only. CHGame has its own player; live edits can still update both.':'Keyboard controls this browser. Connect CHGame to play together or test separately.';
+ $('#separatePlay').checked=!state.device||mode==='web';$('#separatePlay').disabled=!state.device||mode==='starting';
+ $('#resyncPlay').hidden=!state.device||mode==='web';$('#resyncPlay').disabled=mode==='starting';
+ $('#liveDevice').disabled=mode==='console'||mode==='starting';if($('#liveDevice').disabled)$('#liveDevice').checked=true;
+ if(play?.notice)$('#playModeDescription').textContent+=' '+play.notice;
 }
 async function connectSimulator(){
  engine=await WasmEngine.create(engineFrame,revision=>{
   if(revision===state.revision)status(validate(board()).errors.length?'Draft saved · previous valid board is playing':'Live · saved in this browser');
- },e=>status(e.message,true));
+ },e=>{if(play?.followsConsole)play.failed(e);status(e.message,true);});
+ play=new PlaySession({engine,onChange:renderPlayMode,onError:e=>toast(e.message)});renderPlayMode();
  state.ready=true;const valid=state.validBoards[state.id]||board();if(!validate(valid).errors.length)send({type:'board',board:copy(valid),revision:state.revision});publishKeys();
 }
-const deviceKeys=new DeviceKeyStream(mask=>state.device?deviceAction('keys',{mask}):Promise.resolve(),e=>deviceLost(e));
-function publishKeys(){state.mask=[...state.pressed.values()].reduce((a,b)=>a|b,0);send({type:'keys',mask:state.mask});if(state.device)deviceKeys.push(state.mask);else deviceKeys.clear();}
+const deviceKeys=new DeviceKeyStream(mask=>state.device&&play?.controlsConsole?deviceAction('keys',{mask}):Promise.resolve(),e=>deviceLost(e));
+function publishKeys(){state.mask=[...state.pressed.values()].reduce((a,b)=>a|b,0);send({type:'keys',mask:state.mask});if(state.device&&play?.controlsConsole)deviceKeys.push(state.mask);else deviceKeys.clear();}
 function releaseKeys(){state.pressed.clear();engine?.release();publishKeys();}
 const isForm=e=>e.target.closest?.('input,textarea,select,[contenteditable=true],#boardPicker');
 window.addEventListener('keydown',e=>{
@@ -182,20 +195,22 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>{if(state.pressed.has(e.code)){state.pressed.delete(e.code);publishKeys();}});window.addEventListener('blur',releaseKeys);document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseKeys();});
 setInterval(()=>{if(state.mask)publishKeys();},150);
 async function deviceAction(op,args={}){
- if(state.direct){if(op==='keys')return state.direct.keys(args.mask);if(op==='restart')return state.direct.restart(args.seed||0);if(op==='pause')return state.direct.pause(args.paused);if(op==='place')return state.direct.place(args.x,args.y);if(op==='upload')return state.direct.upload(encode(args.board));if(op==='boards'){const entries=await state.direct.boards();return entries.map(e=>({...e,board:decode(e.data,e.file)}));}}
+ if(state.direct){if(op==='keys')return state.direct.keys(args.mask);if(op==='upload')return state.direct.upload(encode(args.board),args.revision);if(op==='boards'){const entries=await state.direct.boards();return entries.map(e=>({...e,board:decode(e.data,e.file)}));}}
  throw new Error('Connect CHGame using browser USB first.');
 }
 function deviceUi(connected){state.device=connected;if(!connected){deviceKeys.clear();state.lastRam=null;storage.disconnect();}$('#deviceBadge').textContent=connected?'CONNECTED':'OFFLINE';$('#deviceBadge').style.color=connected?'var(--accent)':'';$('#connectButton').firstChild.textContent=connected?'Disconnect CHGame ':'Connect CHGame ';$('#readBoards').disabled=!connected;$('#deviceStatus').textContent=connected?'Live edits change console RAM. SD auto-save and recovery are shown above the board.':'Connect CHGame to check SD versions and save your browser drafts.';renderStorage();}
-function deviceLost(e){deviceUi(false);const direct=state.direct;state.direct=null;direct?.close().catch(()=>{});toast(e.message||'CHGame disconnected.');}
+function deviceLost(e){deviceUi(false);play?.disconnect(board(),state.revision).catch(()=>{});const direct=state.direct;state.direct=null;direct?.close().catch(()=>{});renderPlayMode();toast(e.message||'CHGame disconnected.');}
 async function connectDevice(){try{
  if(!('serial' in navigator))throw new Error('Direct CHGame USB needs Chrome or Edge on a computer. Browser play and editing work here.');
- if(state.device){if(storage.pending().length&&!confirm('Some board edits are not verified on SD. Browser drafts will be kept. Disconnect CHGame?'))return;storage.disconnect();await storage.idle();if(state.direct){await state.direct.close();state.direct=null;}deviceUi(false);return;}
- state.direct=await new BrowserDevice().connect();deviceUi(true);await storage.connect(state.direct);await uploadDevice();toast('CHGame connected. SD versions checked; auto-save applies to your edits.');
+ if(state.device){if(storage.pending().length&&!confirm('Some board edits are not verified on SD. Browser drafts will be kept. Disconnect CHGame?'))return;releaseKeys();storage.disconnect();await storage.idle();await play.disconnect(board(),state.revision);if(state.direct){await state.direct.close();state.direct=null;}deviceUi(false);renderPlayMode();return;}
+ releaseKeys();state.direct=await new BrowserDevice().connect();deviceUi(true);await storage.connect(state.direct);
+ const valid=state.validBoards[state.id]||board();await play.connect(state.direct,copy(valid),state.revision,!!state.separatePlay);
+ if(play.controlsConsole)state.lastRam=copy(valid);else if($('#liveDevice').checked)await uploadDevice();renderStorage();renderPlayMode();
  }catch(e){toast(e.message);}}
 async function uploadDevice(){
  if(!state.device||validate(board()).errors.length)return;
  if(state.uploading){state.uploadAgain=true;return;}state.uploading=true;const revision=state.revision,snapshot=copy(board());renderStorage();
- try{await deviceAction('upload',{board:snapshot});state.lastRam=snapshot;}
+ try{await deviceAction('upload',{board:snapshot,revision});state.lastRam=snapshot;}
  catch(e){deviceLost(e);}finally{state.uploading=false;renderStorage();if(state.uploadAgain||revision!==state.revision){state.uploadAgain=false;if(state.device)uploadDevice();}}
 }
 function storageChanged(){if(!board())return;persist();refreshLibrary();renderStorage();}
@@ -254,7 +269,9 @@ async function importFile(file){
  choose(state.id);toast(`Imported ${imported.length} board${imported.length===1?'':'s'}.`);
  }catch(e){toast(e.message);}}
 $('#cloneButton').onclick=()=>create();$('#newButton').onclick=()=>create(true);$('#undoButton').onclick=()=>restore();$('#redoButton').onclick=()=>restore(true);$('#fitButton').onclick=fit;$('#zoomIn').onclick=()=>zoom(1);$('#zoomOut').onclick=()=>zoom(-1);
-$('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;send({type:'restart',seed});if(state.device)deviceAction('restart',{seed}).catch(e=>toast(e.message));};$('#pauseButton').onclick=()=>{const paused=!state.lastState?.paused;send({type:'pause'});$('#pauseButton').textContent=paused?'▶ Resume':'Ⅱ Pause';if(state.device)deviceAction('pause',{paused}).catch(e=>toast(e.message));};$('#dropButton').onclick=()=>dropBall();
+$('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;send({type:'restart',seed});};$('#pauseButton').onclick=()=>{const paused=!state.lastState?.paused;send({type:'pause',paused});};$('#dropButton').onclick=()=>dropBall();
+$('#separatePlay').onchange=async e=>{releaseKeys();state.separatePlay=e.target.checked;persist();try{if(state.separatePlay)await play.separate(copy(state.validBoards[state.id]||board()),state.revision);else await play.start(copy(state.validBoards[state.id]||board()),state.revision);}catch(error){toast(error.message);}renderPlayMode();};
+$('#resyncPlay').onclick=async()=>{releaseKeys();await play.start(copy(state.validBoards[state.id]||board()),state.revision);};
 $('#connectButton').onclick=connectDevice;$('#readBoards').onclick=retrieve;$('#saveSd').onclick=saveSd;
 $('#autoSaveSd').onchange=e=>storage.setAuto(e.target.checked);
 $('#resetLayout').onclick=()=>{const base=bases.find(b=>b.id===board().id);if(!base||!confirm('Use the current shipped layout? Your draft stays in Undo. If auto-save is on and CHGame is connected, the new layout will also be saved to SD.'))return;remember();state.boards[state.boards.findIndex(b=>b.id===state.id)]=editableBoard(copy(base));state.selected=-1;refresh();edited(false);};
@@ -277,6 +294,7 @@ try{
  const asset=async name=>{const r=await fetch(new URL('./assets/'+name,import.meta.url));if(!r.ok)throw new Error('Missing Studio asset: '+name);return r.json();};
  const [templates,art,skins]=await Promise.all([asset('boards.json'),asset('elements.json'),asset('borders.json')]);bases=copy(templates);sprites=art;borders=Object.values(skins);
  let saved;try{saved=JSON.parse(localStorage.getItem('midnight-studio-v1'));}catch{}
+ state.separatePlay=!!saved?.separatePlay;
  state.boards=saved?.boards?.length&&saved.boards.every(b=>b&&Number.isInteger(b.id)&&Array.isArray(b.objects))?saved.boards:templates;state.validBoards=saved?.validBoards||{};for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.boards=state.boards.map(editableBoard);for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.id=state.boards.some(b=>b.id===saved?.id)?saved.id:state.boards.at(-1).id;storage=new BoardStorage({saved:saved?.storage,onChange:storageChanged});for(const b of state.boards)storage.record(b);persist();
  THEMES.forEach((name,i)=>$('#themeSelect').add(new Option(name,i)));paletteButtons();refresh();fit();await connectSimulator();
 }catch(e){$('#engineLoading').textContent=e.message;status(e.message,true);}

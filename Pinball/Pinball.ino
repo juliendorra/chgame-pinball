@@ -290,6 +290,7 @@ void loop() {
     uint32_t totalStart = micros();
 #endif
     chgame.pollButtons();
+    live::sample(screen==Play);
     // Physics does not touch the framebuffer, so overlap it with the last
     // LCD transfer. UI, SD, palette and save transitions still wait first.
     if(screen!=Play || game.over || game.paused || (chgame.justPressedMask() & (SELECT_BUTTON | START_BUTTON)))gfx_wait();

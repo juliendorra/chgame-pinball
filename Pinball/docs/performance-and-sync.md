@@ -110,8 +110,9 @@ button mask and numbered frame; the browser advances the shared simulation
 from that trace rather than its own wall clock. The console continues normally
 and never waits for a browser acknowledgement. Reporting is inactive during
 standalone play. The trade-off is a slightly delayed browser view and some
-additional firmware bytes; flash and RAM fit must be checked before implementing
-it. This is a proposed protocol addition, not a shipped synchronization feature.
+additional firmware bytes. Version 1.4.18 implements this optional trace with
+an explicit build fingerprint and a shared reset. The paired image is 50,828
+bytes, with 18,156 bytes of static RAM; saves remain on SD.
 
 Start both from a reset with the same board bytes, physics/build fingerprint,
 seed and released button state. Record accepted edits, pauses and restarts at
@@ -126,3 +127,23 @@ not change which step receives an input.
 Visual frames need not arrive at the same instant for their physics states to
 match at the same tick. Any local prediction used for responsiveness must be
 clearly distinguished from authoritative comparison results.
+
+Studio shows `CONSOLE PLAY` when keyboard input goes to CHGame and the browser
+replays sampled console frames. `Play separately on web` switches the browser
+to its own simulation and stops sending its play controls to the console.
+Live board edits remain available to both testers. Disconnecting returns to
+independent web play. A mismatched build, lost input history or departure from
+the console's play screen freezes replay and shows an explicit restart option.
+
+The optional `@Y` command starts with a seed greater than one, drains with one,
+and stops with zero. Replies contain a little-endian frame number, build hash,
+status byte and run-length encoded mask/count pairs. Commit, restart, pause and
+placement acknowledgements flush the preceding input history before the browser
+applies the corresponding operation. Frame numbers include paused frames.
+Normal console play does not record or transmit this history.
+
+Run `node Pinball/tools/verify_console_replay.mjs PYTHON PORT DIST REPORT`
+against installed firmware and its matched Studio bundle. The test compares
+sixteen state/RNG fields at acknowledged pause boundaries, exercises live edits,
+restart, placement and SD-read pauses, restores the original RAM board and
+never writes SD boards or the save journal.

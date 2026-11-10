@@ -1,6 +1,19 @@
 // Direct browser connection to the same release protocol as the local bridge.
 import {BoardCard} from './card.mjs';
-import {fnv} from './model.mjs';
+import {fnv,decode} from './model.mjs';
+export function parseTrace(line,build,previous=0){
+ if(!/^LIVE DATA [0-9a-f]+$/.test(line)||(line.length-10)%2)throw new Error('Invalid console replay reply.');
+ const bytes=unhex(line.slice(10));
+ if(bytes.length<9||(bytes.length-9)%2)throw new Error('Truncated console input history.');
+ const view=new DataView(bytes.buffer,bytes.byteOffset),frame=view.getUint32(0,true);
+ if(view.getUint32(4,true)!==(build>>>0))throw new Error('The console and web game builds differ. Update Pinball on CHGame to use console play.');
+ if(bytes[8]&1)throw new Error('Console input history overflowed. Restart console play to synchronize again.');
+ if(bytes[8]&2)throw new Error('The console left the table. Restart console play to synchronize again.');
+ const runs=[];let count=0;
+ for(let at=9;at<bytes.length;at+=2){if(!bytes[at+1])throw new Error('Invalid console input run.');runs.push({mask:bytes[at],count:bytes[at+1]});count+=bytes[at+1];}
+ if(((previous+count)>>>0)!==frame)throw new Error('Console input frames were lost. Restart console play to synchronize again.');
+ return {type:'steps',frame,runs};
+}
 export class BrowserDevice {
  async connect(){
   this.port=await navigator.serial.requestPort({filters:[{usbVendorId:0x16c0,usbProductId:0x27dd}]});
@@ -16,12 +29,26 @@ export class BrowserDevice {
  run(fn){const p=this.tail.then(fn);this.tail=p.catch(()=>{});return p;}
  async request(cmd){
   await this.writer.write(new TextEncoder().encode('@'+cmd+'\n'));const lines=[];
-  for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');if(cmd==='?')this.capabilities=new Set(line.split(' '));return [...lines,line];}}
+  for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');if(cmd==='?')this.capabilities=new Set(line.split(' '));if(this.following&&["C","R","Q","P"].includes(cmd.split(" ")[0])){this.trace(line);if(cmd.startsWith("Q "))this.replay({type:"pause",paused:Number(cmd.slice(2))});}return [...lines,line];}}
   throw new Error('Unrecognized CHGame reply.');
  }
  requireBoardSupport(bytes){if(bytes[7]&1&&!this.capabilities?.has('RUBBER'))throw new Error('Update Pinball on CHGame to use editable rubber slingshots, then reconnect.');}
  async transfer(bytes,lba=null){if(lba===null)this.requireBoardSupport(bytes);await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
- upload(bytes){return this.run(async()=>{await this.transfer(bytes);const returned=unhex((await this.request('T')).at(-1).slice(10));if(hex(returned)!==hex(bytes))throw new Error('CHGame RAM readback differs.');return {bytes:bytes.length,verified:true};});}
+ replay(event){this.onReplay?.({...event,session:this.replaySession});}
+ trace(line){const event=parseTrace(line,this.replayBuild,this.replayFrame);this.replayFrame=event.frame;this.replay(event);}
+ beginFollow(bytes,seed,build,revision){return this.run(async()=>{
+  if(!this.capabilities?.has('TRACE'))throw new Error('Update Pinball on CHGame to use console play. Web-only play and live edits remain available.');
+  this.following=false;await this.request('Y 0');await this.request('X');await this.request('Q 1');
+  try{
+   await this.transfer(bytes);const reply=await this.request('Y '+seed);
+   const initial=parseTrace(reply.at(-1),build,0);if(initial.frame)throw new Error('Unexpected console replay start.');
+   this.replaySession=seed;this.replayBuild=build;this.replayFrame=0;this.following=true;
+   this.replay({type:'reset',board:decode(bytes),seed,revision});
+  }catch(error){await this.request('Y 0').catch(()=>{});await this.request('Q 0').catch(()=>{});throw error;}
+ });}
+ pullTrace(){return this.run(async()=>{if(this.following)this.trace((await this.request('Y 1')).at(-1));});}
+ endFollow(){this.following=false;return this.run(async()=>{await this.request('K 0');if(this.capabilities?.has('TRACE'))await this.request('Y 0');});}
+ upload(bytes,revision){return this.run(async()=>{await this.transfer(bytes);if(this.following)this.replay({type:'board',board:decode(bytes),revision});const returned=unhex((await this.request('T')).at(-1).slice(10));if(hex(returned)!==hex(bytes))throw new Error('CHGame RAM readback differs.');return {bytes:bytes.length,verified:true};});}
  withCard(task){return this.run(async()=>{
   const values=(await this.request('V')).at(-1).split(' ').slice(2).map(Number),paused=values[13];
   if(values.length!==15)throw new Error('Unexpected CHGame state reply');
@@ -38,9 +65,9 @@ export class BrowserDevice {
  checkpointSd(stem,options){return this.withCard(card=>card.checkpointProtected(stem,options));}
  boards(){return this.run(async()=>{const list=await this.request('L'),result=[];for(const line of list){if(!line.startsWith('LIVE BOARD '))continue;const [,index,file]=line.match(/^LIVE BOARD (\d+) (.*)$/);const reply=await this.request('G '+index);result.push({index:Number(index),file:file.trim(),data:unhex(reply.at(-1).slice(10))});}return result;});}
  keys(mask){if(this.keyBusy)return Promise.resolve();this.keyBusy=true;return this.run(()=>this.request('K '+mask)).finally(()=>this.keyBusy=false);}
- restart(seed=0){return this.run(async()=>{await this.request(seed?'R '+seed:'R');if(seed){const data=unhex((await this.request('Z')).at(-1).slice(10));if(data.length!==8||new DataView(data.buffer,data.byteOffset,4).getUint32(0,true)!==(seed>>>0))throw new Error('CHGame seed readback differs. Install Pinball 1.4.9 or newer.');}});}
+ restart(seed=0){return this.run(async()=>{await this.request(seed?'R '+seed:'R');if(this.following)this.replay({type:'restart',seed});if(seed){const data=unhex((await this.request('Z')).at(-1).slice(10));if(data.length!==8||new DataView(data.buffer,data.byteOffset,4).getUint32(0,true)!==(seed>>>0))throw new Error('CHGame seed readback differs. Install Pinball 1.4.9 or newer.');}});}
  pause(paused){return this.run(()=>this.request('Q '+Number(paused)));}
- place(x,y){return this.run(()=>this.request(`P ${x},${y}`));}
+ place(x,y){return this.run(async()=>{await this.request(`P ${x},${y}`);if(this.following)this.replay({type:'place',x,y});});}
  async close(){
   if(this.stopped&& !this.port)return;this.stopped=true;
   try{if(this.reader){await this.reader.cancel();this.reader.releaseLock();}}catch{}

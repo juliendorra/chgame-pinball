@@ -3,6 +3,7 @@
 #include "Render.h"
 #include "Live.h"
 #include "src/rumble/Rumble.h"
+#include "SyncBuild.h"
 #include <string.h>
 using namespace pinball;
 void setup();void loop();void studio_clock(uint32_t);
@@ -11,6 +12,7 @@ static uint8_t overview[(480+HEADER_HEIGHT)*GFX_FB_STRIDE+32];
 // Fixed-width state ABI, independent of C++ struct padding/pointers/bool size.
 static int32_t state[64];
 extern "C" {
+uint32_t pb_build(){return PINBALL_GAME_HASH;}
 void pb_init(){setup();chgame.startExits=false;}
 uint8_t *pb_input(){return reinterpret_cast<uint8_t *>(&editData());}
 int pb_apply(unsigned n){

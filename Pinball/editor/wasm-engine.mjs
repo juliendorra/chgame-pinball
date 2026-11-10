@@ -18,14 +18,39 @@ export class WasmEngine {
  }
  constructor(module,onFrame,onApplied,onError){this.module=module;this.onFrame=onFrame;this.onApplied=onApplied;this.onError=onError;this.keys=new KeyQueue();this.commands=[];this.last=null;this.accumulator=0;this.running=true;this.frame=this.frame.bind(this);this.raf=requestAnimationFrame(this.frame);}
  send(m){if(m.type==='keys')this.keys.push(m.mask);else if(m.type==='board')this.pending=m;else this.commands.push(m);}
+ get build(){return this.module._pb_build()>>>0;}
+ setFollowing(on){this.following=on;this.replay=[];this.appliedFrame=this.receivedFrame=0;this.pending=null;this.commands=[];this.keys.clear();this.last=null;this.accumulator=0;}
+ consoleEvent(event){
+  if(!this.following)return;
+  if(event.type==='steps'){this.receivedFrame=event.frame;for(const run of event.runs)this.replay.push({type:'run',...run});}
+  else this.replay.push(event);
+ }
+ applyBoard(board,revision){const m=this.module,bytes=encode(board);m.HEAPU8.set(bytes,m._pb_input());if(!m._pb_apply(bytes.length))throw new Error('Game rejected this board.');this.loaded=true;this.onApplied(revision);}
  frame(now){
   if(!this.running)return;
   // Do not catch up a hidden tab with seconds of uncontrolled physics.
   this.accumulator+=this.last===null?1000/60:Math.min(100,now-this.last);this.last=now;
   const m=this.module;let changed=false;
   try{
+   if(this.following){
+    let budget=12;
+    while(this.replay.length&&budget>0){
+     const event=this.replay[0];
+     if(event.type==='run'){m._pb_step(event.mask);++this.appliedFrame;--budget;if(--event.count===0)this.replay.shift();}
+     else{
+      this.replay.shift();
+      if(event.type==='board'||event.type==='reset')this.applyBoard(event.board,event.revision);
+      if(event.type==='reset'){m._pb_pause(1);m._pb_step(0);m._pb_restart(event.seed);this.appliedFrame=0;}
+      else if(event.type==='restart')m._pb_restart(event.seed||0);
+      else if(event.type==='pause')m._pb_pause(event.paused);
+      else if(event.type==='place')m._pb_place(event.x,event.y,0,0);
+     }
+     changed=true;
+    }
+    this.accumulator=0;
+   }else{
    // The validated commit and every command run between complete physics ticks.
-   if(this.pending){const p=this.pending;this.pending=null;const bytes=encode(p.board);m.HEAPU8.set(bytes,m._pb_input());if(!m._pb_apply(bytes.length))throw new Error('Game rejected this board.');this.loaded=true;changed=true;this.onApplied(p.revision);}
+   if(this.pending){const p=this.pending;this.pending=null;this.applyBoard(p.board,p.revision);changed=true;}
    for(const c of this.commands.splice(0)){
     if(c.type==='restart')m._pb_restart(c.seed||0);
     else if(c.type==='pause')m._pb_pause(!readState(m).paused);
@@ -33,6 +58,7 @@ export class WasmEngine {
     changed=true;
    }
    while(this.accumulator>=1000/60){if(this.loaded){m._pb_step(this.keys.sample());changed=true;}this.accumulator-=1000/60;}
+   }
    if(changed&&this.loaded){const state=readState(m),at=m._pb_render(),size=m._pb_render_size();this.onFrame(state,m.HEAPU8.slice(at,at+size));}
   }catch(e){this.onError(e);}
   this.raf=requestAnimationFrame(this.frame);
