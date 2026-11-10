@@ -1,0 +1,1382 @@
+{
+  "date": "2026-11-10",
+  "method": "Same seeded 1.5-second active launches and paused fixed-camera rendering sweeps; stress layouts are deliberate overdraw fixtures, not board designs or a 60 Hz guarantee.",
+  "firmware": {
+    "sha256": "c8e2d1131b8a0c080c05e73a0aff504344fbe23f2a5850e32a78ed699870a6a4",
+    "bytes": 50904
+  },
+  "sourceHash": "8497db05ed94b67724cdb0c637fd0f3b0dff78b0c21028d025e0de80bcbf4005",
+  "physics": {
+    "spin_grip": 16,
+    "spin_forget": 0,
+    "scatter_passive": 0,
+    "scatter_powered": 0,
+    "scatter_eject": 0
+  },
+  "before": {
+    "label": "baseline",
+    "renderer_sha256": "128825299567beee9aa1e29e54125e153feeabb97a6566672b1bb5d2fa1836c6",
+    "seconds": 1.5,
+    "samples": [
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": -24,
+        "active": false,
+        "render_hz": 57.627346368221424,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 40,
+        "active": false,
+        "render_hz": 59.7368591352387,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 140,
+        "active": false,
+        "render_hz": 59.92250105098383,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.355709865387404,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 292,
+        "active": false,
+        "render_hz": 59.83946816088797,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": -24,
+        "active": false,
+        "render_hz": 52.15439746497143,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 40,
+        "active": false,
+        "render_hz": 52.635935696765486,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 140,
+        "active": false,
+        "render_hz": 50.78097318299979,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 230,
+        "active": false,
+        "render_hz": 54.07608447965273,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 292,
+        "active": false,
+        "render_hz": 54.73453372094731,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": -24,
+        "active": false,
+        "render_hz": 52.771152726996895,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 40,
+        "active": false,
+        "render_hz": 53.2823036561539,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 140,
+        "active": false,
+        "render_hz": 53.68534425673611,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 230,
+        "active": false,
+        "render_hz": 59.578807620209645,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 292,
+        "active": false,
+        "render_hz": 58.78025278984321,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": -24,
+        "active": false,
+        "render_hz": 55.46684801554241,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 40,
+        "active": false,
+        "render_hz": 58.99396320565695,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 140,
+        "active": false,
+        "render_hz": 56.21425823211381,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.268123610277904,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 292,
+        "active": false,
+        "render_hz": 59.4399992425375,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": -24,
+        "active": false,
+        "render_hz": 54.61370147765314,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 40,
+        "active": false,
+        "render_hz": 57.447521592560385,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 140,
+        "active": false,
+        "render_hz": 59.06777773802501,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 230,
+        "active": false,
+        "render_hz": 61.62247504269417,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 292,
+        "active": false,
+        "render_hz": 59.87215215902032,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": -24,
+        "active": false,
+        "render_hz": 56.8845395914548,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 40,
+        "active": false,
+        "render_hz": 60.62452318972268,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 140,
+        "active": false,
+        "render_hz": 58.252554923703286,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 230,
+        "active": false,
+        "render_hz": 58.49263887933674,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 292,
+        "active": false,
+        "render_hz": 57.02042111364496,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": -24,
+        "active": false,
+        "render_hz": 49.52230713209259,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 40,
+        "active": false,
+        "render_hz": 48.50516953693949,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 140,
+        "active": false,
+        "render_hz": 46.789438597220524,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 230,
+        "active": false,
+        "render_hz": 52.14952017860798,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 292,
+        "active": false,
+        "render_hz": 54.10281315236626,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": -24,
+        "active": false,
+        "render_hz": 46.10572646328386,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 40,
+        "active": false,
+        "render_hz": 42.26906678967767,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 140,
+        "active": false,
+        "render_hz": 40.76391131883892,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 230,
+        "active": false,
+        "render_hz": 47.34994768884157,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 292,
+        "active": false,
+        "render_hz": 52.98914016534162,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": -24,
+        "active": false,
+        "render_hz": 43.61999350683304,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 40,
+        "active": false,
+        "render_hz": 38.168450698508664,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 140,
+        "active": false,
+        "render_hz": 35.69958797965384,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 230,
+        "active": false,
+        "render_hz": 42.94061399419449,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 292,
+        "active": false,
+        "render_hz": 51.48877650154592,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": -24,
+        "active": false,
+        "render_hz": 41.67695210923546,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 40,
+        "active": false,
+        "render_hz": 33.394881049038254,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 140,
+        "active": false,
+        "render_hz": 29.06270745601149,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 230,
+        "active": false,
+        "render_hz": 33.54616926195992,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 292,
+        "active": false,
+        "render_hz": 43.059156564693524,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": -999,
+        "active": true,
+        "render_hz": 56.673684703728725,
+        "physics_hz": 56.673684703728725,
+        "camera_start": 278,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": -999,
+        "active": true,
+        "render_hz": 58.957865082968254,
+        "physics_hz": 58.957865082968254,
+        "camera_start": 278,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": -999,
+        "active": true,
+        "render_hz": 52.97334926510284,
+        "physics_hz": 52.97334926510284,
+        "camera_start": 283,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": -999,
+        "active": true,
+        "render_hz": 45.57684933835521,
+        "physics_hz": 45.57684933835521,
+        "camera_start": 278,
+        "camera_end": -20
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": -999,
+        "active": true,
+        "render_hz": 40.872568920825664,
+        "physics_hz": 40.872568920825664,
+        "camera_start": 283,
+        "camera_end": 8
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": -999,
+        "active": true,
+        "render_hz": 32.90046691307849,
+        "physics_hz": 32.90046691307849,
+        "camera_start": 289,
+        "camera_end": 57
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": -24,
+        "active": false,
+        "render_hz": 57.454858725039536,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 40,
+        "active": false,
+        "render_hz": 60.328972728411806,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 140,
+        "active": false,
+        "render_hz": 60.36946693697339,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.72147591139029,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 324,
+        "active": false,
+        "render_hz": 59.05411398659387,
+        "physics_hz": 0.0,
+        "camera_start": 324,
+        "camera_end": 324
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": -24,
+        "active": false,
+        "render_hz": 54.78560813469532,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 40,
+        "active": false,
+        "render_hz": 54.93231823676791,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 140,
+        "active": false,
+        "render_hz": 52.67126359118796,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 230,
+        "active": false,
+        "render_hz": 52.76984446386554,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 324,
+        "active": false,
+        "render_hz": 54.73868872918219,
+        "physics_hz": 0.0,
+        "camera_start": 324,
+        "camera_end": 324
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": -999,
+        "active": true,
+        "render_hz": 57.89339186829193,
+        "physics_hz": 57.89339186829193,
+        "camera_start": 310,
+        "camera_end": -24
+      }
+    ],
+    "result": "passed",
+    "hello": "LIVE HELLO 1.4.17 PBT1 RAM SD RUBBER",
+    "board_restored": true
+  },
+  "after": {
+    "label": "packed-ramp-spans",
+    "renderer_sha256": "93923178403477ae2f2b52bec5e479483f380cdf1d9c58b7ba7ddb4f995a5633",
+    "seconds": 1.5,
+    "samples": [
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": -24,
+        "active": false,
+        "render_hz": 58.23555693365746,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 40,
+        "active": false,
+        "render_hz": 62.26751287584619,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 140,
+        "active": false,
+        "render_hz": 60.06418865841772,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.289263433412245,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "none",
+        "camera": 292,
+        "active": false,
+        "render_hz": 60.21246316389085,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": -24,
+        "active": false,
+        "render_hz": 53.35206144367065,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 40,
+        "active": false,
+        "render_hz": 54.62624966445564,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 140,
+        "active": false,
+        "render_hz": 52.815622855123884,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 230,
+        "active": false,
+        "render_hz": 55.939903974320956,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": 292,
+        "active": false,
+        "render_hz": 55.97267700491554,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": -24,
+        "active": false,
+        "render_hz": 54.12897276333718,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 40,
+        "active": false,
+        "render_hz": 55.49670577737979,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 140,
+        "active": false,
+        "render_hz": 55.3180672813056,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.359173157083106,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": 292,
+        "active": false,
+        "render_hz": 59.20593980364521,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": -24,
+        "active": false,
+        "render_hz": 56.645509717240344,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 40,
+        "active": false,
+        "render_hz": 59.87777202973885,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 140,
+        "active": false,
+        "render_hz": 57.880882233378955,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 230,
+        "active": false,
+        "render_hz": 61.24734162695972,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_1",
+        "camera": 292,
+        "active": false,
+        "render_hz": 59.84166454642005,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": -24,
+        "active": false,
+        "render_hz": 55.62256459667552,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 40,
+        "active": false,
+        "render_hz": 58.7932713934834,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 140,
+        "active": false,
+        "render_hz": 59.58663491489179,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 230,
+        "active": false,
+        "render_hz": 62.0288575245127,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_2",
+        "camera": 292,
+        "active": false,
+        "render_hz": 60.21221248350052,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": -24,
+        "active": false,
+        "render_hz": 57.00413130145142,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 40,
+        "active": false,
+        "render_hz": 59.99835168661034,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 140,
+        "active": false,
+        "render_hz": 59.12582140895374,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.05999399977563,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "only_3",
+        "camera": 292,
+        "active": false,
+        "render_hz": 58.18567557580053,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": -24,
+        "active": false,
+        "render_hz": 51.348973477771466,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 40,
+        "active": false,
+        "render_hz": 51.240913554583194,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 140,
+        "active": false,
+        "render_hz": 49.222096044807124,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 230,
+        "active": false,
+        "render_hz": 54.12205150804562,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": 292,
+        "active": false,
+        "render_hz": 55.225368337479715,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": -24,
+        "active": false,
+        "render_hz": 47.908788235964906,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 40,
+        "active": false,
+        "render_hz": 45.374047365722,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 140,
+        "active": false,
+        "render_hz": 43.944958020263954,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 230,
+        "active": false,
+        "render_hz": 49.86839010103869,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": 292,
+        "active": false,
+        "render_hz": 53.58408109531553,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": -24,
+        "active": false,
+        "render_hz": 45.96033483514888,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 40,
+        "active": false,
+        "render_hz": 41.9603870951666,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 140,
+        "active": false,
+        "render_hz": 39.505079287010034,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 230,
+        "active": false,
+        "render_hz": 45.41989022750065,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": 292,
+        "active": false,
+        "render_hz": 52.032089084568625,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": -24,
+        "active": false,
+        "render_hz": 43.68934453420623,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 40,
+        "active": false,
+        "render_hz": 37.422470452604436,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 140,
+        "active": false,
+        "render_hz": 32.67645312606188,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 230,
+        "active": false,
+        "render_hz": 36.820725925979744,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": 292,
+        "active": false,
+        "render_hz": 44.518566898045535,
+        "physics_hz": 0.0,
+        "camera_start": 292,
+        "camera_end": 292
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "original",
+        "camera": -999,
+        "active": true,
+        "render_hz": 58.72894719966106,
+        "physics_hz": 58.72894719966106,
+        "camera_start": 278,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "first_two",
+        "camera": -999,
+        "active": true,
+        "render_hz": 60.054917271489465,
+        "physics_hz": 60.054917271489465,
+        "camera_start": 278,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_4",
+        "camera": -999,
+        "active": true,
+        "render_hz": 56.04163356154596,
+        "physics_hz": 56.04163356154596,
+        "camera_start": 283,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_6",
+        "camera": -999,
+        "active": true,
+        "render_hz": 49.269629055405666,
+        "physics_hz": 49.269629055405666,
+        "camera_start": 278,
+        "camera_end": -24
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_8",
+        "camera": -999,
+        "active": true,
+        "render_hz": 44.238846905882774,
+        "physics_hz": 44.238846905882774,
+        "camera_start": 278,
+        "camera_end": -14
+      },
+      {
+        "board": "ORBITRON",
+        "variant": "stress_12",
+        "camera": -999,
+        "active": true,
+        "render_hz": 36.745374166030054,
+        "physics_hz": 36.745374166030054,
+        "camera_start": 283,
+        "camera_end": 30
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": -24,
+        "active": false,
+        "render_hz": 57.666764585436546,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 40,
+        "active": false,
+        "render_hz": 60.48269547053415,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 140,
+        "active": false,
+        "render_hz": 60.25267557491701,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 230,
+        "active": false,
+        "render_hz": 60.26058482741026,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "PIRATES",
+        "variant": "none",
+        "camera": 324,
+        "active": false,
+        "render_hz": 59.6902267850839,
+        "physics_hz": 0.0,
+        "camera_start": 324,
+        "camera_end": 324
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": -24,
+        "active": false,
+        "render_hz": 55.19456791441886,
+        "physics_hz": 0.0,
+        "camera_start": -24,
+        "camera_end": -24
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 40,
+        "active": false,
+        "render_hz": 56.135559566953646,
+        "physics_hz": 0.0,
+        "camera_start": 40,
+        "camera_end": 40
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 140,
+        "active": false,
+        "render_hz": 54.23280048405875,
+        "physics_hz": 0.0,
+        "camera_start": 140,
+        "camera_end": 140
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 230,
+        "active": false,
+        "render_hz": 54.193004024014975,
+        "physics_hz": 0.0,
+        "camera_start": 230,
+        "camera_end": 230
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": 324,
+        "active": false,
+        "render_hz": 55.42148742196467,
+        "physics_hz": 0.0,
+        "camera_start": 324,
+        "camera_end": 324
+      },
+      {
+        "board": "PIRATES",
+        "variant": "original",
+        "camera": -999,
+        "active": true,
+        "render_hz": 59.34451754863457,
+        "physics_hz": 59.34451754863457,
+        "camera_start": 310,
+        "camera_end": -24
+      }
+    ],
+    "result": "passed",
+    "hello": "LIVE HELLO 1.4.17 PBT1 RAM SD RUBBER",
+    "minimum_active_hz": 57.0,
+    "board_restored": true
+  },
+  "pixel_comparison": {
+    "frames": 31176,
+    "identical_bytes": 255393792,
+    "sha256": "f86e7ea3499c13afc218cb9629a1ecb9953b5c4919eac4a58278f1dcec228cfd"
+  }
+}

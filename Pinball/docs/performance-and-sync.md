@@ -1,6 +1,6 @@
 # Ramp performance and synchronized play
 
-## Console baseline, 10 November 2026
+## Console measurements, 10 November 2026
 
 `tools/benchmark_ramp_device.py` tests the current board exports using RAM-only
 fixtures. It preserves SD files, restores the previous RAM board, and restarts
@@ -9,22 +9,44 @@ samples measure both rendering and physics during a seeded launch. Paused
 samples include the pause panel and a full LCD transfer, so they must not be
 reported as active gameplay FPS.
 
-On the original 1.4.17 console binary, with the corrected Orbital Robot gate:
+With the corrected Orbital Robot gate, before and after the packed ramp-span
+optimization (same 1.5-second workload, seed and input sequence):
 
-| Layout | Active render/physics Hz |
-| --- | ---: |
-| Orbital Robot, first two ramps | 59.0 |
-| Orbital Robot, all three ramps | 56.7 |
-| Orbital Robot stress: 4 ramps | 53.0 |
-| Orbital Robot stress: 6 ramps | 45.6 |
-| Orbital Robot stress: 8 ramps | 40.9 |
-| Orbital Robot stress: 12 ramps | 32.9 |
-| Buccaneer Bay, two ramps | 57.9 |
+| Layout | Before Hz | After Hz |
+| --- | ---: | ---: |
+| Orbital Robot, first two ramps | 59.0 | 60.1 |
+| Orbital Robot, all three ramps | 56.7 | 58.7 |
+| Orbital Robot stress: 4 ramps | 53.0 | 56.0 |
+| Orbital Robot stress: 6 ramps | 45.6 | 49.3 |
+| Orbital Robot stress: 8 ramps | 40.9 | 44.2 |
+| Orbital Robot stress: 12 ramps | 32.9 | 36.8 |
+| Buccaneer Bay, two ramps | 57.9 | 59.3 |
 
 These are short 1.5-second samples, not a minimum over a complete game. The
 stress layouts deliberately overlap ramps; they measure overdraw, not design
 quality. The console currently runs one physics update per rendered frame.
 Expensive rendering therefore slows game time as well as LCD updates.
+
+The first change moved rail traversal into SRAM. The final version keeps the
+segment clipper in SRAM and writes fully visible, short ramp-floor spans as
+packed bytes inside the existing SRAM beam walker. Generic clipping remains
+the fallback at horizontal edges. It skips invisible floor rows and removes
+a redundant path scan; no image cache or physics change is involved. Keeping
+the generic path traversal in flash pays for the faster floor writer within
+the hardware limits: 50,904 of 50,944 image bytes, 17,916 of 18,416 static RAM
+bytes, with the 2 KB stack reservation separate.
+
+Before/after comparison covers 31,176 complete LCD frames: 255,393,792 bytes
+are identical, including all nine themes, 1/2/3/4/6/8/12 ramps, both horizontal
+edges, scrolling, zoom and shake. The same native/WASM parity and seeded-play
+checks still run. Work counters also include the direct packed spans; bypassing
+the generic graphics call does not bypass the regression budget.
+
+This is a partial recovery: Orbital Robot averages 58.7 rather than a locked
+60 Hz, and heavily overlapping stress layouts still miss that target. Larger
+caches or fewer repeated draws would require another measured design change.
+Machine-readable camera sweeps and active samples are in
+[`ramp-performance.json`](ramp-performance.json).
 
 Reproduce with the matching firmware installed and the browser disconnected:
 
