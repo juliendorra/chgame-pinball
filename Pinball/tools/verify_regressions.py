@@ -22,7 +22,7 @@ def main():
     a=p.parse_args();work=WORK/'regressions';work.mkdir(parents=True,exist_ok=True)
     flags,sources,_=engine_inputs(work)
     renderer=work/'Render-budget.cpp'
-    renderer.write_text('#include "render_budget.h"\n#define gfx_line budgetLine\n#define gfx_pixel budgetPixel\n#define gfx_hline budgetHline\n#define sprite4 budgetSprite\n'+a.renderer.read_text())
+    renderer.write_text('#include "render_budget.h"\n#define gfx_line budgetLine\n#define gfx_pixel budgetPixel\n#define gfx_hline budgetHline\n#define PINBALL_BUDGET_SPAN(width) budgetSpan(width)\n#define sprite4 budgetSprite\n'+a.renderer.read_text())
     sources=[renderer if s==GAME/'Render.cpp' else s for s in sources]
     exe=work/'regressions'
     subprocess.run([os.environ.get('CXX','clang++'),*flags,f'-I{GAME}/tools/wasm',

@@ -23,6 +23,7 @@ static const char *label;
 void budgetLine(int x,int y,int u,int v,uint8_t c){++work.lines;work.linePixels+=std::max(std::abs(u-x),std::abs(v-y))+1;gfx_line(x,y,u,v,c);}
 void budgetPixel(int x,int y,uint8_t c){++work.pixels;gfx_pixel(x,y,c);}
 void budgetHline(int x,int y,int w,uint8_t c){++work.spans;if(w>0)work.spanPixels+=w;gfx_hline(x,y,w,c);}
+void budgetSpan(unsigned width){++work.spans;work.spanPixels+=width;}
 void budgetSprite(const uint8_t *p,int x,int y,const uint8_t *map,int scale,uint8_t flip){++work.sprites;sprite4(p,x,y,map,scale,flip);}
 static void frame(){
     work={};drawTable();++rendered;

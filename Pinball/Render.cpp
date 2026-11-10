@@ -78,7 +78,21 @@ RAMFUNC(pinballBeam) static void beam(int x, int y, int u, int v, uint8_t c, boo
     }
     for (;;) {
         if(deck) {
-            gfx_hline(x-int(caps),y,caps*2+1,c&15);
+            // These spans are only 7–17 pixels wide. Write their packed
+            // nibbles here instead of paying the generic aligned-word span
+            // setup at every step of both the floor and its shadow.
+            if((unsigned)(y-clipY)<(unsigned)clipH) {
+                int left=x-int(caps);
+                if(left>=clipX && x+int(caps)<clipX+clipW) {
+#ifdef PINBALL_BUDGET_SPAN
+                    PINBALL_BUDGET_SPAN(caps*2+1);
+#endif
+                    uint8_t ink=c&15,pair=ink*17,*p=gfx_fb+y*GFX_FB_STRIDE+(left>>1);
+                    if(left&1){*p=(*p&15)|(ink<<4);++p;}
+                    for(unsigned n=caps;n;--n)*p++=pair;
+                    if(!(left&1))*p=(*p&240)|ink;
+                } else gfx_hline(left,y,caps*2+1,c&15);
+            }
         } else if (vertical && y >= clipY && y < clipY + clipH && x - 2 >= clipX && x + 2 < clipX + clipW) {
             // Five lit pixels take three byte stores, with one ragged end.
             uint8_t *p = gfx_fb + y * GFX_FB_STRIDE + ((x - 2) >> 1);
@@ -128,7 +142,7 @@ static void rail(int x, int y, int u, int v, uint8_t c = CYAN) {
     railPart(x,y,u,v,c,true,3); railPart(x,y,u,v,c,false,3);
 }
 struct RailPoint { int16_t x, y; };
-RAMFUNC(pinballRailRun) static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roundBends = true, unsigned firstPass = 0, unsigned lastPass = 2) {
+static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roundBends = true, unsigned firstPass = 0, unsigned lastPass = 2) {
     // Each railPart clips its own segment. Avoid a second full path walk
     // before drawing: visible ramps otherwise scan every point three times.
     // Shadow the complete run before drawing any of its metal. Interior
@@ -310,7 +324,7 @@ __attribute__((noinline)) static void sling(const Object &o,unsigned ticks,unsig
     mirrorSling=false;
 }
 static const uint8_t rampWidths[19] PB_SPRITE={6,6,5,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
-static __attribute__((noinline)) void rampDeck(const RailPoint *path) {
+static void rampDeck(const RailPoint *path) {
     // Paint each cross-section once, including the flared throat and shadow.
     for(int offset=2;offset>=0;offset-=2)for(unsigned i=offset?2:1;i<19;++i) {
         int down=offset?3:0;

@@ -56,6 +56,13 @@ int main(int argc,char **argv) {
             int16_t(12+(i*23)%89),int16_t(30+(i*11)%100),1800};
         sweep();
     }
+    // Include clipping at both physical edges and inside zoomed viewports.
+    table.h.count=2;
+    for(unsigned group:{0u,1u,2u}) {
+        table.objects[0]={Ramp,uint8_t(group),5,382,8,12,1800};
+        table.objects[1]={Ramp,uint8_t(group),108,38,105,382,1800};
+        sweep();
+    }
     fprintf(stderr,"Compared %u complete LCD frames\n",frames);
 }
 '''
