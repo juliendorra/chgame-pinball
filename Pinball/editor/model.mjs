@@ -117,4 +117,4 @@ export function pick(board,x,y){
   if(d<=5&&d<nearest){chosen=i;nearest=d;}
  });return chosen;
 }
-export function handles(o){return o&&['wall','ramp','gate'].includes(o.kind)?[{x:o.x,y:o.y,key:'start'},{x:o.u,y:o.v,key:'end'}]:[];}
+export function handles(o){return o&&['wall','ramp','gate'].includes(o.kind)?[{x:o.x,y:o.y+(o.kind==='ramp'?8:0),key:'start'},{x:o.u,y:o.v,key:'end'}]:[];}

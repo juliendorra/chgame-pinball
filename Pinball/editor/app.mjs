@@ -6,6 +6,7 @@ import {BrowserDevice} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
 import {PlaySession} from './play-session.mjs';
+import {fitBoard,followScroll} from './layout.mjs';
 const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',HEADER_HEIGHT=24;
 const state={boards:[],validBoards:{},id:null,selected:-1,undo:[],redo:[],revision:0,zoom:1.5,fit:true,mask:0,pressed:new Map(),device:false,direct:null,uploading:false,lastState:null,lastFrame:null,drag:null,ready:false};
 const board=()=>state.boards.find(b=>b.id===state.id);
@@ -39,13 +40,14 @@ function refresh(){
 }
 function themeStrip(){const strip=$('#themeStrip');strip.replaceChildren();board().palette.slice(0,15).forEach(c=>{const s=document.createElement('span');s.style.background='#'+c;strip.append(s);});}
 function resizeCanvas(){const c=$('#boardCanvas'),height=Number.isInteger(board().height)&&board().height>=256&&board().height<=480?board().height:(state.validBoards[state.id]?.height||384);if(c.height!==height){c.height=height;$('#selection').setAttribute('viewBox',`0 0 128 ${height}`);}c.style.width=128*state.zoom+'px';c.style.height=height*state.zoom+'px';$('#headerCanvas').style.width=128*state.zoom+'px';$('#headerCanvas').style.height=HEADER_HEIGHT*state.zoom+'px';$('#fitButton').textContent=state.fit?'Fit':Math.round(state.zoom*100)+'%';}
-function fit(){state.fit=true;const box=$('#boardViewport').getBoundingClientRect();state.zoom=Math.min(3.5,Math.max(.65,Math.min((box.height-65)/(canvas.height+HEADER_HEIGHT),(box.width-100)/128)));resizeCanvas();}
-function zoom(direction){state.fit=false;state.zoom=Math.max(.65,Math.min(5,state.zoom+direction*.35));resizeCanvas();}
+function fit(){state.fit=true;const box=$('#boardViewport'),padding=getComputedStyle($('#boardSurface'));if(!box.clientWidth||!box.clientHeight)return;state.zoom=fitBoard(box.clientWidth,box.clientHeight,canvas.height,parseFloat(padding.paddingLeft)+parseFloat(padding.paddingRight),parseFloat(padding.paddingTop)+parseFloat(padding.paddingBottom));resizeCanvas();selection();}
+function zoom(direction){state.fit=false;state.zoom=Math.max(.2,Math.min(5,state.zoom+direction*.35));resizeCanvas();selection();if(state.lastState)followViewport(state.lastState,true);}
 function field(label,key,o,options){const container=document.createElement('div');container.className='field';const l=document.createElement('label'),input=document.createElement(options?'select':'input');input.id='prop-'+key;l.htmlFor=input.id;l.textContent=label;if(options)options.forEach((text,i)=>input.add(new Option(text,i)));else{input.type='number';input.step=1;}input.value=o[key];input.dataset.property=key;input.addEventListener('focus',()=>{input._before=false;});input.addEventListener('input',()=>{if(!input._before){remember();input._before=true;}board().objects[state.selected][key]=Number(input.value);edited(false);});container.append(l,input);return container;}
 function inspector(){
  const box=$('#inspector'),o=board().objects[state.selected];box.replaceChildren();
- if(!o){const title=document.createElement('div');title.className='section-title';title.textContent='MAKE IT YOURS';const p=document.createElement('p');p.className='description';p.textContent='Click any part to tune it. Drag to move. The ball keeps going.';box.append(title,p);return;}
+ if(!o)return;
  const definition=CATALOG.find(c=>c.kind===o.kind),title=document.createElement('div'),p=document.createElement('p');title.className='section-title';title.textContent=definition.name.toUpperCase();p.className='description';p.textContent=definition.description;box.append(title,p);
+ if(o.kind==='ramp'){const intent=document.createElement('div');intent.id='selectionIntent';intent.className='selection-intent';intent.setAttribute('role','status');intent.textContent='Whole ramp';box.append(intent);}
  const row=document.createElement('div');row.className='field-row';row.append(field('X','x',o),field('Y','y',o));box.append(row);
  const names={rubber:['Width','Height'],wall:['End X','End Y'],gate:['End X','End Y'],ramp:['Exit X','Exit Y'],flippers:['Right pivot X','Bat length'],target:['Width','Height'],drop_target:['Width','Height'],spinner:['Half-width','Kick'],scoop:['Radius','Kick'],saucer:['Radius','Hold / kick'],kickback:['Radius','Kick'],bumper:['Radius','Kick'],lane:['Radius','Kick']}[o.kind];
  const dimensions=document.createElement('div');dimensions.className='field-row';if(o.kind!=='spinner')dimensions.append(field(names[0],'u',o));if(['wall','gate','ramp','flippers','target','drop_target','bumper','rubber'].includes(o.kind))dimensions.append(field(names[1],'v',o));box.append(dimensions);if(!['wall','flippers','spinner','kickback'].includes(o.kind))box.append(field(o.kind==='ramp'?'Curve':o.kind==='gate'?'Gate rule':o.kind==='rubber'?'Facing':'Color bank','group',o,o.kind==='ramp'?['Left side','Right side','Center']:o.kind==='rubber'?['Left · points right','Right · points left']:o.kind==='gate'?['Pass toward upper side','Pass toward lower side','Unlock with all target banks']:['Cyan','Pink','Gold']));if(!['wall','gate','flippers'].includes(o.kind))box.append(field('Points','value',o));
@@ -55,7 +57,21 @@ function refreshCoordinates(){const o=board().objects[state.selected];if(!o)retu
 function selection(){
  const svg=$('#selection');svg.replaceChildren();const o=board().objects[state.selected];if(!o)return;
  const shape=document.createElementNS(NS,'path');shape.setAttribute('class','selection-outline');
- if(o.kind==='ramp'){let d='M '+o.x+' '+o.y;for(let i=1;i<=16;i++){const p=rampPoint(o,i/16);d+=` L ${p.x} ${p.y}`;}shape.setAttribute('d',d);shape.setAttribute('fill','none');shape.style.strokeWidth=1;svg.append(shape);}
+ if(o.kind==='ramp'){
+  let d=`M ${o.x} ${o.y+8} L ${o.x} ${o.y}`;for(let i=1;i<=16;i++){const p=rampPoint(o,i/16);d+=` L ${p.x} ${p.y}`;}
+  shape.setAttribute('d',d);shape.setAttribute('class','ramp-selection');shape.dataset.action=state.drag&&!state.drag.handle?'whole':'';svg.append(shape);
+  for(const p of handles(o)){
+   const r=6/state.zoom,c=document.createElementNS(NS,p.key==='end'?'path':'circle');
+   if(p.key==='end')c.setAttribute('d',`M ${p.x} ${p.y-r} L ${p.x+r} ${p.y} L ${p.x} ${p.y+r} L ${p.x-r} ${p.y} Z`);
+   else{c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',r);}
+   c.setAttribute('class','ramp-handle');c.dataset.end=p.key;c.dataset.active=String(state.drag?.handle===p.key);svg.append(c);
+   const label=document.createElementNS(NS,'text');label.setAttribute('class','ramp-end-label');label.setAttribute('font-size',10/state.zoom);
+   label.setAttribute('x',Math.max(2,Math.min(128-38/state.zoom,p.x+10/state.zoom)));label.setAttribute('y',p.y+(p.key==='start'?14:-10)/state.zoom);
+   label.textContent=p.key==='start'?'ENTRY':'EXIT';svg.append(label);
+  }
+  const intent=$('#selectionIntent');if(intent)intent.textContent=state.drag?(state.drag.handle==='start'?'Moving entry':state.drag.handle==='end'?'Moving exit':'Moving whole ramp'):'Whole ramp · green entry / violet exit';
+  return;
+ }
  else if(o.kind==='rubber'){shape.setAttribute('d',rubberOutline(o).map((p,i)=>`${i?'L':'M'} ${p.x} ${p.y}`).join(' ')+' Z');shape.setAttribute('fill','none');svg.append(shape);}
  else if(['wall','gate'].includes(o.kind)){shape.setAttribute('d',`M ${o.x} ${o.y} L ${o.u} ${o.v}`);shape.style.strokeWidth=8;svg.append(shape);}
  else{const rect=document.createElementNS(NS,'rect');const fl=o.kind==='flippers',r=fl?6:Math.max(6,o.u)+3;rect.setAttribute('x',o.x-r);rect.setAttribute('y',o.y-r);rect.setAttribute('width',fl?o.u-o.x+r*2:r*2);rect.setAttribute('height',fl?25:r*2);rect.setAttribute('rx','3');rect.setAttribute('class','selection-outline');svg.append(rect);}
@@ -73,14 +89,14 @@ function create(blank=false){const b=newIdentity(board(),state.boards,blank?'Unt
 const canvas=$('#boardCanvas');
 canvas.addEventListener('pointerdown',e=>{
  if(e.button!==0)return;canvas.focus({preventScroll:true});const p=point(e);if(e.altKey){dropBall(p);return;}
- let handle=handles(board().objects[state.selected]).find(h=>Math.hypot(h.x-p.x,h.y-p.y)<=4);
+ let handle=handles(board().objects[state.selected]).find(h=>Math.hypot(h.x-p.x,h.y-p.y)*state.zoom<=8);
  if(!handle)state.selected=pick(board(),p.x,p.y);
  inspector();selection();if(state.selected<0)return;
- state.drag={start:p,original:copy(board().objects[state.selected]),handle:handle?.key};canvas.setPointerCapture(e.pointerId);e.preventDefault();
+ state.drag={start:p,original:copy(board().objects[state.selected]),handle:handle?.key};selection();canvas.setPointerCapture(e.pointerId);e.preventDefault();
 });
 canvas.addEventListener('pointermove',e=>{
  const p=point(e);$('#cursorPosition').textContent=`x ${p.x}  ·  y ${p.y}`;
- if(!state.drag)return;
+ if(!state.drag){const o=board().objects[state.selected],handle=handles(o).find(h=>Math.hypot(h.x-p.x,h.y-p.y)*state.zoom<=8);canvas.title=o?.kind==='ramp'?(handle?.key==='start'?'Drag entry':handle?.key==='end'?'Drag exit':'Drag ramp to move the whole part'):'';canvas.style.cursor=handle?'crosshair':pick(board(),p.x,p.y)>=0?'grab':'';return;}
  const d=state.drag,o=copy(d.original),dx=p.x-d.start.x,dy=p.y-d.start.y;
  if(d.handle==='end'){o.u+=dx;o.v+=dy;}
  else if(d.handle==='start'){o.x+=dx;o.y+=dy;}
@@ -88,10 +104,20 @@ canvas.addEventListener('pointermove',e=>{
  const candidate=copy(board());candidate.objects[state.selected]=o;if(validate(candidate).errors.length)return;
  if(!state.drag.moved)remember();board().objects[state.selected]=o;state.drag.moved=true;refreshCoordinates();edited(false);
 });
-function endDrag(){state.drag=null;}
+function endDrag(){state.drag=null;state.cameraHoldUntil=performance.now()+600;selection();}
 canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);canvas.addEventListener('lostpointercapture',endDrag);
 canvas.addEventListener('dblclick',e=>{const p=point(e);if(pick(board(),p.x,p.y)<0)dropBall(p);});
 function dropBall(p=dropPoint()){const x=Math.round(Math.max(10,Math.min(108,p.x))),y=Math.round(Math.max(12,Math.min(board().height-20,p.y)));send({type:'place',x,y});}
+function followViewport(game,force=false){
+ if(state.fit||state.drag||document.body.classList.contains('dragging-part')||!Number.isFinite(game.view_y))return;
+ if(!force&&(game.paused||performance.now()<(state.cameraHoldUntil||0)||document.activeElement?.closest('#inspector input,#inspector select,#boardSettings input,#boardSettings select,#boardPicker')))return;
+ const viewport=$('#boardViewport');if(viewport.scrollHeight<=viewport.clientHeight+1&&viewport.scrollWidth<=viewport.clientWidth+1)return;
+ const area=viewport.getBoundingClientRect(),rect=canvas.getBoundingClientRect();
+ const origin={x:rect.left-area.left+viewport.scrollLeft-viewport.clientLeft-game.shake_x*state.zoom,y:rect.top-area.top+viewport.scrollTop-viewport.clientTop-game.shake_y*state.zoom};
+ const target=followScroll(game,state.zoom,origin,viewport.clientWidth,viewport.clientHeight,viewport.scrollWidth,viewport.scrollHeight);
+ viewport.scrollLeft=target.left;viewport.scrollTop=target.top;
+}
+$('#boardViewport').addEventListener('wheel',()=>{state.cameraHoldUntil=performance.now()+1200;},{passive:true});
 function paintIcons(){if(!sprites||!board())return;const inks={'.':-1,'0':2,w:1,m:3,t:4,d:7,i:5,c:4,o:9,g:10,b:12,p:13,s:14,r:6};
  for(const def of CATALOG){const c=document.querySelector(`[data-part="${def.kind}"] canvas`),ctx=c.getContext('2d'),frame=sprites[def.sprite]?.[0];ctx.clearRect(0,0,c.width,c.height);
  if(def.kind==='rubber'){drawPartPreview(c,{...def.defaults,x:12,y:3,u:12,v:21},sprites,board().palette);continue;}
@@ -145,11 +171,11 @@ function showShake(s){
 function engineFrame(game,bytes){
  if((game.id>>>0)!==(board().id>>>0)||game.height!==canvas.height)return;
  const full=image(bytes,128,game.height+HEADER_HEIGHT);$('#headerCanvas').getContext('2d').putImageData(full,0,0);canvas.getContext('2d').putImageData(full,0,-HEADER_HEIGHT);
- state.lastState=game;const pauseLabel=game.paused?'▶ Resume':'Ⅱ Pause';if($('#pauseButton').textContent!==pauseLabel)$('#pauseButton').textContent=pauseLabel;
+ state.lastState=game;const pause=$('#pauseButton'),pauseLabel=game.paused?'▶ Resume':'Ⅱ Pause';if(pause.textContent!==pauseLabel)pause.textContent=pauseLabel;pause.setAttribute('aria-label',game.paused?'Resume':'Pause');pause.dataset.paused=String(Boolean(game.paused));
  $('#playScore').textContent=game.score.toLocaleString();$('#playBall').textContent=game.over?'GAME OVER':`${game.lives} BALL${game.lives===1?'':'S'} · ×${game.effective_mult}`;
  const mission=$('#laneMission');mission.hidden=game.lane_groups!==7;
  if(!mission.hidden){
-  const missing=[];mission.dataset.pulse=String(Boolean(game.ticks&16));
+  const missing=[];
   for(let g=0;g<3;g++){
    const lamp=mission.querySelector(`[data-lane="${g}"]`),letter=String.fromCharCode(65+g),done=Boolean(game.lanes&(1<<g));
    lamp.classList.toggle('done',done);lamp.style.setProperty('--lane-ink','#'+board().palette[[4,8,10][g]]);
@@ -161,13 +187,14 @@ function engineFrame(game,bytes){
  $('.canvas-wrap').style.transform=`translate(${game.shake_x*state.zoom}px,${game.shake_y*state.zoom}px)`;showShake(game);
  for(const [key,value] of Object.entries({shakeLevel:game.shake_level,tilt:game.tilt,ticks:game.ticks,score:game.score,ballX:game.x,ballY:game.y,left:game.left,right:game.right,shooter:game.shooter,shooterFlap:game.shooter_flap,seed:game.seed}))canvas.dataset[key]=value;
  state.lastFrame=performance.now();$('#engineLoading').hidden=true;
+ followViewport(game);
  renderPlayMode();
 }
 function renderPlayMode(){
  const mode=play?.mode||'web',panel=$('#playStatus');panel.dataset.mode=mode;
  $('#playModeTitle').textContent=mode==='console'?'CONSOLE PLAY':mode==='starting'?'STARTING CONSOLE PLAY':mode==='error'?'CONSOLE PLAY INTERRUPTED':state.device?'WEB PLAY · SEPARATE GAMES':'WEB PLAY';
  const lag=Math.max(0,(engine?.receivedFrame||0)-(engine?.appliedFrame||0));
- $('#playModeDescription').textContent=mode==='console'?'Keyboard controls CHGame. This view follows its actual inputs'+(lag>12?' · catching up.':'.'):mode==='starting'?'Starting both games together. Release the console buttons.':mode==='error'?(play.error+' Choose web-only play or restart console play.'):state.device?'Keyboard controls this browser only. CHGame has its own player; live edits can still update both.':'Keyboard controls this browser. Connect CHGame to play together or test separately.';
+ $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · browser follows'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+' Choose separate web play or Resync.'):state.device?'Independent browser and console games':'Keyboard → browser';
  $('#separatePlay').checked=!state.device||mode==='web';$('#separatePlay').disabled=!state.device||mode==='starting';
  $('#resyncPlay').hidden=!state.device||mode==='web';$('#resyncPlay').disabled=mode==='starting';
  $('#liveDevice').disabled=mode==='console'||mode==='starting';if($('#liveDevice').disabled)$('#liveDevice').checked=true;
@@ -288,7 +315,6 @@ $('#exportButton').onclick=e=>{try{const bytes=e.shiftKey?JSON.stringify(board()
 for(const [id,key]of [['titleInput','title'],['missionInput','mission'],['heightInput','height'],['gravityInput','gravity'],['fileInput','file']]){const input=$('#'+id);input.onfocus=()=>input._before=false;input.oninput=()=>{if(!input._before){remember();input._before=true;}board()[key]=['height','gravity'].includes(key)?Number(input.value):key==='file'?input.value.toUpperCase():input.value;if(key==='file')input.value=board().file;if(key==='height'){resizeCanvas();if(state.fit)fit();}edited(false);};}
 $('#themeSelect').onchange=e=>{remember();board().theme=Number(e.target.value);board().palette=copy(bases.find(b=>b.theme===board().theme).palette);themeStrip();paintIcons();edited(false);canvas.focus({preventScroll:true});};
 $('#liveDevice').onchange=()=>{if(state.device&&$('#liveDevice').checked)uploadDevice();renderStorage();};
-window.addEventListener('resize',()=>{if(state.fit&&board())fit();});
 new ResizeObserver(()=>{if(state.fit&&board())fit();}).observe($('#boardViewport'));
 try{
  const asset=async name=>{const r=await fetch(new URL('./assets/'+name,import.meta.url));if(!r.ok)throw new Error('Missing Studio asset: '+name);return r.json();};
