@@ -1,0 +1,36 @@
+{
+  "staged": true,
+  "identical_ball_motion": true,
+  "fps": 60,
+  "versions": [
+    {
+      "label": "Current",
+      "delay_frames": 0,
+      "capture_frame": 21,
+      "zoom_frame": 21,
+      "exit_frame": 111
+    },
+    {
+      "label": "+0.3 s",
+      "delay_frames": 18,
+      "capture_frame": 21,
+      "zoom_frame": 39,
+      "exit_frame": 111
+    },
+    {
+      "label": "+0.5 s",
+      "delay_frames": 30,
+      "capture_frame": 21,
+      "zoom_frame": 51,
+      "exit_frame": 111
+    },
+    {
+      "label": "+1 s",
+      "delay_frames": 60,
+      "capture_frame": 21,
+      "zoom_frame": 81,
+      "exit_frame": 111
+    }
+  ],
+  "motion_sha256": "9cef9067fb7a7595953ae5f2ce8f60de2a8cf0be7e86fa051c5048a5114cf92b"
+}
