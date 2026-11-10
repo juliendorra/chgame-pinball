@@ -283,7 +283,7 @@ async function retrieve(){const b=$('#readBoards');b.disabled=true;b.textContent
   keepImported(entry.board,incoming);added++;
  }
  persist();refreshLibrary();toast(`Read ${entries.length} boards from CHGame. ${added} added to your library.`);
- }catch(e){toast(e.message);}finally{b.disabled=!state.device;b.textContent='↓ Get boards';}}
+ }catch(e){toast(e.message);}finally{b.disabled=!state.device;b.textContent='↑ Get boards from console';}}
 function keepImported(raw,editable){
  state.boards.push(editable);
  // A full legacy board can temporarily exceed 72 after exposing its pair.

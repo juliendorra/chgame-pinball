@@ -113,7 +113,7 @@ With **Send edits live** enabled, valid edits are sent after a short debounce
 and read back from device RAM. The handheld keeps playing. Keyboard controls,
 restart, pause and ball placement are sent to the device as well.
 
-**Get boards** reads the built-in and SD libraries from the device. Identical
+**↑ Get boards from console** reads the built-in and SD libraries from the device. Identical
 boards are deduplicated; differing versions are imported as separate copies
 so local work is retained.
 
