@@ -32,6 +32,7 @@ int pb_place(int x,int y,int vx,int vy){
     placeBall(0,x,y,vx,vy);return 1;
 }
 const int32_t *pb_state(){
+    int viewX,viewY,viewW,viewH;cameraView(viewX,viewY,viewW,viewH);
     const int32_t values[]={
         int32_t(table.h.id),table.h.height,table.h.count,int32_t(game.score),game.lives,
         int32_t(game.ticks),game.balls[0].x,game.balls[0].y,game.balls[0].vx,game.balls[0].vy,
@@ -44,11 +45,11 @@ const int32_t *pb_state(){
         game.launchHeld,int32_t(chgame.frameCount),int32_t(activeBalls()),game.shooterFlap,
         int32_t(game.seed),int32_t(game.rng),game.bonus,game.bonusTicks,game.bonusArg,
         game.bonusNext,game.bonusNextArg,int32_t(scoreMultiplier()),int32_t(laneGoal()),int32_t(laneGroups()),
-        game.balls[0].spin
+        game.balls[0].spin,viewX,viewY,viewW,viewH
     };
     memcpy(state,values,sizeof values);return state;
 }
-unsigned pb_state_count(){return 54;}
+unsigned pb_state_count(){return 58;}
 const int32_t *pb_physics(){
     static const int32_t config[]={PINBALL_SPIN_GRIP,PINBALL_SPIN_FORGET,
         PINBALL_SCATTER_PASSIVE,PINBALL_SCATTER_POWERED,PINBALL_SCATTER_EJECT};

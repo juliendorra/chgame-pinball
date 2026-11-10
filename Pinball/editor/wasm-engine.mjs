@@ -1,5 +1,5 @@
 import {encode} from './model.mjs';
-export const STATE_FIELDS=['id','height','objects','score','lives','ticks','xq','yq','vx','vy','left','right','shooter','launching','camera','zoom','paused','over','ramp','hold','save','lanes','target','mult','tilt','zoom_ticks','ramp_camera','pop','pop_ticks','pop_kind','shake_level','shake_window','shake_ticks','shake_x','shake_y','shake_direction','searches','ramps','kickbacks','launch_held','frame','balls','shooter_flap','seed','rng','bonus','bonus_ticks','bonus_arg','bonus_next','bonus_next_arg','effective_mult','lane_goal','lane_groups','spin_q16'];
+export const STATE_FIELDS=['id','height','objects','score','lives','ticks','xq','yq','vx','vy','left','right','shooter','launching','camera','zoom','paused','over','ramp','hold','save','lanes','target','mult','tilt','zoom_ticks','ramp_camera','pop','pop_ticks','pop_kind','shake_level','shake_window','shake_ticks','shake_x','shake_y','shake_direction','searches','ramps','kickbacks','launch_held','frame','balls','shooter_flap','seed','rng','bonus','bonus_ticks','bonus_arg','bonus_next','bonus_next_arg','effective_mult','lane_goal','lane_groups','spin_q16','view_x','view_y','view_w','view_h'];
 // Preserve sub-frame taps. Each transition is sampled for at least one tick.
 export class KeyQueue {
  constructor(){this.clear();}

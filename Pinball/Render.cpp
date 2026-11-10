@@ -232,6 +232,12 @@ static void zoomRegion(int &x0, int &y0, int &width, int &height) {
     if (y0 < 0) y0 = 0;
     if (y0 > 108 - height) y0 = 108 - height;
 }
+#ifdef CHSIM
+void cameraView(int &x,int &y,int &width,int &height) {
+    x=0;y=game.camera;width=128;height=108;
+    if(game.zoom>ONE){zoomRegion(x,y,width,height);y+=game.camera;}
+}
+#endif
 static void zoomPlayfield() {
     if (game.zoom <= ONE) return;
     int x0, y0, width, height; zoomRegion(x0, y0, width, height);
