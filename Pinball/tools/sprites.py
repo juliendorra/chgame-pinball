@@ -132,17 +132,31 @@ def border_header():
     borders=json.loads((GAME/'sprites/board_borders.json').read_text())
     if len(borders)!=9:raise ValueError('one border skin per theme is required')
     h='// Generated from sprites/board_borders.json by tools/sprites.py.\n#pragma once\n#include "SpriteData.h"\nnamespace pinball {\n'
-    shared={};parts={}
+    shared={};parts={};side_bytes=0
     for name,skin in borders.items():
         for part,rows in skin.items():
             expected={'top':(128,34),'side':(11,16),'emblem':(12,8)}[part]
             if (len(rows[0]),len(rows))!=expected:raise ValueError(f'{name} {part}: expected {expected}')
             if part=='top':rows=rows[6:30] # trim empty rows; world anchor is y=6
             data=pack(rows,128,trim=True)
+            if part=='side':
+                # Keep one copy of each identical scanline. Expand the small
+                # tile once per theme, preserving the SDK sprite4 byte stream.
+                side_bytes=max(side_bytes,len(data));original=data;at=2
+                packed=bytearray(len(rows));seen={}
+                for y in range(len(rows)):
+                    row=data[at:at+1+data[at]];at+=len(row)
+                    if row not in seen:seen[row]=len(packed);packed.extend(row)
+                    packed[y]=seen[row]
+                assert len(packed)<256
+                restored=bytes((11,16))+b''.join(packed[packed[y]:packed[y]+1+packed[packed[y]]] for y in range(16))
+                assert restored==original
+                data=bytes(packed)
             if data not in shared:
                 shared[data]=f'border_{name}_{part}'
                 h+=f'static const uint8_t {shared[data]}[] PB_SPRITE = {{'+','.join(map(str,data))+'};\n'
             parts[name,part]=shared[data]
+    h+=f'constexpr unsigned BORDER_SIDE_BYTES={side_bytes};\n'
     h+='struct BoardBorder { const uint8_t *top, *side, *emblem; };\nstatic const BoardBorder BOARD_BORDERS[9] PB_SPRITE = {\n'
     for name in borders:h+='    {'+','.join(parts[name,part] for part in ('top','side','emblem'))+'},\n'
     return h+'};\n}  // namespace pinball\n'

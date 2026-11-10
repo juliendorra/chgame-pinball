@@ -560,8 +560,20 @@ static __attribute__((noinline)) void footer(const char *text,uint8_t color) {
     }
     text35(18+(110-text35Width(text))/2,122,text,color);
 }
+static const uint8_t *borderSide(const uint8_t *source) {
+    static uint8_t data[BORDER_SIDE_BYTES],theme=255;
+    if(theme!=table.h.theme) {
+        theme=table.h.theme;data[0]=11;data[1]=16;uint8_t *out=data+2;
+        for(unsigned y=0;y<16;++y) {
+            const uint8_t *row=source+source[y];unsigned n=*row++;
+            *out++=n;memcpy(out,row,n);out+=n;
+        }
+    }
+    return data;
+}
 static __attribute__((noinline)) void borderSkins() {
     const BoardBorder &skin=BOARD_BORDERS[table.h.theme];
+    const uint8_t *side=borderSide(skin.side);
     uint8_t remap[16];for(unsigned i=0;i<16;++i)remap[i]=i;
     remap[8]=scoreColor();
     if(sy(34)>clipY && sy(-HEADER_HEIGHT)<clipY+clipH) {
@@ -570,8 +582,8 @@ static __attribute__((noinline)) void borderSkins() {
         // brackets. Empty pixels expose the same felt as the playfield.
         RailPoint left[]={{23,8},{29,-5},{44,-5}},right[]={{84,-5},{92,-5},{98,8}};
         railRun(left,3,scoreColor());railRun(right,3,scoreColor());
-        sprite4(skin.side,20,sy(-12),remap);
-        sprite4(skin.side,96,sy(-12),remap);
+        sprite4(side,20,sy(-12),remap);
+        sprite4(side,96,sy(-12),remap);
         sprite4(skin.emblem,46,sy(-22),remap,768);
         // Fill the felt cheeks outside the sloping roof rails. At 16x11
         // pixels the skull, ghost, rocket, etc. remain legible on the LCD
@@ -585,12 +597,12 @@ static __attribute__((noinline)) void borderSkins() {
     if(game.camera>44)first+=((game.camera-44)/32)*32;
     for(int world=first;world<table.h.height+6 && sy(world)<clipY+clipH;world+=32) {
         int y=sy(world);if(y+16<=clipY)continue;
-        sprite4(skin.side,0,y,remap);
+        sprite4(side,0,y,remap);
         // The right skin uses the same rail profile. Crop away its outer
         // ornaments so the plunger lane remains fully visible and clear.
         int start=clipX>122?clipX:122;
         int end=clipX+clipW<128?clipX+clipW:128;
-        if(end>start){gfx_setClip(start,clipY,end-start,clipH);sprite4(skin.side,118,y,remap);}
+        if(end>start){gfx_setClip(start,clipY,end-start,clipH);sprite4(side,118,y,remap);}
         gfx_setClip(clipX,clipY,clipW,clipH);
     }
 }
