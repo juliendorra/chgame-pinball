@@ -349,7 +349,7 @@ static void multiball(Ball &source) {
     audio::blip(2100, 150, true);
     rumble::play(rumble::Effect::Multiball);
 }
-static __attribute__((noinline)) void objects(Ball &b, int previousLeft, int previousRight) {
+static __attribute__((noinline)) void objects(Ball &b, int previousLeft, int previousRight, int previousX, int previousY) {
     for (unsigned i = 0; i < table.h.count; ++i) {
         const Object &o = table.objects[i];
         if (o.kind == Rubber) continue;
@@ -365,10 +365,15 @@ static __attribute__((noinline)) void objects(Ball &b, int previousLeft, int pre
         if (o.kind == Flippers) { flippers(b, o.x, o.u, o.y, o.v, previousLeft, previousRight); continue; }
         bool hit = false;
         if (o.kind == Ramp) {
-            // Meet the lower lip with the ball's leading edge, before the
-            // opaque deck can cover it. The whole ball must fit the mouth.
-            hit = b.vy < -100 && unsigned(b.x-o.x*ONE+4*ONE) <= 8*ONE &&
-                unsigned(b.y-o.y*ONE) <= 8*ONE+RADIUS;
+            // Enter only across the open front, never through the side of
+            // an already-overlapping deck. Test the swept leading edge at
+            // the same lip used by the renderer, including diagonal shots.
+            int lip=(o.y+RAMP_LIP)*ONE+RADIUS;
+            if(b.vy < -100 && previousY>=lip && b.y<lip) {
+                int dy=previousY-b.y;
+                int cross=(previousX-o.x*ONE)*dy+(b.x-previousX)*(previousY-lip);
+                hit=abs(cross)<=RAMP_CAPTURE_HALF_WIDTH*ONE*dy;
+            }
         } else {
             int extent = o.u + 6;
             // Reuse board-space offsets for both broad phase and radial triggers.
@@ -595,10 +600,11 @@ void updateGame(uint8_t held, uint8_t pressed, uint8_t released) {
             b.vy += table.h.gravity / 4 + (step < table.h.gravity % 4 ? 1 : 0);
             b.vx = clamp(b.vx, -1280, 1280);
             b.vy = clamp(b.vy, b.launching ? -2880 : -1792, 1664);
+            int previousX=b.x,previousY=b.y;
             b.x += b.vx / 4;
             b.y += b.vy / 4;
             bounds(b);
-            objects(b, oldLeft, oldRight);
+            objects(b, oldLeft, oldRight, previousX, previousY);
             flippers(b, MAIN_LEFT, MAIN_RIGHT, table.h.height - 25, MAIN_LENGTH, oldLeft, oldRight);
             if (b.scoopTicks || b.ramp >= 0) break;
         }

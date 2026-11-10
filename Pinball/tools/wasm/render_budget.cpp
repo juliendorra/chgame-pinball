@@ -96,6 +96,37 @@ static void rampEntries(){
     }
     newGame(12345);placeBall(0,60,251,0,700);updateGame(0,0,0);
     requireRamp(game.balls[0].ramp<0,"a downward shot entered the ramp");
+    unsigned diagonalEntries=0,rejectedEntries=0;
+    for(int direction:{-1,1}) {
+        // Meet the mouth on a diagonal: crossing the lip is a valid entry.
+        newGame(12345);placeBall(0,60-direction*4,255,direction*250,-700);
+        for(unsigned n=0;n<12 && game.balls[0].ramp<0;++n)updateGame(0,0,0);
+        requireRamp(game.balls[0].ramp==0,"valid diagonal lip crossing was rejected");++diagonalEntries;
+        // Reproduces the visible pop: miss the front, then drift sideways
+        // under the deck into the old rectangular capture area.
+        newGame(12345);placeBall(0,60-direction*9,254,direction*350,-500);
+        for(unsigned n=0;n<24;++n) {
+            updateGame(0,0,0);
+            requireRamp(game.balls[0].ramp<0,"late side entry teleported onto the deck");
+        }
+        ++rejectedEntries;
+    }
+    // Already underneath the deck is never a new front crossing.
+    for(int offset:{-4,0,4}) {
+        newGame(12345);placeBall(0,60+offset,251,0,-700);
+        for(unsigned n=0;n<12;++n) {
+            updateGame(0,0,0);
+            requireRamp(game.balls[0].ramp<0,"ball already beneath deck was captured");
+        }
+        ++rejectedEntries;
+    }
+    newGame(12345);placeBall(0,60,254,0,-500);game.cooldown[0]=8;
+    for(unsigned n=0;n<16;++n) {
+        updateGame(0,0,0);
+        requireRamp(game.balls[0].ramp<0,"cooldown expiry caused a late capture");
+    }
+    ++rejectedEntries;
+    std::printf("{\"kind\":\"ramp_lip_crossings\",\"diagonal_entries\":%u,\"rejected_late_entries\":%u}\n",diagonalEntries,rejectedEntries);
     // The open front touches the felt; no transverse cast-shadow strip.
     for(auto &b:game.balls)b.active=false;game.camera=172;game.zoom=256;frame();
     // Ignore the chosen floating arrow's own board-tinted shadow.

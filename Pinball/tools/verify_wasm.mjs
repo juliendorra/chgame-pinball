@@ -99,7 +99,7 @@ console.log('Editable rubber: legacy trajectory/pixels, relocated powered contac
 // Exercise an occupied ramp explicitly, including an index shift on insertion.
 const fixture=copy(boards[0]);fixture.id=0x57534d31;
 const ramp={kind:'ramp',x:35,y:200,u:90,v:80,value:1000,group:0};fixture.objects=[ramp];
-load(fixture);place(35,201,0,-500);step();assert.equal(readState(m).ramp,0,'ramp fixture must actually capture the ball');snapshot();
+load(fixture);place(35,212,0,-500);step();assert.equal(readState(m).ramp,0,'cross the front lip, rather than spawning below the deck');snapshot();
 const riding=readState(m);fixture.theme=8;fixture.palette=copy(boards[8].palette);load(fixture);
 assert.equal(readState(m).ramp,0);assert.equal(readState(m).xq,riding.xq);assert.equal(readState(m).yq,riding.yq);
 fixture.objects.unshift({kind:'bumper',x:75,y:260,u:8,v:280,value:100,group:0});load(fixture);assert.equal(readState(m).ramp,1,'unchanged ramp rider follows its new index');
@@ -140,7 +140,7 @@ for(const [x,y] of railPixels)assert.equal(pixel(batImage,x,y),pixel(railImage,x
 // the rails when released. Compare the same ball position on the ground.
 const ridingBoard=copy(boards[0]);ridingBoard.id=0x52494445;
 ridingBoard.objects=[{kind:'ramp',x:35,y:220,u:75,v:120,value:1000,group:2}];
-load(ridingBoard);place(35,221,0,-500);step();assert.equal(readState(m).ramp,0);
+load(ridingBoard);place(35,232,0,-500);step();assert.equal(readState(m).ramp,0);
 for(let i=0;i<35;i++)step();
 const rider=readState(m),riderPtr=m._pb_render(),riderImage=m.HEAPU8.slice(riderPtr,riderPtr+m._pb_render_size());snapshot();
 assert.equal(rider.ramp,0,'test ball is on the ramp');

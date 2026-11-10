@@ -340,7 +340,7 @@ static __attribute__((noinline)) void drawRamp(const Object &o) {
     // A shallow metal pan rises from the felt; its open mouth and the
     // elevated track share one continuous, gradually narrowing rail run.
     RailPoint path[19];
-    path[0]={o.x,int16_t(o.y+8)};path[1]={o.x,int16_t(o.y+4)};
+    path[0]={o.x,int16_t(o.y+RAMP_LIP)};path[1]={o.x,int16_t(o.y+4)};
     for (unsigned i=0;i<17;++i) {
         int x,y;rampPoint(o,i*16,x,y);
         path[i+2]={int16_t(x),int16_t(y)};

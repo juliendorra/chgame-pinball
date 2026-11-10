@@ -8,6 +8,7 @@ constexpr int ONE = 256;
 constexpr int HEADER_HEIGHT = 24; // decorative space above the physical roof
 constexpr int BALL_RADIUS = 1024;  // 8-pixel collision diameter
 constexpr int RAMP_ENTRY_SHIFT = 3, RAMP_ENTRY_FRAMES = 1 << RAMP_ENTRY_SHIFT, RAMP_RIDE_FRAMES = 90;
+constexpr int RAMP_LIP = 8, RAMP_CAPTURE_HALF_WIDTH = 4;
 constexpr int SHOOTER_X = 118;
 constexpr int MAIN_LEFT = 30, MAIN_RIGHT = 94, MAIN_LENGTH = 23;
 constexpr unsigned SHAKE_LEVELS = 3;

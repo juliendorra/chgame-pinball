@@ -245,12 +245,13 @@ with session(card) as d:
         assert colors[2] == tuple(v // 34 * 17 for v in colors[0]), ("shadow must follow felt color", spec["title"], colors)
         # Every ramp gets a continuous ride across multiple viewport heights.
         for ramp in (o for o in spec["objects"] if o["kind"] == "ramp"):
-            d.cmd(f"F {index}"); d.cmd(f"M {max(0, min(spec['height'] - 108, ramp['y'] - 62))}")
-            # Low side ramps can border a slingshot. Enter through the
-            # outer half of the mouth so this camera test does not start
-            # with an unrelated rubber-band collision under contact spin.
-            approach=ramp["x"]+(-4 if ramp["x"]<60 else 4)
-            place(d, approach, ramp["y"]+4, 0, -500); d.frames(1)
+            # Some low ramps border a slingshot. Find an unobstructed
+            # crossing of the real front lip; never spawn under the deck.
+            side=-4 if ramp["x"]<60 else 4
+            for offset in (side,0,-side):
+                d.cmd(f"F {index}"); d.cmd(f"M {max(0, min(spec['height'] - 108, ramp['y'] - 62))}")
+                place(d, ramp["x"]+offset, ramp["y"]+12, 0, -500); d.frames(1)
+                if state(d)["ramp"] >= 0:break
             assert state(d)["ramp"] >= 0, ("ramp entrance rejected",spec["title"],ramp,state(d))
             for frame in range(1, 91):
                 d.frames(1); s = state(d)
