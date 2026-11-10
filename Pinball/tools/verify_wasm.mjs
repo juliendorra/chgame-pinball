@@ -84,7 +84,7 @@ laneBoard.objects.pop();load(laneBoard);assert.equal(readState(m).lane_groups,3,
 console.log('Lane mission: missing A/B/C sprites, real set progress, next multiplier, launch tutorial and incomplete drafts match native/WASM.');
 // Slings are editable hardware, not cabinet art. Both runtimes execute every
 // contact and edit; moved/deleted faces must not leave invisible colliders.
-const rubbers=editableBoard(copy(boards[8]));rubbers.objects=rubbers.objects.filter(o=>o.kind==='rubber');
+const rubbers=editableBoard(copy(boards[0]));rubbers.objects=rubbers.objects.filter(o=>o.kind==='rubber');
 function ballState(){const s=readState(m);return [s.xq,s.yq,s.vx,s.vy,s.spin_q16];}
 const legacyRubbers=copy(rubbers);legacyRubbers.flags=0;legacyRubbers.objects=[];
 function slingTrace(b){load(b);command('R',6789);place(41,b.height-63,-300,0);const trace=[];for(let i=0;i<24;i++){step();trace.push(ballState());}snapshot();return trace;}

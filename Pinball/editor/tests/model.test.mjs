@@ -25,7 +25,7 @@ test('Legacy slings become two independent, movable parts exactly once',()=>{
  assert.deepEqual(encode(decode(encode(b),b.file)),encode(b));
  b.objects=b.objects.filter(o=>o.kind!=='rubber');assert.equal(editableBoard(decode(encode(b),b.file)).objects.filter(o=>o.kind==='rubber').length,0,'removing both does not resurrect the cabinet pair');
 });
-const copyBoard=()=>structuredClone(boards[8]);
+const copyBoard=()=>structuredClone(boards[0]);
 test('Rubber placement, size, mirroring and pick footprint follow actual hardware',()=>{
  const b=editableBoard(copyBoard());b.objects=[createPart('rubber',{x:40,y:180},b.height)];const o=b.objects[0];
  assert.deepEqual(validate(b).errors,[]);assert.equal(pick(b,48,197),0);assert.equal(pick(b,80,197),-1);
