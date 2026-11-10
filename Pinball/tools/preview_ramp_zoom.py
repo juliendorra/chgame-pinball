@@ -148,6 +148,9 @@ int main(int argc,char **argv){
 <style>body{background:#161c24;color:white;font:17px system-ui;margin:24px}img{max-width:100%;image-rendering:pixelated}main{display:flex;flex-wrap:wrap;gap:16px}article{max-width:408px}</style>
 <h1>Ramp zoom timing</h1><p>Staged shot rendered by the actual C++ game. Identical ball motion and speed; only zoom onset changes. Each ride continues to the configured exit. No timing variant has been applied to the game.</p>
 <img src="all-four.gif" alt="Current, 0.3 second, 0.5 second and 1 second delay"><h2>0.3 s delay with a smooth zoom</h2><p>Generate the eased preview with tools/preview_ramp_smooth.py. The video runs at 60 fps, normal speed.</p><video controls loop playsinline width="512" src="smooth-03-realtime.mp4"></video><h2>Diagonal entry discrepancy before the fix</h2><p>Current production capture and drawing rules. Slow motion for inspection.</p><img src="diagonal-entry.gif"><img src="diagonal-entry.png">''')
+    if (out / 'diagonal-entry-fixed.gif').exists():
+        with (out / 'index.html').open('a') as page:
+            page.write('<h2>After the front-lip fix</h2><p>This shot misses the front entrance. It remains below the ramp and cannot be captured later through the side.</p><img src="diagonal-entry-fixed.gif"><img src="diagonal-entry-fixed.png">')
     print(out / 'index.html')
 
 
