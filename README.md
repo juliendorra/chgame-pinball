@@ -13,6 +13,13 @@ Rubber slingshots are editable parts too: move, resize, mirror, duplicate or
 remove the existing pair, or add more while playing. Use firmware 1.4.17 or
 newer for these layouts on CHGame; older boards retain their original pair.
 
+The current development build adds console-led browser play: the editor replays the inputs
+actually sampled by CHGame. Enable **Separate web play** to keep two
+independent players while sharing live board edits. Score, mission progress
+and play controls sit together above the board. Storm Riders and Dragon Keep
+use the revised layouts exported on November 10, 2026. The next packaged
+release is being held while more boards are revised.
+
 Download the console cart and matching offline editor from the
 [latest release](https://github.com/juliendorra/chgame-pinball/releases/latest).
 
@@ -55,7 +62,9 @@ On Apple silicon, this also builds the native RISC-V compiler; see
 [toolchain requirements](tools/toolchain/CURRENT-GCC.md).
 `python3 pinball.py build` builds firmware and its matching validated editor.
 `python3 pinball.py upload` builds and installs on a connected CHGame.
-Scores and settings use an isolated `MPIN.SAV` journal on SD.
+Scores and settings use CHSave's isolated `5T668NAZ.SAV` journal on SD,
+identified by `com.juliendorra.pinball`. Preserve it when updating. Legacy
+`MPIN.SAV` journals require the migration tools supplied with the release.
 
 ## Publishing
 

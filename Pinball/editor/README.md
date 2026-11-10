@@ -5,6 +5,21 @@ edit-and-play workflow. The ball keeps moving while parts are selected, added,
 removed, dragged or adjusted. There is no edit/play switch.
 
 The editor uses one full-board view with live play and pointer editing.
+**Fit** includes the complete board and its top crest. When manually zoomed
+past the visible area, scrolling follows the actual C++ console camera crop,
+adapted to the measured HTML viewport. Resizing updates the available area.
+Dragging parts, editing properties, pausing or temporarily scrolling by hand
+takes priority over automatic following.
+
+Connection, board retrieval and live-edit controls are in the top toolbar.
+The strip below it holds play mode, score, lane progress and play controls.
+Board selection, SD saving and parts are on the left; element and board
+properties are on the right. The center remains available for the board.
+
+Selected ramps show a green **ENTRY** handle at the front lip and a violet
+**EXIT** handle. Drag the track to move the entire ramp, or a handle to move
+that end. The active drag target is highlighted and named in the inspector.
+Lane indicators remain steady; collected lanes change appearance.
 
 Start from the repository root:
 
