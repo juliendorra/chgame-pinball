@@ -12,7 +12,7 @@ and web bundle, installs the firmware, then checks real console timing.
 | Sanitized simulation | Real solver, ramp rides, tilt, rubber flex, 180 gutter cases, SD images | Undefined arithmetic, invalid access, stuck drains, ramp follow ending early, launcher re-entry and broken recovery. |
 | Visible flipper contact | Both sides, nine poses and eleven sizes; near misses, overlaps and a fast swept strike | A collision outline that disagrees with the actual opaque sprite pixels, including contacts with neighboring stair-step corners. |
 | Seeded players with rendering | Nine boards × no-flipper/random/reactive policies × two seeds, 30 seconds maximum, every run repeated | Nondeterministic outcomes or spin traces, crashes during actual play, costly drawing during the states players reach. |
-| Drawing work budgets | Every rendered play frame, complete layouts at 1×/1.5×, one/two long ramps across viewport positions | Excessive direct line/pixel calls, long-line overdraw, excessive spans or sprite calls, including the historical solid-ramp slowdown. |
+| Drawing work budgets | Every rendered play frame, complete layouts at 1×/1.5×, 1/2/3/4/6/8/12 long ramps across viewport positions | Excessive direct line/pixel calls, long-line overdraw, excessive spans or sprite calls, including the historical solid-ramp slowdown. Crowded stress fixtures use explicit per-ramp work ceilings; shipped layouts retain the existing ceilings. |
 | Editor and browser SD | Keyboard edges, live edits, codecs, FAT16/FAT32 failure/readback tests | Lost controls, disruptive editing, damaged or incorrect card exports. |
 | Physical-console timing after upload | Original, no-ramp, one-ramp, two-ramp and empty RAM-only fixtures; three seconds each | Render or physics rate below 57 Hz against the 60 Hz target, including costs specific to flash access and the real display. |
 
@@ -40,6 +40,36 @@ running game without installing anything:
 
 ```sh
 python3 Pinball/tools/verify_device_fps.py --port /dev/cu.usbmodem101 --out Pinball/out/device/fps.json
+```
+
+The newer board-specific benchmark isolates ramp count and fixed-camera
+rendering, then runs seeded launches. Its optional active FPS gate applies to
+the original user layouts; deliberately crowded stress fixtures are reported
+separately. Paused samples include a full LCD transfer and are not gameplay
+FPS. SD files are untouched.
+
+```sh
+python3 Pinball/tools/benchmark_ramp_device.py --port /dev/cu.usbmodem101 \
+  --stress-ramps 4 6 8 12 --min-active-hz 57 \
+  --out Pinball/out/device/board-ramps.json
+```
+
+For a renderer optimization that should preserve the image, retain its previous
+`Render.cpp` and compare complete packed LCD bytes:
+
+```sh
+python3 Pinball/tools/compare_renderer.py --reference /path/to/previous/Render.cpp
+```
+
+The browser SD controller/writer also has a real-device diagnostic. It creates
+only its absent `PBAUTOT.PBT/PBK` fixtures, verifies automatic saving and revert
+using production JavaScript, then removes those fixtures. It checks existing
+boards/checkpoints and the active RAM board remain unchanged. Do not run it
+while another process owns the console or writes the card.
+
+```sh
+node Pinball/tools/verify_device_storage.mjs /path/to/python /dev/cu.usbmodem101 \
+  Pinball/out/device/storage.json
 ```
 
 To run only the post-build play/work suite:

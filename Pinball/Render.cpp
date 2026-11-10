@@ -114,7 +114,7 @@ RAMFUNC(pinballBeam) static void beam(int x, int y, int u, int v, uint8_t c, boo
         }
     }
 }
-static void railPart(int x, int y, int u, int v, uint8_t c, bool shadow, unsigned caps) {
+RAMFUNC(pinballRailPart) static void railPart(int x, int y, int u, int v, uint8_t c, bool shadow, unsigned caps) {
     if(mirrorSling){x=mirrorSling-x;u=mirrorSling-u;}
     int a = sy(y), b = sy(v);
     if ((a < clipY - 5 && b < clipY - 5) || (a > clipY + clipH + 2 && b > clipY + clipH + 2) ||
@@ -128,15 +128,13 @@ static void rail(int x, int y, int u, int v, uint8_t c = CYAN) {
     railPart(x,y,u,v,c,true,3); railPart(x,y,u,v,c,false,3);
 }
 struct RailPoint { int16_t x, y; };
-static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roundBends = true, unsigned firstPass = 0, unsigned lastPass = 2) {
-    int low=p[0].y,high=low;
-    for(unsigned i=1;i<count;++i){if(p[i].y<low)low=p[i].y;if(p[i].y>high)high=p[i].y;}
-    if(sy(high)<clipY-5 || sy(low)>clipY+clipH+2)return;
+RAMFUNC(pinballRailRun) static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roundBends = true, unsigned firstPass = 0, unsigned lastPass = 2) {
+    // Each railPart clips its own segment. Avoid a second full path walk
+    // before drawing: visible ramps otherwise scan every point three times.
     // Shadow the complete run before drawing any of its metal. Interior
     // joints have no end caps, so they cannot cut a stripe across a rail.
     for (unsigned pass = firstPass; pass < lastPass; ++pass) {
         int x = p[0].x, y = p[0].y;
-        bool first = true;
         for (unsigned i = 1; i < count; ++i) {
             int u = p[i].x, v = p[i].y, ex = u, ey = v;
             bool bend = roundBends && i + 1 < count && sy(v) >= clipY-10 && sy(v) < clipY+clipH+10;
@@ -147,8 +145,8 @@ static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roun
                 if (radius && a && b) {
                     ex = u + dx2*radius/b; ey = v + dy2*radius/b;
                     int entryX = u + dx*radius/a, entryY = v + dy*radius/a;
-                    railPart(x,y,entryX,entryY,color,pass==0,first ? 1 : 0);
-                    x = entryX; y = entryY; first = false;
+                    railPart(x,y,entryX,entryY,color,pass==0,i==1 ? 1 : 0);
+                    x = entryX; y = entryY;
                     for (int t = 1; t <= 3; ++t) {
                         int k = 3-t;
                         int xx = (k*k*entryX+2*k*t*u+t*t*ex)/9;
@@ -159,8 +157,8 @@ static void railRun(const RailPoint *p, unsigned count, uint8_t color, bool roun
                     continue;
                 }
             }
-            railPart(x,y,u,v,color,pass==0,(first ? 1 : 0) | (i+1==count ? 2 : 0));
-            first = false; x=ex; y=ey;
+            railPart(x,y,u,v,color,pass==0,(i==1 ? 1 : 0) | (i+1==count ? 2 : 0));
+            x=ex; y=ey;
         }
     }
 }

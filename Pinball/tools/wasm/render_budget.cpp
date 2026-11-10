@@ -18,6 +18,7 @@ struct Work { unsigned lines,linePixels,pixels,spans,spanPixels,sprites; };
 static Work work,peak;
 static constexpr Work limits={64,4096,256,2048,32768,128};
 static unsigned rendered;
+static unsigned stressRamps;
 static const char *label;
 void budgetLine(int x,int y,int u,int v,uint8_t c){++work.lines;work.linePixels+=std::max(std::abs(u-x),std::abs(v-y))+1;gfx_line(x,y,u,v,c);}
 void budgetPixel(int x,int y,uint8_t c){++work.pixels;gfx_pixel(x,y,c);}
@@ -30,8 +31,12 @@ static void frame(){
     peak.spanPixels=std::max(peak.spanPixels,work.spanPixels);peak.sprites=std::max(peak.sprites,work.sprites);
     // Enough headroom for current boards, but reject the hundreds of layered
     // flash line calls that caused the measured 43.5 Hz ramp regression.
+    // Crowded diagnostic layouts have a per-ramp work ceiling, rather than
+    // pretending twelve overlapping ramps have the cost of a shipped board.
+    const unsigned spanLimit=stressRamps?256+300*stressRamps:limits.spans;
+    const unsigned pixelLimit=stressRamps?4096+3200*stressRamps:limits.spanPixels;
     if(work.lines>limits.lines || work.linePixels>limits.linePixels || work.pixels>limits.pixels ||
-       work.spans>limits.spans || work.spanPixels>limits.spanPixels || work.sprites>limits.sprites){
+       work.spans>spanLimit || work.spanPixels>pixelLimit || work.sprites>limits.sprites){
         std::fprintf(stderr,"Render budget exceeded: %s: lines=%u linePixels=%u pixels=%u spans=%u spanPixels=%u sprites=%u\n",
             label,work.lines,work.linePixels,work.pixels,work.spans,work.spanPixels,work.sprites);std::exit(10);
     }
@@ -219,11 +224,15 @@ int main(int argc,char **argv){
         }
     }
     label="ramp stress";
-    for(unsigned count:{1u,2u}){
+    for(unsigned count:{1u,2u,3u,4u,6u,8u,12u}){
+        stressRamps=count;
         table.h.count=count;table.h.height=432;
-        table.objects[0]={Ramp,0,28,382,85,80,0};table.objects[1]={Ramp,1,88,382,25,80,0};
+        for(unsigned i=0;i<count;++i)table.objects[i]={Ramp,uint8_t(i%2),
+            int16_t(18+(i*17)%79),382,int16_t(12+(i*23)%89),80,0};
         newGame(12345);for(auto &ball:game.balls)ball.active=false;
-        for(unsigned zoom:{256u,384u})for(int camera=0;camera<=324;camera+=4){game.camera=camera;game.zoom=zoom;frame();}
+        unsigned before=rendered,spans=0;
+        for(unsigned zoom:{256u,384u})for(int camera=0;camera<=324;camera+=4){game.camera=camera;game.zoom=zoom;frame();spans=std::max(spans,work.spans);}
+        std::printf("{\"kind\":\"ramp_stress\",\"ramps\":%u,\"rendered_frames\":%u,\"peak_span_calls\":%u,\"span_calls_limit\":%u}\n",count,rendered-before,spans,256+300*count);
     }
     std::printf("{\"kind\":\"summary\",\"games\":%u,\"repeat_runs\":%u,\"rendered_frames\":%u,\"peak\":{\"line_calls\":%u,\"line_pixels\":%u,\"pixel_calls\":%u,\"span_calls\":%u,\"span_pixels\":%u,\"sprites\":%u}}\n",
         games,games,rendered,peak.lines,peak.linePixels,peak.pixels,peak.spans,peak.spanPixels,peak.sprites);

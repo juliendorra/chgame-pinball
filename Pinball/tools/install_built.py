@@ -27,10 +27,18 @@ def main():
         time.sleep(1)
         subprocess.run([sys.executable,GAME/'tools/verify_device_fps.py','--out',out/'fps.json',
                         *(['--port',a.port] if a.port else [])],check=True,cwd=ROOT)
-        report['timing']=json.loads((out/'fps.json').read_text());report['result']='passed'
+        report['timing']=json.loads((out/'fps.json').read_text())
+        # Test the actual edited defaults as well as generic isolated ramps.
+        # A third ramp previously reduced Orbital Robot's gameplay clock.
+        subprocess.run([sys.executable,GAME/'tools/benchmark_ramp_device.py',
+                        '--active-only','--stress-ramps','--seconds','3',
+                        '--min-active-hz','57','--out',out/'board-ramps.json',
+                        *(['--port',a.port] if a.port else [])],check=True,cwd=ROOT)
+        report['board_timing']=json.loads((out/'board-ramps.json').read_text())
+        report['result']='passed'
     finally:
         (out/'installed.json').write_text(json.dumps(report,indent=2)+'\n')
-    print('PASS: installed paired firmware and physical-console FPS gate.')
+    print('PASS: installed paired firmware, generic and edited-board physical-console FPS gates.')
 
 
 if __name__=='__main__':main()
