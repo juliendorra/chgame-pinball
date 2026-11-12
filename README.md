@@ -62,9 +62,6 @@ On Apple silicon, this also builds the native RISC-V compiler; see
 [toolchain requirements](tools/toolchain/CURRENT-GCC.md).
 `python3 pinball.py build` builds firmware and its matching validated editor.
 `python3 pinball.py upload` builds and installs on a connected CHGame.
-Scores and settings use CHSave's isolated `5T668NAZ.SAV` journal on SD,
-identified by `com.juliendorra.pinball`. Preserve it when updating. Legacy
-`MPIN.SAV` journals require the migration tools supplied with the release.
 
 ## Publishing
 
@@ -80,15 +77,8 @@ See [third-party notices](NOTICE) for dependency licenses.
 
 ## SD saves
 
-Uses [CHSave 0.2](https://github.com/juliendorra/chgame-sd-saves).
-App ID: `com.juliendorra.pinball`. Firmware has no legacy save fallback.
+Pinball uses [CHSave 0.6.0](https://github.com/juliendorra/chgame-sd-saves/tree/v0.6.0).
+Scores and mute settings are saved automatically in `/SAVES/`.
 
-```sh
-# New card:
-python3 tools/sd_saves.py prepare --card /path/to/card
-# Existing four-character journal; old file is kept:
-python3 tools/sd_saves.py migrate --card /path/to/card
-```
-
-Convert existing saves before installing this build. Keep the hashed `.SAV`
-files when replacing cartridges. The complete ID is checked before writing.
+To keep scores from 1.4.18, move its `2A69WJNM.SAV` and `O92D2HN3.SAV`
+from the card root into `/SAVES/`. Keep any existing files in that folder.

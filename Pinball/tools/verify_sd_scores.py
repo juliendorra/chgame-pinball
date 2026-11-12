@@ -6,16 +6,16 @@ G=Path(__file__).resolve().parents[1];R=G.parent
 sys.path[:0]=[str(Path(__file__).resolve().parents[2]/'tools'),str(R/'CHGame/tools/chsim'),str(R/'chgame-sd-saves/tools'),str(R/'CHGame/platform/board/arduino/CHGame/libraries/CHSd/tools')]
 from sd_saves import overlay
 import prepare
-from fatimg import build_image,FatVolume
+from fatimg import build_image,FatVolume,short_name
 from chsim import build
 from chdrivelib import Driver,SimTransport
 from boards import encode
 O=G/'out/sd-scores';O.mkdir(parents=True,exist_ok=True)
 os.environ['CHSIM_CHGAME']=str(overlay()/'CHGame/src')
 os.environ['CHSIM_FLAGS']=f'-fsanitize=undefined,bounds -fsanitize-ignorelist={G}/tools/sanitizer.ignore -fno-sanitize-recover=all'
-exe=build(G,out=O/'sim-scores');ID='com.juliendorra.pinball.v2.scores-a';NAME=prepare.filename(ID)
+exe=build(G,out=O/'sim-scores');ID='com.juliendorra.pinball.v2.scores-a';NAME=prepare.save_path(ID)
 SECOND_ID='com.juliendorra.pinball.v2.scores-b'
-SECOND_NAME=prepare.filename(SECOND_ID)
+SECOND_NAME=prepare.save_path(SECOND_ID)
 board = json.loads((G / "boards/tables.json").read_text())[0]
 NEON = board["id"]
 
@@ -34,11 +34,13 @@ def journal(data, generation=1, version=1):
     struct.pack_into('<I', record, 508, zlib.crc32(record[:508]))
     return prepare.descriptor(ID, 1) + record + b'\xff' * 512
 
-def fresh(raw=None):
+def fresh(raw=None, root_journal=None):
     path = O/'card.img'
     files = {'OTHER.TXT': b'keep this exactly'}
     if raw is not None:
         files[NAME] = raw
+    if root_journal is not None:
+        files[prepare.filename(ID)] = root_journal
     build_image(path, files, fs='fat16', spc=1, clusters=5000, mbr=True)
     return path
 
@@ -80,8 +82,19 @@ s=boot(card,play=True);assert read(card)[0][s['id']]==50000
 assert boot(card)['best']==50000
 card=fresh();before=card.read_bytes();boot(card);assert card.read_bytes()==before
 boot(card,play=True);assert boot(card)['best']==50000
+with FatVolume(card) as volume:
+    prepare.validate(volume.read_file(NAME),ID)
+    assert all(entry[0] != short_name(prepare.filename(ID)) for entry in volume.listdir())
+root_journal=journal(payload([(NEON,77777)],muted=1))
+card=fresh(root_journal=root_journal)
+assert boot(card)['best']==0
+boot(card,play=True)
+assert boot(card)['best']==50000
+with FatVolume(card) as volume:
+    assert volume.read_file(prepare.filename(ID))==root_journal
+    prepare.validate(volume.read_file(NAME),ID)
 raw=journal(payload([(NEON,77777)],muted=1),version=2);card=fresh(raw);boot(card);assert raw_file(card)==raw
-report=dict(result='passed',id=ID,filename=NAME,checks=['preferences and scores retained','no write on boot','automatic first save','actual table-change save','restart persistence','unknown schema preserved','unrelated file unchanged'])
+report=dict(result='passed',id=ID,filename=NAME,checks=['preferences and scores retained','no write on boot','automatic first save in /SAVES on a blank card','actual table-change save','restart persistence','unknown schema preserved','unrelated file and old root journal unchanged'])
 
 def board_id(index):
     # Force distinct IDs to share the same low word, including the bundled board.

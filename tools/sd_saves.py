@@ -32,7 +32,7 @@ def shared_prepare():
 
 def catalog():
     shared=shared_prepare()
-    return {shared.filename(CONFIG['id']):{'game':CONFIG['game'],'id':CONFIG['id']}}
+    return {shared.save_path(CONFIG['id']):{'game':CONFIG['game'],'id':CONFIG['id']}}
 
 def validate(raw,ident):
     shared_prepare().validate(raw,ident)

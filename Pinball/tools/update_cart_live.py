@@ -106,7 +106,7 @@ def main():
     save_config=json.loads((R/'save-config.json').read_text())
     spec=importlib.util.spec_from_file_location('pinball_save_prepare',R/'chgame-sd-saves/tools/prepare.py')
     saves=importlib.util.module_from_spec(spec);spec.loader.exec_module(saves)
-    save_name=saves.filename(save_config['id'])
+    save_name=saves.save_path(save_config['id'])
     out=G/'out/device';out.mkdir(parents=True,exist_ok=True)
     t=SerialTransport(a.port);c=LiveClient(t);paused=None
     try:
