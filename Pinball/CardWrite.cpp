@@ -2,6 +2,9 @@
 // File allocation/commit is done by the editor; the game never exports a drive.
 #include <CHGame.h>
 #include <SdSpi.h>
+#if __has_include(<SdWrite.h>)
+#include <SdWrite.h>
+#endif
 #include "Live.h"
 #if !CHGAME_DEBUG || defined(CHSIM)
 #ifdef CHSIM

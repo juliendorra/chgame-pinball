@@ -53,5 +53,6 @@ void gfx_setPanelFrameRate(uint8_t,uint8_t,uint8_t){}
 namespace sd {
 bool init(){return false;}
 bool read(uint32_t,uint8_t *){return false;}
+bool write(uint32_t,const uint8_t *){return false;}
 bool stream(uint32_t,uint32_t,uint8_t *,uint8_t *,BlockFn,void *){return false;}
 }
