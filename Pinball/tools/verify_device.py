@@ -68,12 +68,12 @@ def main():
         d.cmd("L1"); d.buttons(0); d.frames(1)
         check(d.cmd("!", "FAULT") == "FAULT none", "no recorded device fault")
         s = state()
-        check(s["tables"] >= 10, "built-in table plus all nine SD tables discovered", s["tables"])
+        check(s["tables"] >= 9, "all nine SD tables discovered", s["tables"])
         snap("library")
         specs = json.loads((GAME / "boards/tables.json").read_text())
         expected = {spec["id"]: spec for spec in specs}
         indices = {}
-        for index in range(1, s["tables"]):
+        for index in range(s["tables"]):
             d.cmd(f"F {index}"); d.frames(1)
             table = state(); ident = table["id"]
             if ident not in expected:continue  # Preserve editor-created custom tables too.

@@ -7,7 +7,7 @@ from pathlib import Path as _Path
 import re as _re
 
 SAVE_PAGES = 2
-SIM_TESTS = ["tools/verify_sim.py"]
+SIM_TESTS = ["tools/verify_sim.py", "tools/verify_theme_assets.py"]
 # Headers are the single source for standard physics, including direct C++
 # builds. Export their defaults as explicit flags for SDK/Studio manifests.
 _root = _Path(__file__).resolve().parents[1]

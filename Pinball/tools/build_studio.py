@@ -41,9 +41,10 @@ def inputs():
     files.add(ROOT/'pinball.py')
     files.add(ROOT/'save-config.json')
     files.add(GAME/'editor/.htaccess')
+    files.add(GAME/'sd/PINBALL/THEMES.PBA')
     for name in ('build_studio.py','game.py','sprites.py','boards.py','sim_build.py',
                  'verify_wasm.mjs','verify_browser_card.py','verify_browser_card.mjs',
-                 'verify_sim.py','verify_shake.py','verify_flippers.py','verify_regressions.py',
+                 'verify_sim.py','verify_theme_assets.py','verify_shake.py','verify_flippers.py','verify_regressions.py',
                  'sanitizer.ignore'):
         files.add(GAME/'tools'/name)
     files.add(ROOT/'tools/sd_saves.py')
@@ -174,6 +175,7 @@ def main():
     run([node(),'--test',*sorted((GAME/'editor/tests').glob('*.test.mjs'))])
     run([sys.executable,GAME/'tools/verify_browser_card.py'])
     run([sys.executable,GAME/'tools/verify_sim.py'])
+    run([sys.executable,GAME/'tools/verify_theme_assets.py'])
     run([sys.executable,GAME/'tools/verify_shake.py'])
     run([sys.executable,GAME/'tools/verify_flippers.py'])
     run([sys.executable,GAME/'tools/verify_regressions.py','--out',OUT/'validation/regressions.json'])

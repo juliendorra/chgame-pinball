@@ -103,6 +103,12 @@ bool command(const char *p) {
     while(*p==' ')++p;
     char cmd=*p++;touched=millis();bool ok=false;
     if(cmd=='?'){say("LIVE HELLO 1.4.18 PBT1 RAM SD RUBBER TRACE\n");return true;}
+#if PINBALL_SD_BOARDS
+    if (!table.h.id && (cmd=='R' || cmd=='Y' || cmd=='M' || cmd=='P' || cmd=='T')) {
+        reply(false);
+        return false;
+    }
+#endif
     if(cmd=='Y') {
         uint32_t seed=number(p);
         if(seed>1) {

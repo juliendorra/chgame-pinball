@@ -79,8 +79,7 @@ for(unsigned frame=0;frame<150;++frame){if(frame==30)placeBall(0,60,254,0,-500);
         h=re.sub(r'(ramp_frames\[\] PB_SPRITE = )\{[^}]+\}',lambda m:m[1]+'{'+','.join(f'ramp_{n}' for n in range(len(frames)))+'}',h,count=1)
         h=re.sub(r'\{ramp_frames, \d+, 15, 17\}',f'{{ramp_frames, {len(frames)}, 15, 17}}',h,count=1)
         (variant/'SpriteData.h').write_text(h)
-        for name in ('ScoreData.h','BorderData.h'):
-            (variant/name).write_bytes((GAME/name).read_bytes())
+        (variant/'ThemeData.h').write_bytes((GAME/'ThemeData.h').read_bytes())
         source=render
         if 'marker' in d:
             marker=f'''    for(unsigned i=0;i<table.h.count;++i)if(table.objects[i].kind==Ramp){{

@@ -256,7 +256,7 @@ bool debugCommand(char cmd, const char *args) {
         gfx_wait(); game.zoom = zoom; drawTable(); gfx_flush(); return true;
     }
     if (cmd == 'C') { game.targetMask = dbg::parseNum(args, 10) & 7; return true; }
-    if (cmd == 'D') { gfx_wait(); scanTables(); if (selected >= libraryCount) selected = 0; return true; }
+    if (cmd == 'D') { gfx_wait(); scanTables(); rescanThemeArt(); if (selected >= libraryCount) selected = 0; return true; }
     return false;
 }
 #endif
@@ -271,12 +271,19 @@ void setup() {
     dbg::hook = debugCommand;
 #endif
     gfx_begin(GFX_DIV2, GFX_12BPP);
-    builtinTable(table);
+    initialTable();
+#if PINBALL_SD_BOARDS
+    scanTables();
+    previewReady = loadTable(0);
+    previewIndex = 0;
+#endif
     palette();
     loadScores();
     audio::begin(nullptr, 0, !scores.muted);
     rumble::begin();
+#if !PINBALL_SD_BOARDS
     scanTables();
+#endif
     chgame.setFrameRate(60);
 }
 
@@ -301,7 +308,12 @@ void loop() {
     if (screen == Library) {
         if ((chgame.repeat(UP_BUTTON) || chgame.repeat(LEFT_BUTTON)) && selected) --selected;
         if ((chgame.repeat(DOWN_BUTTON) || chgame.repeat(RIGHT_BUTTON)) && selected + 1 < libraryCount) ++selected;
-        if (chgame.justPressed(SELECT_BUTTON)) { scanTables(); if (selected >= libraryCount) selected = 0; previewIndex = -1; }
+        if (chgame.justPressed(SELECT_BUTTON)) {
+            scanTables();
+            rescanThemeArt();
+            if (selected >= libraryCount) selected = 0;
+            previewIndex = -1;
+        }
         if (chgame.justPressed(B_BUTTON) && playing) { screen = Play; palette(); }
         else if (chgame.justPressed(A_BUTTON)) beginTable();
     } else {

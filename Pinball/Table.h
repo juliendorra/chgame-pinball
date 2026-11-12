@@ -3,6 +3,14 @@
 #include <stddef.h>
 #include <Fat.h>
 
+#ifndef PINBALL_SD_BOARDS
+#if defined(CHSIM)
+#define PINBALL_SD_BOARDS 0
+#else
+#define PINBALL_SD_BOARDS 1
+#endif
+#endif
+
 namespace pinball {
 constexpr unsigned MAX_OBJECTS = 72;
 constexpr unsigned MAX_TABLES = 96;
@@ -38,7 +46,10 @@ extern Entry library[MAX_TABLES];
 extern uint8_t libraryCount;
 extern bool libraryFull;
 extern const char *cardStatus;
+void initialTable();
+#if !PINBALL_SD_BOARDS
 void builtinTable(Table &out);
+#endif
 bool validTable(const Table &t, unsigned size);
 void scanTables();
 // The current table is assigned only after a complete, validated read.

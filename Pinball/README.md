@@ -244,10 +244,10 @@ python3 Pinball/tools/benchmark_spin.py --check
 ```
 
 `build/release/Pinball.ino.bin` is the firmware. `build/Pinball.chgame` bundles
-the firmware **and all nine SD tables**, so CHGame cart deployment can install
-both. To install manually, copy the `sd/PINBALL` folder to the root of a
-FAT16/FAT32 SD card. The standalone firmware contains Neon Pursuit as a
-fallback and works with no card inserted.
+the firmware, all nine SD tables, and the theme art pack, so CHGame cart
+deployment can install them together. To install manually, copy the `sd/PINBALL` folder to the root of a
+FAT16/FAT32 SD card. The console loads every board from SD, including Neon
+Pursuit. Studio includes the default boards for browser play.
 
 When ready to replace the currently running handheld application:
 
@@ -283,10 +283,19 @@ See the [device validation record](docs/device-validation.md) for measured resul
 | PIRATES.PBT | Buccaneer Bay | 432 |
 
 The browser finds `.PBT` files in the card root and in `/PINBALL`, using FAT
-8.3 short names. It holds up to 95 SD entries plus the built-in table. It
+8.3 short names. The console picker holds up to 96 SD entries. It
 loads a table when chosen, without reflashing or rebooting, and keeps its
 geometry in RAM throughout play. There is no per-frame SD traffic. Return to
 the library and press SELECT after adding files or changing cards.
+An empty or unreadable card shows its status in the picker. Insert a card
+with valid boards and press SELECT to rescan.
+
+`/PINBALL/THEMES.PBA` contains the eight additional themes' side rails, crests,
+and score digits. The console reads the selected theme when browsing or
+switching boards and keeps one theme in RAM. Neon Pursuit and the shared roof
+trim are built in, so a missing, unreadable, or corrupt theme falls back to
+Neon art with the selected board's palette. Layouts and scoring still work.
+Studio embeds all nine themes for browser play.
 
 Reads wait for LCD DMA because the display and SD card share SPI. Loading
 re-mounts the card and finds the selected name again, so stale cluster numbers
@@ -374,6 +383,10 @@ level 5. Tilt keeps its red warning until drain. These are visual changes;
 ball inertia, gravity, timing and the six-tap tilt threshold are unchanged.
 
 For a cart update without mounting the SD drive, while Pinball is running:
+
+This procedure replaces the menu cart only. On the first update to a build
+that loads theme art from SD, also copy `sd/PINBALL/THEMES.PBA` into the card's
+`/PINBALL` folder using a card reader.
 
 ```sh
 python3 pinball.py build

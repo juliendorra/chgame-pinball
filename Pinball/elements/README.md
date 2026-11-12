@@ -76,10 +76,12 @@ every pose and its unshadowed collision spans regenerate from the same art.
 | `b`, `p`, `r` | Blue / purple / red (12,13,6) |
 
 Run `.venv/bin/python Pinball/tools/sprites.py` to regenerate `SpriteData.h`,
-`FlipperData.h`, `ScoreData.h` and `BorderData.h`, then rebuild the cart. `--check` detects stale generated art. Sprite changes
-apply to the library globally; table palettes and layouts load from SD.
-Sprite data is compiled into flash, so editing art requires a firmware/cart
-rebuild. Layout and palette edits only require rebuilding/copying `.PBT` files.
+`FlipperData.h`, `ThemeData.h` and `sd/PINBALL/THEMES.PBA`. `--check` detects
+stale generated art. Copy the new pack to `/PINBALL/THEMES.PBA` to update the
+eight SD themes' side art, emblems, or score digits. Changes to Neon art,
+the shared roof, or active element sprites require rebuilding the cart.
+Rebuild Studio to update its embedded themes. Layout and palette edits only
+require rebuilding or copying `.PBT` files.
 
 The large white ball has a separate nine-pixel sprite. Felt uses palette 0,
 independently of the dark cavities and HUD. Keep the felt darker than active

@@ -115,6 +115,8 @@ def main():
     header += "static const uint8_t BUILTIN[] = {\n"
     header += "\n".join("    " + ",".join(f"0x{n:02x}" for n in builtin[i:i + 16]) + "," for i in range(0, len(builtin), 16))
     header += "\n};\n"
+    menu_palette = struct.unpack_from("<16H", builtin, 64)
+    header += "static const uint16_t MENU_PALETTE[] = {" + ", ".join(f"0x{v:03x}" for v in menu_palette) + "};\n"
     outputs = {a.out / name: data for name, data in files.items()}
     outputs[GAME / "Builtin.h"] = header.encode()
     for dest, data in outputs.items():
@@ -125,7 +127,9 @@ def main():
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(data)
     if a.image:
-        image(a.image, {"PINBALL/" + k: v for k, v in files.items()})
+        card_files = {"PINBALL/" + k: v for k, v in files.items()}
+        card_files["PINBALL/THEMES.PBA"] = (GAME / "sd/PINBALL/THEMES.PBA").read_bytes()
+        image(a.image, card_files)
     print(f"{'Verified' if a.check else 'Built'} {len(files)} tables, {sum(map(len, files.values())):,} bytes total")
 
 

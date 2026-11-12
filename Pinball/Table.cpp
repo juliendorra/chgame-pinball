@@ -10,7 +10,8 @@ Table table;
 Entry library[MAX_TABLES];
 uint8_t libraryCount;
 bool libraryFull;
-const char *cardStatus = "NO SD - BUILT-IN READY";
+static constexpr const char *noCard = PINBALL_SD_BOARDS ? "INSERT SD CARD" : "NO SD - BUILT-IN READY";
+const char *cardStatus = noCard;
 static Table pending;
 // One unsigned comparison preserves both bounds, including negative inputs.
 static bool within(int value,int low,int high) { return unsigned(value-low)<=unsigned(high-low); }
@@ -19,9 +20,19 @@ static __attribute__((noinline)) bool validLabel(const char *p,unsigned n) {
     return true;
 }
 
+#if !PINBALL_SD_BOARDS
 void builtinTable(Table &out) {
     memset(&out, 0, sizeof out);
     memcpy(&out, BUILTIN, sizeof BUILTIN);
+}
+#endif
+
+void initialTable() {
+#if PINBALL_SD_BOARDS
+    memcpy(table.h.palette, MENU_PALETTE, sizeof MENU_PALETTE);
+#else
+    builtinTable(table);
+#endif
 }
 
 bool validTable(const Table &t, unsigned size) {
@@ -81,30 +92,37 @@ static bool collect(const char *name, const fat::File &, bool dir, void *ctx) {
 
 void scanTables() {
     gfx_wait();
-    libraryCount = 1;
     libraryFull = false;
+#if PINBALL_SD_BOARDS
+    constexpr unsigned firstSD = 0;
+#else
+    constexpr unsigned firstSD = 1;
     memset(&library[0], 0, sizeof(Entry));
     memcpy(library[0].name, "NEON    PBT", 11);
+#endif
+    libraryCount = firstSD;
     uint8_t *buf = gfx_chunkScratch();
-    if (!sd::init()) { cardStatus = "NO SD - BUILT-IN READY"; return; }
+    if (!sd::init()) { cardStatus = noCard; return; }
     int8_t err = fat::mount(buf);
     if (err) { cardStatus = err == fat::E_EXFAT ? "USE A FAT32 CARD" : "FAT READ FAILED"; return; }
     fat::File dir;
     if (fat::root(dir) || fat::list(dir, collect, nullptr, buf)) {
-        libraryCount = 1; cardStatus = "SD READ FAILED"; return;
+        libraryCount = firstSD; cardStatus = "SD READ FAILED"; return;
     }
     err = fat::folder("PINBALL    ", dir, buf);
     if (err != fat::E_NOTFOUND && (err || fat::list(dir, collect, &dir, buf))) {
-        libraryCount = 1; cardStatus = "SD READ FAILED"; return;
+        libraryCount = firstSD; cardStatus = "SD READ FAILED"; return;
     }
     cardStatus = libraryFull ? "96 TABLE LIMIT REACHED" :
-        libraryCount > 1 ? "SD TABLES READY" : "ADD PINBALL/*.PBT TO SD";
+        libraryCount > firstSD ? "SD TABLES READY" : "ADD PINBALL/*.PBT TO SD";
 }
 
 bool previewTable(unsigned index) {
     if (index >= libraryCount) return false;
     gfx_wait();
+#if !PINBALL_SD_BOARDS
     if (!index) { builtinTable(pending); return true; }
+#endif
     uint8_t *buf = gfx_chunkScratch();
     // Re-find by name on the freshly mounted volume: cached clusters must
     // never be trusted after an SD swap, even for a same-sized replacement.

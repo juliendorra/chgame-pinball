@@ -3,6 +3,7 @@
 import argparse
 import json
 import math
+import struct
 from pathlib import Path
 
 GAME = Path(__file__).resolve().parents[1]
@@ -90,76 +91,86 @@ def flipper_pose(rows, angle, mirror, shadow, pivot):
     return pack(cast_shadow(frame, shadow), 56, trim=shadow is not None), -x0, -y0, hull
 
 
-def score_header():
+def theme_assets():
+    borders = json.loads((GAME / "sprites/board_borders.json").read_text())
     fonts = json.loads((GAME / "sprites/score_digits.json").read_text())
-    if len(fonts) != 9:
-        raise ValueError("one digit style per board theme is required")
-    header = '// Generated from sprites/score_digits.json by tools/sprites.py.\n#pragma once\n#include "SpriteData.h"\nnamespace pinball {\n'
-    used=[{INK[c] for digit in digits for row in digit for c in row} for digits in fonts.values()]
-    # Stable transparent/white codes make repeated rows shareable across themes.
-    palettes=[[c for c in (15,1) if c in p]+sorted(p-{15,1}) for p in used]
-    if any(len(p)>4 for p in palettes):
-        raise ValueError("score fonts support at most four inks per theme (including transparency)")
-    header += "static const uint8_t SCORE_PALETTES[9][4] PB_SPRITE = {\n"
-    header += ''.join('    {'+','.join(map(str,p+[15]*(4-len(p))))+'},\n' for p in palettes)
-    row_words=sorted({sum(p.index(INK[c]) << (i*2) for i,c in enumerate(row))
-                      for p,digits in zip(palettes,fonts.values()) for digit in digits for row in digit})
-    row_coded=len(row_words)<=256 and len(row_words)*2+810<1440
-    header += "};\n#define SCORE_ROW_CODED "+str(int(row_coded))+"\n"
-    if row_coded:
-        header += 'static const uint16_t SCORE_ROWS[] PB_SPRITE = {'+','.join(map(str,row_words))+'};\n'
-    header += f"static const uint8_t SCORE_DIGITS[9][10][{9 if row_coded else 16}] PB_SPRITE = {{\n"
-    for name, digits in fonts.items():
+    if len(borders) != 9 or len(fonts) != 9:
+        raise ValueError("one border skin and score font per theme are required")
+    # Both source files are in board theme order. The roof trim is shared.
+    top = None
+    themes = []
+    for (name, skin), digits in zip(borders.items(), fonts.values()):
+        for part, (width, height) in {"top": (128, 34), "side": (11, 16), "emblem": (12, 8)}.items():
+            rows = skin[part]
+            if len(rows) != height or any(len(row) != width for row in rows):
+                raise ValueError(f"{name} {part}: expected {width}x{height}")
+        roof = pack(skin["top"][6:30], 128, trim=True)
+        if top is not None and top != roof:
+            raise ValueError(f"{name}: expected the shared roof trim")
+        top = roof
+        side = pack(skin["side"], trim=True)
+        emblem = pack(skin["emblem"], trim=True)
         if len(digits) != 10 or any(len(d) != 9 or any(len(row) != 7 for row in d) for d in digits):
             raise ValueError(f"{name}: ten 7x9 digits required")
-        header += "    {\n"
-        palette=palettes[list(fonts).index(name)]
-        for rows in digits:
-            if row_coded:
-                packed=[row_words.index(sum(palette.index(INK[c]) << (i*2) for i,c in enumerate(row))) for row in rows]
-                restored=[palette[(row_words[packed[y]] >> (x*2))&3] for y in range(9) for x in range(7)]
-            else:
-                pixels = [palette.index(INK[c]) for row in rows for c in row] + [0]
-                packed = [sum(pixels[i+j] << (j*2) for j in range(4)) for i in range(0,64,4)]
-                restored=[palette[(packed[i//4] >> ((i%4)*2)) & 3] for i in range(63)]
-            assert restored==[INK[c] for row in rows for c in row], "score packing must preserve every ink"
-            header += "        {" + ",".join(map(str, packed)) + "},\n"
-        header += "    },\n"
-    return header + "};\n}  // namespace pinball\n"
+        inks = {INK[c] for digit in digits for row in digit for c in row}
+        palette = [c for c in (15, 1) if c in inks] + sorted(inks - {15, 1})
+        if len(palette) > 4:
+            raise ValueError(f"{name}: score fonts support at most four inks")
+        packed_digits = []
+        for digit in digits:
+            rows = [sum(palette.index(INK[c]) << (x*2) for x, c in enumerate(row)) for row in digit]
+            packed_digits.append(struct.pack("<9H", *rows))
+        themes.append((side, emblem, bytes(palette + [15]*(4-len(palette))), packed_digits))
 
+    # Fixed PBA1 field sizes let regenerated packs work with installed carts.
+    side_size, emblem_size = 155, 50
+    if any(len(side) > side_size or len(emblem) > emblem_size for side, emblem, _, _ in themes):
+        raise ValueError("theme side or emblem exceeds its PBA1 field")
+    header = """// Generated from board_borders.json and score_digits.json by tools/sprites.py.
+#pragma once
+#include "SpriteData.h"
 
-def border_header():
-    borders=json.loads((GAME/'sprites/board_borders.json').read_text())
-    if len(borders)!=9:raise ValueError('one border skin per theme is required')
-    h='// Generated from sprites/board_borders.json by tools/sprites.py.\n#pragma once\n#include "SpriteData.h"\nnamespace pinball {\n'
-    shared={};parts={};side_bytes=0
-    for name,skin in borders.items():
-        for part,rows in skin.items():
-            expected={'top':(128,34),'side':(11,16),'emblem':(12,8)}[part]
-            if (len(rows[0]),len(rows))!=expected:raise ValueError(f'{name} {part}: expected {expected}')
-            if part=='top':rows=rows[6:30] # trim empty rows; world anchor is y=6
-            data=pack(rows,128,trim=True)
-            if part=='side':
-                # Keep one copy of each identical scanline. Expand the small
-                # tile once per theme, preserving the SDK sprite4 byte stream.
-                side_bytes=max(side_bytes,len(data));original=data;at=2
-                packed=bytearray(len(rows));seen={}
-                for y in range(len(rows)):
-                    row=data[at:at+1+data[at]];at+=len(row)
-                    if row not in seen:seen[row]=len(packed);packed.extend(row)
-                    packed[y]=seen[row]
-                assert len(packed)<256
-                restored=bytes((11,16))+b''.join(packed[packed[y]:packed[y]+1+packed[packed[y]]] for y in range(16))
-                assert restored==original
-                data=bytes(packed)
-            if data not in shared:
-                shared[data]=f'border_{name}_{part}'
-                h+=f'static const uint8_t {shared[data]}[] PB_SPRITE = {{'+','.join(map(str,data))+'};\n'
-            parts[name,part]=shared[data]
-    h+=f'constexpr unsigned BORDER_SIDE_BYTES={side_bytes};\n'
-    h+='struct BoardBorder { const uint8_t *top, *side, *emblem; };\nstatic const BoardBorder BOARD_BORDERS[9] PB_SPRITE = {\n'
-    for name in borders:h+='    {'+','.join(parts[name,part] for part in ('top','side','emblem'))+'},\n'
-    return h+'};\n}  // namespace pinball\n'
+#ifndef PINBALL_SD_THEMES
+#if defined(CHSIM)
+#define PINBALL_SD_THEMES 0
+#else
+#define PINBALL_SD_THEMES 1
+#endif
+#endif
+
+namespace pinball {
+struct ThemeArt {
+    uint8_t side[%d], emblem[%d], palette[4], digits[10][18];
+};
+""" % (side_size, emblem_size)
+
+    def array(data):
+        return "{" + ",".join(map(str, data)) + "}"
+
+    def initializer(theme):
+        side, emblem, palette, digits = theme
+        return "    {" + ",\n     ".join((array(side), array(emblem), array(palette),
+                                          "{" + ",\n      ".join(map(array, digits)) + "}")) + "},\n"
+
+    header += "static const uint8_t THEME_ROOF[] PB_SPRITE = " + array(top) + ";\n"
+    header += "static const ThemeArt THEME_ART[] PB_SPRITE = {\n" + initializer(themes[0])
+    header += "#if !PINBALL_SD_THEMES\n" + "".join(map(initializer, themes[1:])) + "#endif\n};\n"
+    header += "}  // namespace pinball\n"
+
+    # Theme N (1–8) occupies sector N-1. Each sector is self-contained, so
+    # changing boards requires one data read, even on a fragmented FAT card.
+    sectors = []
+    for index, (side, emblem, palette, digits) in enumerate(themes[1:], 1):
+        data = b"PBA1" + bytes([index]) + side.ljust(side_size, b"\0") + emblem.ljust(emblem_size, b"\0")
+        data += palette + b"".join(digits)
+        if len(data) > 508:
+            raise ValueError("theme payload does not fit a single sector")
+        data = data.ljust(508, b"\0")
+        checksum = 2166136261
+        for byte in data:
+            checksum = ((checksum ^ byte) * 16777619) & 0xFFFFFFFF
+        sectors.append(data + struct.pack("<I", checksum))
+    return header, b"".join(sectors)
 
 
 def main():
@@ -252,13 +263,15 @@ def main():
             poses.append(f"{{{name},{name}_hull,flipper_pose_0_{level}_mask,{ax},{ay},{len(hull)|(128 if side else 0)},{raw[1]}}}")
     bats += "const FlipperPose FLIPPER_POSES[2][9] PB_SPRITE = {{" + ",".join(poses[:9]) + "},{" + ",".join(poses[9:]) + "}};\n"
     bats += "}  // namespace pinball\n"
-    for out, contents in ((GAME / "SpriteData.h", header), (GAME / "FlipperData.h", bats),
-                          (GAME / "ScoreData.h", score_header()), (GAME / "BorderData.h", border_header())):
+    themes, pack_data = theme_assets()
+    for path, contents in (("SpriteData.h", header.encode()), ("FlipperData.h", bats.encode()),
+                           ("ThemeData.h", themes.encode()), ("sd/PINBALL/THEMES.PBA", pack_data)):
+        out = GAME / path
         if a.check:
-            if not out.exists() or out.read_text() != contents:
-                raise SystemExit(f"{out.name} is stale")
+            if not out.exists() or out.read_bytes() != contents:
+                raise SystemExit(f"{path} is stale")
         else:
-            out.write_text(contents)
+            out.write_bytes(contents)
     print(f"{'Verified' if a.check else 'Built'} {sum(map(len, source.values()))} source frames in {len(source)} animations, 18 flipper poses and 90 score digits")
 
 

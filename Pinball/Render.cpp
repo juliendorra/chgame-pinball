@@ -3,10 +3,84 @@
 #include "Render.h"
 #include "Elements.h"
 #include "SpriteData.h"
-#include "ScoreData.h"
-#include "BorderData.h"
+#include "ThemeData.h"
+#if PINBALL_SD_THEMES
+#include <Fat.h>
+#include <SdSpi.h>
+#endif
 
 namespace pinball {
+static const uint8_t *previousScoreGlyph;
+#if defined(__GNUC__) && !defined(__clang__) && PINBALL_SD_THEMES
+#pragma GCC push_options
+#pragma GCC optimize("Oz")
+#endif
+#if PINBALL_SD_THEMES
+static ThemeArt cachedArt;
+static uint8_t cachedTheme; // bit 7 marks a failed read, retried on rescan or another theme
+
+static __attribute__((noinline)) bool validThemeSprite(
+        const uint8_t *data, unsigned size, unsigned width, unsigned height) {
+    if (data[0] != width || data[1] != height) return false;
+    unsigned at = 2;
+    for (unsigned row = 0; row < height; ++row) {
+        if (at == size) return false;
+        unsigned runs = data[at++];
+        if (runs > size - at) return false;
+        unsigned pixels = 0;
+        while (runs--) pixels += (data[at++] >> 4) + 1;
+        if (pixels > width) return false;
+    }
+    return true;
+}
+
+static __attribute__((noinline)) bool readThemeArt(unsigned theme) {
+    static_assert(sizeof(ThemeArt) + 5 <= 508, "theme payload exceeds one sector");
+    gfx_wait();
+    uint8_t *buf = gfx_chunkScratch();
+    fat::File dir, file;
+    fat::Run runs[8];
+    if (!sd::init() || fat::mount(buf) || fat::folder("PINBALL    ", dir, buf) ||
+        fat::match(dir, "THEMES  PBA", 0, file, nullptr, buf) || file.size != 8 * 512)
+        return false;
+    int n = fat::runs(file, runs, 8, buf);
+    if (n <= 0 || !fat::read(runs, n, theme - 1, buf) ||
+        memcmp(buf, "PBA1", 4) || buf[4] != theme) return false;
+    uint32_t expected;
+    memcpy(&expected, buf + 508, sizeof expected);
+    uint32_t hash = 2166136261u;
+    for (unsigned i = 0; i < 508; ++i) hash = (hash ^ buf[i]) * 16777619u;
+    if (hash != expected ||
+        !validThemeSprite(buf + 5, sizeof cachedArt.side, 11, 16) ||
+        !validThemeSprite(buf + 5 + sizeof cachedArt.side, sizeof cachedArt.emblem, 12, 8))
+        return false;
+    for (unsigned i = 0; i < 4; ++i)
+        if (buf[5 + sizeof cachedArt.side + sizeof cachedArt.emblem + i] > 15) return false;
+    memcpy(&cachedArt, buf + 5, sizeof cachedArt);
+    previousScoreGlyph = nullptr;
+    return true;
+}
+#endif
+
+void rescanThemeArt() {
+#if PINBALL_SD_THEMES
+    cachedTheme = 0;
+#endif
+}
+
+static const ThemeArt &artFor(unsigned theme) {
+#if PINBALL_SD_THEMES
+    if (theme && theme != (cachedTheme & 127))
+        cachedTheme = readThemeArt(theme) ? theme : theme | 128;
+    return theme && theme == cachedTheme ? cachedArt : THEME_ART[0];
+#else
+    return THEME_ART[theme];
+#endif
+}
+#if defined(__GNUC__) && !defined(__clang__) && PINBALL_SD_THEMES
+#pragma GCC pop_options
+#endif
+
 #ifdef CHSIM
 void drawOverview(void (*write)(const uint8_t *, unsigned, void *), void *context) {
     gfx_wait();
@@ -423,19 +497,13 @@ static void shakeImpact() {
 static int scoreWidth(const char *digits, int scale) { return (strlen(digits) * 8 - 1) * scale / 256; }
 // Decode each theme's four-color, two-bit glyphs without changing their art.
 // Cache the last glyph too, so an unchanged single-digit score costs no decode.
-static void scoreGlyph(const uint8_t *packed,uint8_t *data) {
-    static const uint8_t *previous;
-    if(packed==previous)return;
-    previous=packed;data[0]=7;data[1]=9;unsigned at=2;
-    const uint8_t *palette=SCORE_PALETTES[table.h.theme];
+static void scoreGlyph(const uint8_t *packed,const uint8_t *palette,uint8_t *data) {
+    if(packed==previousScoreGlyph)return;
+    previousScoreGlyph=packed;data[0]=7;data[1]=9;unsigned at=2;
     for(unsigned row=0;row<9;++row) {
         unsigned count=at++;data[count]=0;
-#if SCORE_ROW_CODED
-        unsigned bits=SCORE_ROWS[packed[row]];
+        unsigned bits=packed[row*2] | (unsigned(packed[row*2+1]) << 8);
         auto pixel=[&](unsigned x){return palette[(bits>>(x*2))&3];};
-#else
-        auto pixel=[&](unsigned x){unsigned p=row*7+x;return palette[(packed[p/4]>>((p&3)*2))&3];};
-#endif
         for(unsigned x=0;x<7;) {
             unsigned color=pixel(x),n=1;
             while(x+n<7 && pixel(x+n)==color)++n;
@@ -443,15 +511,15 @@ static void scoreGlyph(const uint8_t *packed,uint8_t *data) {
         }
     }
 }
-static void scoreDigits(const char *digits, int x, int y, int scale, bool shadow, bool flash = false) {
+static void scoreDigits(const ThemeArt &art, const char *digits, int x, int y, int scale, bool shadow, bool flash = false) {
     static uint8_t data[74];
     uint8_t remap[16];
     for (unsigned i = 0; i < 16; ++i) remap[i] = i;
     remap[8] = flash ? WHITE : scoreColor();
     uint8_t shade[16]; memset(shade, GRID, sizeof shade);
     for (unsigned i = 0; digits[i]; ++i) {
-        const uint8_t *packed = SCORE_DIGITS[table.h.theme][digits[i] - '0'];
-        scoreGlyph(packed,data);
+        const uint8_t *packed = art.digits[digits[i] - '0'];
+        scoreGlyph(packed,art.palette,data);
         int dx = x + i * 8 * scale / 256;
         if (shadow) sprite4(data, dx + 1, y + 1, shade, scale);
         sprite4(data, dx, y, remap, scale);
@@ -469,7 +537,7 @@ static bool popupClear() {
     }
     return true;
 }
-static __attribute__((noinline)) void scorePopup() {
+static __attribute__((noinline)) void scorePopup(const ThemeArt &art) {
     if (!game.scorePopTicks) return;
     if(!popupClear())return;
     unsigned age = 36 - game.scorePopTicks;
@@ -487,7 +555,7 @@ static __attribute__((noinline)) void scorePopup() {
     int h = 9 * scale / 256 + 15;
     gfx_fillRoundRect((128 - box) / 2, y, box, h, 3, PANEL);
     gfx_roundRect((128 - box) / 2, y, box, h, 3, scoreColor());
-    scoreDigits(digits, (128 - w) / 2, y + 2, scale, true, game.scorePopTicks & 4);
+    scoreDigits(art, digits, (128 - w) / 2, y + 2, scale, true, game.scorePopTicks & 4);
     center(y + h - 9, label, GOLD);
 }
 static __attribute__((noinline)) void bonusPopup(unsigned bonus) {
@@ -566,24 +634,12 @@ static __attribute__((noinline)) void footer(const char *text,uint8_t color) {
     }
     text35(18+(110-text35Width(text))/2,122,text,color);
 }
-static const uint8_t *borderSide(const uint8_t *source) {
-    static uint8_t data[BORDER_SIDE_BYTES],theme=255;
-    if(theme!=table.h.theme) {
-        theme=table.h.theme;data[0]=11;data[1]=16;uint8_t *out=data+2;
-        for(unsigned y=0;y<16;++y) {
-            const uint8_t *row=source+source[y];unsigned n=*row++;
-            *out++=n;memcpy(out,row,n);out+=n;
-        }
-    }
-    return data;
-}
-static __attribute__((noinline)) void borderSkins() {
-    const BoardBorder &skin=BOARD_BORDERS[table.h.theme];
-    const uint8_t *side=borderSide(skin.side);
+static __attribute__((noinline)) void borderSkins(const ThemeArt &skin) {
+    const uint8_t *side=skin.side;
     uint8_t remap[16];for(unsigned i=0;i<16;++i)remap[i]=i;
     remap[8]=scoreColor();
     if(sy(34)>clipY && sy(-HEADER_HEIGHT)<clipY+clipH) {
-        sprite4(skin.top,0,sy(6),remap);
+        sprite4(THEME_ROOF,0,sy(6),remap);
         // The large theme crest rises from the roof on joined, shaded
         // brackets. Empty pixels expose the same felt as the playfield.
         RailPoint left[]={{23,8},{29,-5},{44,-5}},right[]={{84,-5},{92,-5},{98,8}};
@@ -613,6 +669,7 @@ static __attribute__((noinline)) void borderSkins() {
     }
 }
 __attribute__((noinline)) void drawTable() {
+    const ThemeArt &art = artFor(table.h.theme);
     const int h = table.h.height;
     gfx_clear(BG);
     clipX = 0; clipY = 12; clipW = 128; clipH = 108;
@@ -623,7 +680,7 @@ __attribute__((noinline)) void drawTable() {
     railRun(cabinet,6,scoreColor());
     RailPoint shooter[]={{112,int16_t(h+6)},{112,58},{111,56}};
     railRun(shooter,3,SILVER);
-    borderSkins();
+    borderSkins(art);
     GuideRail flap=shooterFlapArm(game.shooterFlap);
     rail(flap.x,flap.y,flap.u,flap.v,SILVER);
     gfx_fillRoundRect(122,sy(41),4,4,1,GOLD);
@@ -697,7 +754,7 @@ __attribute__((noinline)) void drawTable() {
     shakeImpact();
     gfx_fillRect(0, 0, 128, 12, PANEL);
     char num[16]; fmtInt(num, game.score);
-    scoreDigits(num, 3, 0, 256, false);
+    scoreDigits(art, num, 3, 0, 256, false);
     text35(77, 3, "X", GOLD); fmtInt(num, scoreMultiplier()); text35(82, 3, num, GOLD);
     text35(100, 3, "BALL", DIM); fmtInt(num, game.lives ? 4 - game.lives : 3); text35(120, 3, num, CYAN);
     gfx_hline(0, 10, 128, SILVER);
@@ -721,7 +778,7 @@ __attribute__((noinline)) void drawTable() {
         footer(hint,GOLD);
     } else footer("LEFT/B FLIP A/RIGHT SHAKE",DIM);
     unsigned bonus=game.stuck && !game.paused?BonusStuck:game.bonusTicks?game.bonus:BonusNone;
-    if(bonus)bonusPopup(bonus);else scorePopup();
+    if(bonus)bonusPopup(bonus);else scorePopup(art);
 }
 
 static void thumbnail(const Table &t) {
@@ -753,10 +810,18 @@ static void thumbnail(const Table &t) {
     gfx_line(px(MAIN_RIGHT), y + h - 5, px(MAIN_RIGHT - MAIN_LENGTH), y + h - 3, WHITE);
 }
 void drawLibrary(unsigned selected, bool playing, bool previewReady) {
+    const Table &t = previewData();
+    const ThemeArt &art = artFor(previewReady ? t.h.theme : 0);
     gfx_clear(BG);
     center(3, "MIDNIGHT PINBALL - CHOOSE", CYAN);
     gfx_hline(4, 11, 120, METAL);
-    const Table &t = previewData();
+#if PINBALL_SD_BOARDS
+    if (!libraryCount) {
+        center(55, cardStatus, RED);
+        center(70, "SELECT RESCAN SD", SILVER);
+        return;
+    }
+#endif
     char title[20];
     const char *name = previewReady ? t.h.title : "INVALID TABLE";
     unsigned length = 0;
@@ -775,9 +840,9 @@ void drawLibrary(unsigned selected, bool playing, bool previewReady) {
     if(previewReady) {
         uint8_t remap[16];for(unsigned i=0;i<16;++i)remap[i]=i;
         remap[8]=scoreColor(t.h.theme);
-        sprite4(BOARD_BORDERS[t.h.theme].emblem,70,41,remap,1024);
+        sprite4(art.emblem,70,41,remap,1024);
     }
-    const char *source=selected ? "SD TABLE" : "BUILT IN";
+    const char *source=PINBALL_SD_BOARDS || selected ? "SD TABLE" : "BUILT IN";
     text35(94-text35Width(source)/2,90,source,CYAN);
     unsigned bumpers = 0, tiers = 1;
     if (previewReady) for (unsigned i = 0; i < t.h.count; ++i) {
@@ -799,15 +864,16 @@ void drawPause(bool sound) {
     text35x2(40, 38, "PAUSE", WHITE); center(55, "A / START RESUME", CYAN);
     center(68, sound ? "B SOUND ON" : "B SOUND OFF", GOLD); center(81, "SELECT TABLE LIBRARY", DIM);
 }
-static void resultScore(int y,uint32_t value) {
+static void resultScore(const ThemeArt &art,int y,uint32_t value) {
     char digits[16];fmtInt(digits,value);
-    scoreDigits(digits,(128-scoreWidth(digits,384))/2,y,384,true);
+    scoreDigits(art,digits,(128-scoreWidth(digits,384))/2,y,384,true);
 }
 void drawGameOver(uint32_t best) {
+    const ThemeArt &art = artFor(table.h.theme);
     panel(3,14,122,112,4,PANEL,scoreColor());
     resultText(20,"GAME OVER",WHITE);
-    resultText(35,"SCORE",SILVER);resultScore(48,game.score);
-    resultText(66,"BEST",SILVER);resultScore(79,best);
+    resultText(35,"SCORE",SILVER);resultScore(art,48,game.score);
+    resultText(66,"BEST",SILVER);resultScore(art,79,best);
     resultText(99,"A RETRY",WHITE);
     resultText(112,"SELECT TABLES",CYAN);
 }
