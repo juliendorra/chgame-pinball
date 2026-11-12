@@ -352,6 +352,30 @@ static void zoomPlayfield() {
         lastSource = sourceY; lastDestination = y;
     }
 }
+// Drawing already waited for the display transfer. Decode into its idle
+// scratch buffer, then pass the original spans to the normal renderer.
+static __attribute__((noinline)) const uint8_t *expandSprite(const uint8_t *source) {
+    uint8_t *const sprite = gfx_chunkScratch();
+    uint8_t *out = sprite;
+    *out++ = *source++;
+    *out++ = *source++;
+    unsigned tokens = *source++;
+    while (tokens--) {
+        unsigned token = *source++, count = 0;
+        uint8_t pending[SPRITE_STACK];
+        for (;;) {
+            while (token >= sizeof SPRITE_LITERALS) {
+                unsigned pair = (token - sizeof SPRITE_LITERALS) * 2;
+                pending[count++] = SPRITE_PAIRS[pair + 1];
+                token = SPRITE_PAIRS[pair];
+            }
+            *out++ = SPRITE_LITERALS[token];
+            if (!count) break;
+            token = pending[--count];
+        }
+    }
+    return sprite;
+}
 static void elementSprite(SpriteId id, unsigned frame, int x, int y, uint8_t color, int scale = 256) {
     const SpriteAnimation &a = SPRITES[id];
     const uint8_t *data = a.frames[frame % a.count];
@@ -361,7 +385,7 @@ static void elementSprite(SpriteId id, unsigned frame, int x, int y, uint8_t col
         top + ((data[1] * scale) >> 8) <= clipY) return;
     uint8_t remap[16]; for (unsigned i = 0; i < 16; ++i) remap[i] = i;
     remap[8] = color;
-    sprite4(data, left, top, remap, scale);
+    sprite4(id == SPR_BALL || id == SPR_RAMP ? data : expandSprite(data), left, top, remap, scale);
 }
 static void bats(int left, int right, int y, int length) {
     GuideRail guides[4];
@@ -375,9 +399,10 @@ static void bats(int left, int right, int y, int length) {
     if (py < clipY - 20 || py >= clipY + clipH + 20) return;
     for (unsigned side = 0; side < 2; ++side) {
         int x = side ? right : left;
-        const FlipperPose &pose = FLIPPER_POSES[side][flipperPoseIndex(side ? game.right : game.left)];
+        const unsigned index = flipperPoseIndex(side ? game.right : game.left);
+        const FlipperPose &pose = FLIPPER_POSES[side][index];
         int scale = length * 256 / 23;
-        sprite4(pose.data, x - pose.ax * scale / 256, py - pose.ay * scale / 256, nullptr, scale);
+        sprite4(index ? expandSprite(pose.data) : pose.data, x - pose.ax * scale / 256, py - pose.ay * scale / 256, nullptr, scale);
     }
 }
 __attribute__((noinline)) static void sling(const Object &o,unsigned ticks,unsigned strength) {

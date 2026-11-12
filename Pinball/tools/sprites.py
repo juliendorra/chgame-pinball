@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Compile hand-editable ASCII sprite frames into CHGame span sprites."""
 import argparse
+from collections import Counter
 import json
 import math
 import struct
@@ -173,6 +174,42 @@ struct ThemeArt {
     return header, b"".join(sectors)
 
 
+def sprite_array(name, data):
+    return f"static const uint8_t {name}[] PB_SPRITE = {{" + ",".join(map(str, data)) + "};\n"
+
+
+def compress_sprites(streams):
+    # A token is either a literal span byte or a pair of older tokens.
+    # Width and height stay at the front for clipping and collision bounds.
+    literals = bytes(sorted(set().union(*(set(data[2:]) for data in streams.values()))))
+    lookup = {value: index for index, value in enumerate(literals)}
+    encoded = {name: bytes(lookup[value] for value in data[2:]) for name, data in streams.items()}
+    pairs = bytearray()
+    expansions = [bytes((value,)) for value in literals]
+    depths = [0] * len(literals)
+    for token in range(len(literals), 256):
+        counts = Counter(bytes((a, b)) for data in encoded.values() for a, b in zip(data, data[1:]))
+        if not counts:
+            break
+        pair, count = counts.most_common(1)[0]
+        if count <= 2:
+            break
+        pairs.extend(pair)
+        left, right = pair
+        depths.append(1 + max(depths[left], depths[right]))
+        expansions.append(expansions[left] + expansions[right])
+        encoded = {name: data.replace(pair, bytes((token,))) for name, data in encoded.items()}
+    packed = {}
+    for name, data in encoded.items():
+        original = streams[name]
+        assert len(data) <= 255 and len(original) <= 1024
+        assert b"".join(expansions[token] for token in data) == original[2:]
+        packed[name] = original[:2] + bytes((len(data),)) + data
+    dictionary = sprite_array("SPRITE_LITERALS", literals) + sprite_array("SPRITE_PAIRS", pairs)
+    dictionary += f"static constexpr unsigned SPRITE_STACK = {max(depths)};\n"
+    return packed, dictionary
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--check", action="store_true")
@@ -189,6 +226,7 @@ def main():
     header += "namespace pinball {\nenum SpriteId { " + ", ".join("SPR_" + key.upper() for key in display) + ", SPR_COUNT };\n"
     header += "struct SpriteAnimation { const uint8_t *const *frames; uint8_t count, width, height; };\n"
     shared = {}
+    compressed = {}
     for key, frames in display.items():
         dimensions = {(len(f[0]), len(f)) for f in frames}
         if len(dimensions) != 1 or not 1 <= len(frames) <= 8:
@@ -198,10 +236,15 @@ def main():
             shadow=shadows.get(key)
             if isinstance(shadow,dict):shadow=shadow.get(str(i))
             data = pack(cast_shadow(frame, shadow), 40, trim=True)
-            if data not in shared:
-                shared[data] = f'{key}_{i}'
-                header += f"static const uint8_t {shared[data]}[] PB_SPRITE = {{" + ",".join(map(str, data)) + "};\n"
-            names.append(shared[data])
+            use_compression = key not in ("ball", "ramp")
+            stream = (data, use_compression)
+            if stream not in shared:
+                name = f"{key}_{i}"
+                shared[stream] = name
+                header += sprite_array(name, data)
+                if use_compression:
+                    compressed[name] = data
+            names.append(shared[stream])
         header += f"static const uint8_t *const {key}_frames[] PB_SPRITE = {{" + ",".join(names) + "};\n"
     header += "static const SpriteAnimation SPRITES[] PB_SPRITE = {\n"
     header += "\n".join(f"    {{{key}_frames, {len(frames)}, {len(frames[0][0])}, {len(frames[0])}}}," for key, frames in display.items())
@@ -224,7 +267,9 @@ def main():
             angle = flipper["rest_angle"] + level * (flipper["raised_angle"] - flipper["rest_angle"]) / 8
             data, ax, ay, hull = flipper_pose(source["flipper"][0], angle, side, shadows["flipper"], flipper["pivot"])
             name = f"flipper_pose_{side}_{level}"
-            bats += f"static const uint8_t {name}[] PB_SPRITE = {{" + ",".join(map(str, data)) + "};\n"
+            bats += sprite_array(name, data)
+            if level:
+                compressed[name] = data
             # Bake the exact pixel-corner conversion formerly done on every hit.
             assert all(v&1 for p in hull for v in p)
             bats += f"static const uint8_t {name}_hull[] PB_SPRITE = {{" + ",".join(str((v+1)//2+(ax if axis==0 else ay)) for p in hull for axis,v in enumerate(p)) + "};\n"
@@ -263,6 +308,14 @@ def main():
             poses.append(f"{{{name},{name}_hull,flipper_pose_0_{level}_mask,{ax},{ay},{len(hull)|(128 if side else 0)},{raw[1]}}}")
     bats += "const FlipperPose FLIPPER_POSES[2][9] PB_SPRITE = {{" + ",".join(poses[:9]) + "},{" + ",".join(poses[9:]) + "}};\n"
     bats += "}  // namespace pinball\n"
+    # Ball, ramp arrows and resting flippers keep their direct spans.
+    packed, dictionary = compress_sprites(compressed)
+    for name, data in packed.items():
+        original = sprite_array(name, compressed[name])
+        replacement = sprite_array(name, data)
+        header = header.replace(original, replacement)
+        bats = bats.replace(original, replacement)
+    header = header.replace("}  // namespace pinball\n", dictionary + "}  // namespace pinball\n")
     themes, pack_data = theme_assets()
     for path, contents in (("SpriteData.h", header.encode()), ("FlipperData.h", bats.encode()),
                            ("ThemeData.h", themes.encode()), ("sd/PINBALL/THEMES.PBA", pack_data)):
