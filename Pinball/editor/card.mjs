@@ -1,6 +1,6 @@
 // Async counterpart of fat.py, restricted to PINBALL/*.PBT. No mass-storage
 // emulation: sectors are exchanged with the running game's bounded protocol.
-import {decode} from './model.mjs';
+import {decode,PBT_MAX_BYTES} from './model.mjs';
 const u16=(b,o)=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint16(o,true);
 const u32=(b,o)=>new DataView(b.buffer,b.byteOffset,b.byteLength).getUint32(o,true);
 const put16=(b,o,n)=>new DataView(b.buffer,b.byteOffset,b.byteLength).setUint16(o,n,true);
@@ -58,7 +58,7 @@ export class BoardCard {
   for(let n=0;n<this.spc;n++)await this.write(first+n,new Uint8Array(512));const b=new Uint8Array(512);b.set(this.entry(ascii('.          '),cluster,0,true));b.set(this.entry(ascii('..         '),this.root,0,true),32);await this.write(first,b);
   await this.publish(slot,this.entry(ascii('PINBALL    '),cluster,0,true));return cluster;
  }
- async file(e){const size=u32(e,28);if(size>960||!size)throw new Error('Existing PBT file has an invalid size');const out=new Uint8Array(size);let at=0;
+ async file(e){const size=u32(e,28);if(size>PBT_MAX_BYTES||!size)throw new Error('Existing PBT file has an invalid size');const out=new Uint8Array(size);let at=0;
   for(const c of await this.chain(this.cluster(e)))for(let n=0;n<this.spc;n++){const b=await this.read(this.sector(c)+n),count=Math.min(512,size-at);out.set(b.subarray(0,count),at);at+=count;if(at>=size)return out;}throw new Error('Incomplete file');
  }
  async saved(stem,extension='PBT'){

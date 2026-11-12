@@ -89,7 +89,7 @@ int main(){
     fprintf(stderr,"Rubber faces: %u mirrored hardware pixels through all 19 flex poses passed\n",rubberPixels);
     while((op=getchar())!=EOF){
         if(op=='C')fwrite(pb_physics(),4,5,stdout);
-        else if(op=='L'){unsigned n=read32();if(n>960)return 2;fread(pb_input(),1,n,stdin);write32(pb_apply(n));}
+        else if(op=='L'){unsigned n=read32();if(n>sizeof(pinball::Table))return 2;fread(pb_input(),1,n,stdin);write32(pb_apply(n));}
         else if(op=='S')pb_step(read32());
         else if(op=='J'){int x=read32(),y=read32(),vx=read32(),vy=read32();write32(pb_place(x,y,vx,vy));}
         else if(op=='R')pb_restart(read32());

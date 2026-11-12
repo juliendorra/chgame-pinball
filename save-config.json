@@ -1,7 +1,7 @@
 {
   "game": "Pinball",
   "sketch": "Pinball",
-  "id": "com.juliendorra.pinball",
+  "id": "com.juliendorra.pinball.v2.scores-a",
   "library": "CHSave 0.4.0",
   "legacyId": "MPIN",
   "libraryCommit": "1cc5f1083d7cb799f3bd547ff26c18ef880c99a5"

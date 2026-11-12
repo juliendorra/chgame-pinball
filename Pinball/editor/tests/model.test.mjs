@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {encode,decode,validate,controlsForKey,newIdentity,pick,editableBoard,createPart,rubberPoint,elementLimits,boardNumberLimits,validElement} from '../model.mjs';
+import {encode,decode,validate,controlsForKey,newIdentity,nextBoardFilename,pick,editableBoard,createPart,rubberPoint,elementLimits,boardNumberLimits,validElement} from '../model.mjs';
 const boards=JSON.parse(fs.readFileSync(new URL('../../boards/tables.json',import.meta.url)));
 for(const board of boards)test(`${board.title}: byte-identical PBT codec`,()=>{
  const bytes=encode(board),reference=fs.readFileSync(new URL('../../sd/PINBALL/'+board.file+'.PBT',import.meta.url));assert.deepEqual(Buffer.from(bytes),reference);assert.deepEqual(encode(decode(bytes,board.file)),bytes);
@@ -12,7 +12,18 @@ test('Keyboard controls separate flippers, contextual launch and directional sha
  assert.equal(controlsForKey({code:'KeyA',key:'a',metaKey:true}),0);
 });
 test('Clones keep their art and geometry, but have unique IDs/files/scores',()=>{const original=boards[8],clone=newIdentity(original,boards);assert.notEqual(clone.id,original.id);assert.notEqual(clone.file,original.file);assert.deepEqual(clone.objects,original.objects);clone.objects[0].x++;assert.notDeepEqual(clone.objects,original.objects);});
-test('Blank and incomplete boards remain playable, with mission warnings',()=>{const b=structuredClone(boards[0]);b.objects=[];assert.deepEqual(validate(b).errors,[]);assert.equal(validate(b).warnings.length,3);assert.equal(encode(b).length,96);});
+test('Shared 48-bit board IDs survive a filename conflict and round trip',()=>{
+ const clone=newIdentity(boards[0],boards);
+ assert.ok(clone.id>=2**32 && clone.id<2**48);
+ const incoming={...clone,file:boards[0].file,id:0xffff00000000};
+ const bytes=encode(incoming);
+ assert.equal(bytes[4],2);
+ const imported=decode(bytes,nextBoardFilename(incoming.file,boards));
+ assert.notEqual(imported.file,incoming.file);
+ assert.equal(imported.id,incoming.id);
+ assert.deepEqual(encode(imported),bytes);
+});
+test('Blank and incomplete boards remain playable, with mission warnings',()=>{const b=structuredClone(boards[0]);b.objects=[];assert.deepEqual(validate(b).errors,[]);assert.equal(validate(b).warnings.length,3);assert.equal(encode(b).length,100);});
 test('Picking follows long rails and curved ramps, not only their anchor',()=>{const b=structuredClone(boards[0]);b.objects=[{kind:'wall',x:20,y:70,u:90,v:170}];assert.equal(pick(b,55,120),0);assert.equal(pick(b,100,80),-1);});
 test('Unsafe board sizes, geometry and non-ASCII labels are refused',()=>{for(const patch of [{height:900},{gravity:0},{file:'../X'},{title:'⚓'}])assert.ok(validate({...boards[0],...patch}).errors.length);});
 test('Inspector limits account for connected coordinates and the occupied board height',()=>{

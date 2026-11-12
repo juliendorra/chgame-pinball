@@ -32,7 +32,7 @@ using namespace pinball;
 extern "C" {void pb_init();uint8_t *pb_input();int pb_apply(unsigned);void pb_step(unsigned);}
 int main(int argc,char **argv){
  pb_init();FILE *f=fopen(argv[1],"rb");if(!f)return 2;
- unsigned n=fread(pb_input(),1,960,f);fclose(f);if(!pb_apply(n))return 3;
+ unsigned n=fread(pb_input(),1,sizeof(pinball::Table),f);fclose(f);if(!pb_apply(n))return 3;
  newGame(12345);placeBall(0,60,313,0,-500);game.camera=225;
  for(unsigned frame=0;frame<165;++frame){
   if(frame)pb_step(0);drawTable();char path[1024];snprintf(path,sizeof path,"%s/%03u.fb",argv[2],frame);

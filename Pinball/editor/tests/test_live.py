@@ -39,7 +39,7 @@ class CardTests(unittest.TestCase):
     with self.subTest(fs=fs,mbr=mbr):
      path,blocks=self.make(fs=fs,mbr=mbr);card=BoardCard(blocks)
      big=copy.deepcopy(BOARDS[0]);big['objects']=(big['objects']*5)[:72];large=encode(big)
-     self.assertEqual(len(large),960)
+     self.assertEqual(len(large),964)
      card.save('ORIGINAL',large);card.save('ORIGINAL',encode(BOARDS[8]))
      for i in range(20):card.save(f'CLONE{i:02}',encode(BOARDS[i%9]))
      # Independent existing FAT reader verifies the writer and all chains.
@@ -83,7 +83,7 @@ class NativeTests(unittest.TestCase):
   s.live.request('B 336')
   with self.assertRaises(RuntimeError):s.live.request('D 32 0000')
   with self.assertRaises(RuntimeError):s.live.request('C')
-  with self.assertRaises(RuntimeError):s.live.request('B 961')
+  with self.assertRaises(RuntimeError):s.live.request('B 965')
   self.assertEqual(s.live.board(),before)
  def test_blank_board_and_theme_switch_use_real_renderer(self):
   s=self.s;b=copy.deepcopy(BOARDS[8]);b['objects']=[];s.load(b);s.d.frames(1);self.assertEqual(s.state()['objects'],0)

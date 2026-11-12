@@ -16,7 +16,7 @@ sys.path.insert(0, str(ROOT / "CHGame/tools/chsim"))
 sys.path.insert(0, str(GAME / "tools"))
 from chdrivelib import Driver, SimTransport
 from sim_build import build
-from boards import checksum, encode, image
+from boards import CHECKSUM_OFFSET, HEADER_BYTES, checksum, encode, image
 
 OUT = GAME / "out/verify"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -335,10 +335,10 @@ print("PASS: 72 zoom frames including the themed upper corners match an independ
 original = files["NEON.PBT"]
 bad_files = {"BADCRC.PBT": original[:-1] + bytes([original[-1] ^ 1]),
              "SHORT.PBT": original[:80], "LONG.PBT": original + b"\0"}
-for name, offset, value in (("BADKIND", 96, 99), ("COUNT", 6, 73), ("THEME", 5, 9),
-                            ("BADPOS", 98, 255), ("BADTEXT", 20, 1), ("BADVER", 4, 2)):
+for name, offset, value in (("BADKIND", HEADER_BYTES, 99), ("COUNT", 6, 73), ("THEME", 5, 9),
+                            ("BADPOS", HEADER_BYTES + 2, 255), ("BADTEXT", 24, 1), ("BADVER", 4, 1)):
     data = bytearray(original); data[offset] = value
-    struct.pack_into("<I", data, 16, checksum(data))
+    struct.pack_into("<I", data, CHECKSUM_OFFSET, checksum(data))
     bad_files[name + ".PBT"] = bytes(data)
 card = OUT / "invalid.img"
 image(card, {**bad_files, "GOOD.PBT": files["PIRATES.PBT"]}, fs="fat16")

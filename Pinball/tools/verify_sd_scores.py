@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Restart the actual game against namespaced SD scores; legacy files stay ignored."""
+"""Verify the game creates and reopens both score files with full board IDs."""
 from pathlib import Path
 import importlib.util,json,os,struct,sys,zlib
 G=Path(__file__).resolve().parents[1];R=G.parent
@@ -13,24 +13,34 @@ from boards import encode
 O=G/'out/sd-scores';O.mkdir(parents=True,exist_ok=True)
 os.environ['CHSIM_CHGAME']=str(overlay()/'CHGame/src')
 os.environ['CHSIM_FLAGS']=f'-fsanitize=undefined,bounds -fsanitize-ignorelist={G}/tools/sanitizer.ignore -fno-sanitize-recover=all'
-exe=build(G,out=O/'sim-scores');ID='com.juliendorra.pinball';NAME=prepare.filename(ID)
-SECOND_ID=ID+'.scores-b'
+exe=build(G,out=O/'sim-scores');ID='com.juliendorra.pinball.v2.scores-a';NAME=prepare.filename(ID)
+SECOND_ID='com.juliendorra.pinball.v2.scores-b'
 SECOND_NAME=prepare.filename(SECOND_ID)
 board = json.loads((G / "boards/tables.json").read_text())[0]
 NEON = board["id"]
 
-def payload(rows,muted=0):
- b=bytearray(196)
- for i,(ident,score) in enumerate(rows):struct.pack_into('<II',b,i*8,ident,score)
- b[192]=muted;return b
+def payload(rows, muted=0):
+    data = bytearray(484)
+    for i, (ident, score) in enumerate(rows):
+        struct.pack_into('<II', data, i * 8, ident & 0xffffffff, score)
+        struct.pack_into('<H', data, 388 + 2 * i, ident >> 32)
+    data[384] = muted
+    return data
 
-def journal(data,generation=1,version=1):
- b=bytearray(512);struct.pack_into('<IIHBBI',b,0,prepare.RECORD_TAG,generation,196,version,0,0)
- b[16:212]=data;struct.pack_into('<I',b,508,zlib.crc32(b[:508]));return prepare.descriptor(ID,1)+b+b'\xff'*512
+def journal(data, generation=1, version=1):
+    record = bytearray(512)
+    struct.pack_into('<IIHBBI', record, 0, prepare.RECORD_TAG, generation, len(data), version, 0, 0)
+    record[16:16+len(data)] = data
+    struct.pack_into('<I', record, 508, zlib.crc32(record[:508]))
+    return prepare.descriptor(ID, 1) + record + b'\xff' * 512
 
-OLD=b'legacy data must stay untouched'
-def fresh(raw):
- p=O/'card.img';build_image(p,{NAME:raw,'MPIN.SAV':OLD,'OTHER.TXT':b'keep this exactly'},fs='fat16',spc=1,clusters=5000,mbr=True);return p
+def fresh(raw=None):
+    path = O/'card.img'
+    files = {'OTHER.TXT': b'keep this exactly'}
+    if raw is not None:
+        files[NAME] = raw
+    build_image(path, files, fs='fat16', spc=1, clusters=5000, mbr=True)
+    return path
 
 def boot(card,play=False):
  os.environ['CHGAME_SAVE_CARD']=str(card)
@@ -43,7 +53,7 @@ def boot(card,play=False):
 
 def raw_file(card):
  with FatVolume(card) as v:
-  assert v.read_file('OTHER.TXT')==b'keep this exactly' and v.read_file('MPIN.SAV')==OLD
+  assert v.read_file('OTHER.TXT')==b'keep this exactly'
   return v.read_file(NAME)
 
 def read(card):
@@ -53,18 +63,30 @@ def read(card):
   if p[:4]==b'CSV3' and zlib.crc32(p[:508])==struct.unpack_from('<I',p,508)[0]:
    generation,size=struct.unpack_from('<IH',p,4)
    valid.append((generation,p[16:16+size]))
- data=max(valid)[1];rows=[struct.unpack_from('<II',data,i) for i in range(0,len(data)-4,8)]
+ data=max(valid)[1]
+ assert len(data) == 484
+ rows = [struct.unpack_from('<II',data,i) for i in range(0,384,8)]
+ rows = [(low | (high << 32),score) for (low,score),high in zip(rows,struct.unpack_from('<48H',data,388))]
  assert len([ident for ident,score in rows if ident])==len({ident for ident,score in rows if ident})
  return {ident:score for ident,score in rows if ident},data,raw
 
-initial=journal(payload([(0,0),(NEON,10680)],muted=1));card=fresh(initial);s=boot(card)
-rows,data,raw=read(card);assert rows=={NEON:10680} and data[-4]==1 and s['sound']==0 and s['best']==10680
+initial = journal(payload([(0,0),(NEON,10680)], muted=1))
+card = fresh(initial)
+s = boot(card)
+rows,data,raw=read(card)
+assert rows=={NEON:10680} and data[384]==1 and s['sound']==0 and s['best']==10680
 assert raw==initial  # Loading never rewrites a valid journal.
 s=boot(card,play=True);assert read(card)[0][s['id']]==50000
-assert boot(card)['best']==50000 and len(read(card)[1])==388
-blank=prepare.blank(ID);card=fresh(blank);boot(card);assert raw_file(card)==blank
+assert boot(card)['best']==50000
+card=fresh();before=card.read_bytes();boot(card);assert card.read_bytes()==before
+boot(card,play=True);assert boot(card)['best']==50000
 raw=journal(payload([(NEON,77777)],muted=1),version=2);card=fresh(raw);boot(card);assert raw_file(card)==raw
-report=dict(result='passed',id=ID,filename=NAME,checks=['preferences and scores retained','no write on boot','actual table-change save','restart persistence','legacy file ignored and unchanged','unknown schema preserved','unrelated file unchanged'])
+report=dict(result='passed',id=ID,filename=NAME,checks=['preferences and scores retained','no write on boot','automatic first save','actual table-change save','restart persistence','unknown schema preserved','unrelated file unchanged'])
+
+def board_id(index):
+    # Force distinct IDs to share the same low word, including the bundled board.
+    return index << 32 | (NEON if index != 95 else 0)
+
 
 def run_library(card, populate):
     os.environ["CHSD_CARD"] = os.environ["CHGAME_SAVE_CARD"] = str(card)
@@ -76,7 +98,8 @@ def run_library(card, populate):
         for index in range(96):
             driver.cmd(f"F {index}")
             state = dict(part.split("=") for part in driver.query("V", "PIN ").split()[1:])
-            assert int(state["id"]) == (NEON if index == 0 else NEON + 100 + index), (index, state)
+            ident = int(state["id_high"]) << 32 | (int(state["id"]) & 0xffffffff)
+            assert ident == board_id(index), (index, state)
             if populate:
                 driver.cmd(f"O {50000 + index}")
             else:
@@ -104,7 +127,7 @@ def update_second_bank(card):
         assert transport.close() == 0 and not transport.bugs, transport.bugs
 
 
-fixtures = {f"PINBALL/B{i:03}.PBT": encode({**board, "id": NEON + 100 + i})
+fixtures = {f"PINBALL/B{i:03}.PBT": encode({**board, "id": board_id(i)})
             for i in range(1, 96)}
 for fs in ("fat16", "fat32"):
     card = O / f"scores-{fs}.img"
@@ -121,6 +144,6 @@ for fs in ("fat16", "fat32"):
     with FatVolume(card) as volume:
         assert volume.read_file(NAME) == first
         assert volume.read_file(SECOND_NAME) != second
-report["checks"].append("96 scores across two single-sector journals on FAT16 and FAT32")
+report["checks"].append("96 distinct 48-bit board IDs across two single-sector journals on FAT16 and FAT32")
 report["checks"].append("saving in journal two leaves journal one byte-identical")
 (O/'report.json').write_text(json.dumps(report,indent=2)+'\n');print('PASS:',', '.join(report['checks']))

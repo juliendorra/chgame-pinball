@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile editable JSON tables to checked PBT1 files; optionally make a test SD image."""
+"""Compile editable JSON tables to checked PBT files; optionally make a test SD image."""
 import argparse
 import json
 from pathlib import Path
@@ -9,6 +9,9 @@ import sys
 
 GAME = Path(__file__).resolve().parents[1]
 ROOT = GAME.parent
+HEADER_BYTES = 100
+MAX_BYTES = HEADER_BYTES + 72 * 12
+CHECKSUM_OFFSET = 20
 KINDS = {name: i for i, name in enumerate(("wall", "bumper", "target", "lane", "scoop", "flippers",
                                         "ramp", "spinner", "drop_target", "kickback", "gate", "saucer", "rubber"))}
 
@@ -16,7 +19,7 @@ KINDS = {name: i for i, name in enumerate(("wall", "bumper", "target", "lane", "
 def checksum(data):
     value = 2166136261
     for i, byte in enumerate(data):
-        value = ((value ^ (0 if 16 <= i < 20 else byte)) * 16777619) & 0xFFFFFFFF
+        value = ((value ^ (0 if CHECKSUM_OFFSET <= i < CHECKSUM_OFFSET + 4 else byte)) * 16777619) & 0xFFFFFFFF
     return value
 
 
@@ -42,10 +45,11 @@ def encode(t):
     if len(palette) != 16 or any(not 0 <= c <= 0xFFF for c in palette):
         raise ValueError("palette must have 16 RGB444 entries")
     ident = t["id"]
-    if not 0 < ident <= 0xFFFFFFFF:
-        raise ValueError("id must be a nonzero uint32")
-    out = bytearray(struct.pack("<4sBBBBHHII20s24s16H", b"PBT1", 1, theme, len(objects), flags,
-                                height, gravity, ident, 0, label(t["title"], 20),
+    if not isinstance(ident, int) or not 0 < ident < 1 << 48:
+        raise ValueError("id must be a nonzero 48-bit integer")
+    high = ident >> 32
+    out = bytearray(struct.pack("<4sBBBBHHIHHI20s24s16H", b"PBT2", 2, theme, len(objects), flags,
+                                height, gravity, ident & 0xFFFFFFFF, high, 0, 0, label(t["title"], 20),
                                 label(t["mission"], 24), *palette))
     groups, lanes, scoop = set(), set(), False
     for o in objects:
@@ -80,7 +84,7 @@ def encode(t):
                 lanes.add(group)
             scoop |= kind == KINDS["scoop"]
         out.extend(struct.pack("<BBhhhhH", kind, group, x, y, u, v, value))
-    struct.pack_into("<I", out, 16, checksum(out))
+    struct.pack_into("<I", out, CHECKSUM_OFFSET, checksum(out))
     return bytes(out)
 
 

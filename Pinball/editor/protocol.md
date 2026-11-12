@@ -9,8 +9,8 @@ hook, adding its standard `OK`/`ERR` terminator after the `LIVE` response.
 
 | Command | Reply / effect |
 | --- | --- |
-| `@?` | `LIVE HELLO 1.4.5 PBT1 RAM SD` |
-| `@B <bytes>` | Begin a 96–960 byte PBT RAM upload; `LIVE OK` |
+| `@?` | `LIVE HELLO 1.4.18 PBT2 RAM SD RUBBER TRACE` |
+| `@B <bytes>` | Begin a 100–964 byte PBT2 RAM upload; `LIVE OK` |
 | `@D <offset> <hex>` | Append 1–32 bytes at the exact next offset; `LIVE OK` |
 | `@C` | Validate complete PBT header, FNV checksum, geometry and length, then apply; `LIVE OK` |
 | `@T` | Current board: `LIVE DATA <hex>` |
@@ -42,7 +42,7 @@ when idle for three seconds. Injected controls expire after 500 ms; clients
 refresh held keys every 150 ms and send zero on focus loss. Clients serialize
 whole upload/save operations and do not interleave the two staging formats.
 
-PBT uses the existing checksum with bytes 16–19 treated as zero. Raw-sector
+PBT2 uses FNV-1a with bytes 20–23 treated as zero. Raw-sector
 writes use FNV-1a over all 512 bytes (offset basis 2166136261, prime 16777619).
 The block interface has the same card-level access as the SD reader app;
 `fat.py` restricts the editor's writes to the board folder and its FAT metadata.

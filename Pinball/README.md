@@ -321,11 +321,11 @@ and palette edits load from SD; edit `sprites/element_sprites.json` and run
 requires target and lane groups 0, 1 and 2, plus a scoop. Stable table IDs
 retain high scores when filenames change.
 
-PBT1 files use a 96-byte little-endian header followed by 12-byte object
-records, with the exact layout in `Table.h`. The checksum is FNV-1a over the
-whole file with header bytes 16–19 treated as zero. Each shipped table takes
-under 512 bytes. `python3 pinball.py boards --check` verifies generated files
-against their source without changing them.
+PBT2 files use a 100-byte little-endian header and 12-byte object records.
+The six-byte board ID starts at byte 12. The editor assigns random IDs to
+new boards and keeps the ID when importing a shared board. The checksum
+covers the whole file using FNV-1a, with bytes 20–23 treated as zero.
+`python3 pinball.py boards --check` verifies the generated files.
 
 ## Validation and design references
 

@@ -1,7 +1,7 @@
 import {BoardStorage} from './board-storage.mjs';
 import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
-import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
+import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,nextBoardFilename,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
 import {BrowserDevice} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
@@ -254,7 +254,7 @@ function showShake(s){
 }
 function engineFrame(game,bytes,draft){
  const visible=draft||game;
- if((visible.id>>>0)!==(board().id>>>0)||visible.height!==canvas.height)return;
+ if(visible.id!==board().id||visible.height!==canvas.height)return;
  const full=image(bytes,128,visible.height+HEADER_HEIGHT,draft?.palette);$('#headerCanvas').getContext('2d').putImageData(full,0,0);canvas.getContext('2d').putImageData(full,0,-HEADER_HEIGHT);
  if(game.id!==visible.id||game.height!==visible.height)return;
  state.lastState=game;const pause=$('#pauseButton'),pauseLabel=game.paused?'▶ Resume':'Ⅱ Pause';if(pause.textContent!==pauseLabel)pause.textContent=pauseLabel;pause.setAttribute('aria-label',game.paused?'Resume':'Pause');pause.dataset.paused=String(Boolean(game.paused));
@@ -365,7 +365,7 @@ async function retrieve(){const b=$('#readBoards');b.disabled=true;b.textContent
  const entries=await deviceAction('boards');let added=0;
  for(const entry of entries){let incoming=editableBoard(entry.board);const existing=state.boards.find(v=>v.id===incoming.id);
   if(existing){const before=validate(existing).errors.length?state.validBoards[existing.id]:existing,after=validate(incoming).errors.length?entry.board:incoming;if(before&&JSON.stringify(encode(before))===JSON.stringify(encode(after)))continue;incoming=newIdentity(incoming,state.boards,(incoming.title+' SD').slice(0,19));}
-  else if(state.boards.some(v=>v.file===incoming.file))incoming.file=newIdentity(incoming,state.boards).file;
+  else if(state.boards.some(v=>v.file===incoming.file))incoming.file=nextBoardFilename(incoming.file,state.boards);
   keepImported(entry.board,incoming);added++;
  }
  persist();refreshLibrary();toast(`Read ${entries.length} boards from CHGame. ${added} added to your library.`);
@@ -378,8 +378,17 @@ function keepImported(raw,editable){
 }
 async function importFile(file){
  try{let imported;if(file.name.toLowerCase().endsWith('.json')){const j=JSON.parse(await file.text());imported=Array.isArray(j)?j:[j];}else imported=[decode(new Uint8Array(await file.arrayBuffer()),file.name)];
- for(const raw of imported){const errors=validate(raw).errors;if(errors.length)throw new Error(errors[0]);let b=editableBoard(raw);if(state.boards.some(v=>v.id===b.id||v.file===b.file))b=newIdentity(b,state.boards,b.title);keepImported(raw,b);state.id=b.id;}
- choose(state.id);toast(`Imported ${imported.length} board${imported.length===1?'':'s'}.`);
+ let added=0;
+ for(const raw of imported){
+  const errors=validate(raw).errors;if(errors.length)throw new Error(errors[0]);
+  state.id=raw.id;
+  if(state.boards.some(v=>v.id===raw.id))continue;
+  const b=editableBoard(raw);
+  if(state.boards.some(v=>v.file===b.file))b.file=nextBoardFilename(b.file,state.boards);
+  keepImported(raw,b);added++;
+ }
+ choose(state.id);
+ toast(added?`Imported ${added} board${added===1?'':'s'}.`:'Already in your board library.');
  }catch(e){toast(e.message);}}
 $('#cloneButton').onclick=()=>create();$('#newButton').onclick=()=>create(true);$('#undoButton').onclick=()=>restore();$('#redoButton').onclick=()=>restore(true);$('#fitButton').onclick=fit;$('#zoomIn').onclick=()=>zoom(1);$('#zoomOut').onclick=()=>zoom(-1);
 $('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;send({type:'restart',seed});};$('#pauseButton').onclick=()=>{const paused=!state.lastState?.paused;send({type:'pause',paused});};$('#dropButton').onclick=()=>dropBall();

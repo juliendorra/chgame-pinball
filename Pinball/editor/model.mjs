@@ -16,6 +16,11 @@ export const CATALOG=[
 ].map(([kind,name,description,sprite,x,y,u,v,value])=>({kind,name,description,sprite,defaults:{kind,x,y,u,v,value,group:0}}));
 export const THEMES=['Neon Pursuit','Orbital Robot','Shuttle Run','Storm Riders','Solar Temple','Midnight Manor','Cosmic Carnival','Dragon Keep','Buccaneer Bay'];
 export const copy=value=>structuredClone(value);
+const ID_WORD = 2 ** 32;
+const MAX_BOARD_ID = 2 ** 48 - 1;
+export const PBT_HEADER_BYTES = 100;
+export const PBT_MAX_BYTES = PBT_HEADER_BYTES + 72 * 12;
+const CHECKSUM_OFFSET = 20;
 export function createPart(kind,p,height){
  const def=CATALOG.find(c=>c.kind===kind),o=copy(def.defaults);
  o.x=Math.max(5,Math.min(108,p.x));o.y=Math.max(12,Math.min(height-55,p.y));
@@ -25,7 +30,7 @@ export function createPart(kind,p,height){
  else if(['wall','gate'].includes(kind)){o.u=Math.min(110,o.x+24);o.v=Math.max(8,o.y-(kind==='wall'?22:0));}
  return o;
 }
-export function fnv(bytes,table=false){let hash=2166136261;for(let i=0;i<bytes.length;i++)hash=Math.imul(hash^(table&&i>=16&&i<20?0:bytes[i]),16777619)>>>0;return hash;}
+export function fnv(bytes,table=false){let hash=2166136261;for(let i=0;i<bytes.length;i++)hash=Math.imul(hash^(table&&i>=CHECKSUM_OFFSET&&i<CHECKSUM_OFFSET+4?0:bytes[i]),16777619)>>>0;return hash;}
 const ascii=(s,max)=>typeof s==='string'&&s.length>0&&s.length<=max&&/^[\x20-\x7e]+$/.test(s);
 const range=(v,min,max)=>Number.isInteger(v)&&v>=min&&v<=max;
 
@@ -82,7 +87,7 @@ export function validate(b){
  const errors=[],warnings=[];const bad=(ok,msg)=>{if(!ok)errors.push(msg);};
  bad(/^[A-Z0-9_]{1,8}$/.test(b.file),'SD filename needs 1–8 uppercase letters, numbers or underscores.');
  bad(ascii(b.title,19),'Title needs 1–19 printable ASCII characters.');bad(ascii(b.mission,23),'Mission needs 1–23 printable ASCII characters.');
- bad(range(b.id,1,0xffffffff),'Board ID must be a nonzero unsigned integer.');bad(range(b.height,256,480),'Height must be 256–480.');bad(range(b.gravity,8,44),'Gravity must be 8–44.');bad(range(b.theme,0,8),'Choose one of nine themes.');
+ bad(range(b.id,1,MAX_BOARD_ID),'Board ID must be a nonzero 48-bit unsigned integer.');bad(range(b.height,256,480),'Height must be 256–480.');bad(range(b.gravity,8,44),'Gravity must be 8–44.');bad(range(b.theme,0,8),'Choose one of nine themes.');
  bad(Array.isArray(b.palette)&&b.palette.length===16&&b.palette.every(c=>/^[0-9a-f]{3}$/i.test(c)),'Palette needs sixteen RGB444 colors.');
  bad(range(b.flags??0,0,1),'Unknown board flags.');
  bad(Array.isArray(b.objects)&&b.objects.length<=72,'A board holds up to 72 elements.');
@@ -96,22 +101,23 @@ export function validate(b){
 }
 export function encode(board){
  const {errors}=validate(board);if(errors.length)throw new Error(errors[0]);
- const bytes=new Uint8Array(96+board.objects.length*12),v=new DataView(bytes.buffer),text=new TextEncoder();
- bytes.set(text.encode('PBT1'));bytes[4]=1;bytes[5]=board.theme;bytes[6]=board.objects.length;bytes[7]=board.flags??0;
- v.setUint16(8,board.height,true);v.setUint16(10,board.gravity,true);v.setUint32(12,board.id,true);
- bytes.set(text.encode(board.title),20);bytes.set(text.encode(board.mission),40);
- board.palette.forEach((c,i)=>v.setUint16(64+i*2,parseInt(c,16),true));
- board.objects.forEach((o,i)=>{let a=96+i*12;bytes[a]=KINDS.indexOf(o.kind);bytes[a+1]=o.group;for(const [j,k]of ['x','y','u','v'].entries())v.setInt16(a+2+j*2,o[k],true);v.setUint16(a+10,o.value,true);});
- v.setUint32(16,fnv(bytes,true),true);return bytes;
+ const bytes=new Uint8Array(PBT_HEADER_BYTES+board.objects.length*12),v=new DataView(bytes.buffer),text=new TextEncoder();
+ bytes.set(text.encode('PBT2'));bytes[4]=2;bytes[5]=board.theme;bytes[6]=board.objects.length;bytes[7]=board.flags??0;
+ v.setUint16(8,board.height,true);v.setUint16(10,board.gravity,true);v.setUint32(12,board.id>>>0,true);
+ v.setUint16(16,Math.floor(board.id/ID_WORD),true);
+ bytes.set(text.encode(board.title),24);bytes.set(text.encode(board.mission),44);
+ board.palette.forEach((c,i)=>v.setUint16(68+i*2,parseInt(c,16),true));
+ board.objects.forEach((o,i)=>{let a=PBT_HEADER_BYTES+i*12;bytes[a]=KINDS.indexOf(o.kind);bytes[a+1]=o.group;for(const [j,k]of ['x','y','u','v'].entries())v.setInt16(a+2+j*2,o[k],true);v.setUint16(a+10,o.value,true);});
+ v.setUint32(CHECKSUM_OFFSET,fnv(bytes,true),true);return bytes;
 }
 export function decode(bytes,file='IMPORT'){
- if(!(bytes instanceof Uint8Array))bytes=new Uint8Array(bytes);if(bytes.length<96)throw new Error('Board file is truncated.');
+ if(!(bytes instanceof Uint8Array))bytes=new Uint8Array(bytes);if(bytes.length<PBT_HEADER_BYTES)throw new Error('Board file is truncated.');
  const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),text=new TextDecoder(),read=(at,n)=>text.decode(bytes.slice(at,at+n)).split('\0')[0];
- if(read(0,4)!=='PBT1'||bytes[4]!==1||(bytes[7]&~1)||bytes.length!==96+bytes[6]*12||v.getUint32(16,true)!==fnv(bytes,true))throw new Error('Board file has an invalid header, size or checksum.');
- const b={file:file.replace(/\.pbt$/i,'').toUpperCase(),id:v.getUint32(12,true),theme:bytes[5],height:v.getUint16(8,true),gravity:v.getUint16(10,true),title:read(20,20),mission:read(40,24),palette:[],objects:[]};
+ if(read(0,4)!=='PBT2'||bytes[4]!==2||(bytes[7]&~1)||v.getUint16(18,true)||bytes.length!==PBT_HEADER_BYTES+bytes[6]*12||v.getUint32(CHECKSUM_OFFSET,true)!==fnv(bytes,true))throw new Error('Board file has an invalid header, size or checksum.');
+ const b={file:file.replace(/\.pbt$/i,'').toUpperCase(),id:v.getUint32(12,true)+v.getUint16(16,true)*ID_WORD,theme:bytes[5],height:v.getUint16(8,true),gravity:v.getUint16(10,true),title:read(24,20),mission:read(44,24),palette:[],objects:[]};
  if(bytes[7])b.flags=bytes[7];
- for(let i=0;i<16;i++)b.palette.push(v.getUint16(64+i*2,true).toString(16).padStart(3,'0').toUpperCase());
- for(let at=96;at<bytes.length;at+=12){const o={kind:KINDS[bytes[at]],group:bytes[at+1],value:v.getUint16(at+10,true)};['x','y','u','v'].forEach((k,i)=>o[k]=v.getInt16(at+2+i*2,true));b.objects.push(o);}
+ for(let i=0;i<16;i++)b.palette.push(v.getUint16(68+i*2,true).toString(16).padStart(3,'0').toUpperCase());
+ for(let at=PBT_HEADER_BYTES;at<bytes.length;at+=12){const o={kind:KINDS[bytes[at]],group:bytes[at+1],value:v.getUint16(at+10,true)};['x','y','u','v'].forEach((k,i)=>o[k]=v.getInt16(at+2+i*2,true));b.objects.push(o);}
  const {errors}=validate(b);if(errors.length)throw new Error(errors[0]);return b;
 }
 // flags bit 0 distinguishes an intentionally empty rubber list from a legacy
@@ -129,9 +135,19 @@ export function rubberPoint(o,t,bend=0){
  return {x:o.x+Math.trunc((o.group?-1:1)*(88-x)*o.u/15),y:o.y+Math.trunc(y*o.v/27)};
 }
 export function rubberOutline(o){return [o,{x:o.x,y:o.y+o.v},rubberPoint(o,256),...Array.from({length:5},(_,i)=>rubberPoint(o,256-i*64))];}
+export function nextBoardFilename(file,boards){
+ const root=file.slice(0,5);let n=1,next;
+ do{next=root+String(n++).padStart(3,'0');}while(boards.some(b=>b.file===next));
+ return next;
+}
 export function newIdentity(board,boards,title=''){
- const result=copy(board);let id;do{id=crypto.getRandomValues(new Uint32Array(1))[0];}while(!id||boards.some(b=>b.id===id));result.id=id;
- const root=board.file.slice(0,5);let n=1;do{result.file=root+String(n++).padStart(3,'0');}while(boards.some(b=>b.file===result.file));
+ const result=copy(board);let id;
+ do{
+  const [low,middle,high]=crypto.getRandomValues(new Uint16Array(3));
+  id=high*ID_WORD+middle*65536+low;
+ }while(id<ID_WORD||boards.some(b=>b.id===id));
+ result.id=id;
+ result.file=nextBoardFilename(board.file,boards);
  result.title=(title||board.title+' II').slice(0,19);return result;
 }
 export function controlsForKey(event){

@@ -37,16 +37,16 @@ void initialTable() {
 
 bool validTable(const Table &t, unsigned size) {
     const TableHeader &h = t.h;
-    if (memcmp(h.magic, "PBT1", 4) || h.version != 1 || (h.flags & ~EXPLICIT_RUBBERS) || h.theme > 8 ||
+    if (memcmp(h.magic, "PBT2", 4) || h.version != 2 || (h.flags & ~EXPLICIT_RUBBERS) || h.theme > 8 ||
         h.count > MAX_OBJECTS || !within(h.height,256,480) ||
-        !within(h.gravity,8,44) || !h.id ||
-        size != sizeof(TableHeader) + h.count * sizeof(Object)) return false;
+        !within(h.gravity,8,44) || size != t.wireSize() || h.reserved ||
+        !(h.id | h.idHigh)) return false;
     if (!h.title[0] || h.title[19] || h.mission[23]) return false;
     if(!validLabel(h.title,19) || !validLabel(h.mission,23))return false;
     for (unsigned i = 0; i < 16; ++i) if (h.palette[i] > 0xFFF) return false;
     uint32_t hash = 2166136261u;
     const uint8_t *p = reinterpret_cast<const uint8_t *>(&t);
-    for (unsigned i = 0; i < size; ++i) hash = (hash ^ (i >= 16 && i < 20 ? 0 : p[i])) * 16777619u;
+    for (unsigned i = 0; i < size; ++i) hash = (hash ^ (i >= 20 && i < 24 ? 0 : p[i])) * 16777619u;
     if (hash != h.checksum) return false;
     uint8_t groups = 0, lanes = 0;
     bool scoop = false;
@@ -134,7 +134,7 @@ bool previewTable(unsigned index) {
          fat::match(dir, library[index].name, 0, f, nullptr, buf)) :
         fat::find(library[index].name, f, buf);
     if (err) { cardStatus = "MISSING TABLE - SCAN"; return false; }
-    if (f.size < 96 || f.size > sizeof pending) { cardStatus = "BAD TABLE SIZE"; return false; }
+    if (f.size < sizeof(TableHeader) || f.size > sizeof pending) { cardStatus = "BAD TABLE SIZE"; return false; }
     fat::Run runs[8];
     int8_t n = fat::runs(f, runs, 8, buf);
     if (n <= 0) { cardStatus = "READ / FRAGMENT ERROR"; return false; }

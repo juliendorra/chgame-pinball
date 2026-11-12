@@ -33,7 +33,7 @@ extern "C" unsigned char *pb_input();
 extern "C" int pb_apply(unsigned);
 int main(int argc,char **argv) {
     if(argc!=3)return 2;pb_init();FILE *f=fopen(argv[1],"rb");if(!f)return 3;
-    unsigned n=fread(pb_input(),1,960,f);fclose(f);if(!pb_apply(n))return 4;
+    unsigned n=fread(pb_input(),1,sizeof(pinball::Table),f);fclose(f);if(!pb_apply(n))return 4;
     pinball::game.score=0;gfx_resetClip();gfx_clear(0);
     pinball::drawGameOver(strtoul(argv[2],nullptr,10));
     fwrite(gfx_fb,1,GFX_FB_BYTES,stdout);

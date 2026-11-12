@@ -96,7 +96,9 @@ rollover sets or missing scoops are warnings, allowing empty or simple boards
 to remain playable; those missing mechanisms cannot award their mission bonus.
 This deliberately relaxes the old mission-completeness restriction in the PBT
 encoder and game validator. Header, checksum, bounds and element limits remain
-mandatory. PBT1's binary layout is unchanged.
+mandatory. The editor uses PBT2 with a six-byte board ID. A new board or an
+explicit copy gets a new ID.
+Importing a shared board keeps its ID, even if its filename is already in use.
 
 ## Work with CHGame
 
@@ -140,7 +142,7 @@ previous pause state is restored. No drive mount, game exit, firmware reflash
 or bootloader change is needed for board edits or SD saves.
 
 The save path supports FAT16/FAT32, mirrored FATs, existing or new PINBALL
-folders, directory growth, fragmented files, and boards up to 960 bytes.
+folders, directory growth, fragmented files, and boards up to 964 bytes.
 Unsupported FAT geometries are refused. It writes and verifies a new cluster
 chain before changing the destination directory entry, then releases the old
 chain. Uncertain directory-write failures leave the new allocation intact;

@@ -26,6 +26,7 @@ function load(b,corrupt=false){
  inputs.push(Buffer.from('L'),u32(bytes.length),bytes);m.HEAPU8.set(bytes,m._pb_input());
  const ok=m._pb_apply(bytes.length);outputs.push(u32(ok));assert.equal(ok,Number(!corrupt));edits++;
  if(ok){
+  assert.equal(readState(m).id,b.id,'board identity must retain all 48 bits');
   // Palette changes must be visible even before a physics tick is due.
   const pixels=m._pb_render(),size=m._pb_render_size(),palette=new DataView(m.HEAPU8.buffer,pixels+size-32,32);
   for(let i=0;i<16;i++){
@@ -49,6 +50,7 @@ function lcdSnapshot(){
  inputs.push(Buffer.from('H'));const at=m._pb_lcd(),n=m._pb_lcd_size(),image=m.HEAPU8.slice(at,at+n);
  outputs.push(u32(n),Buffer.from(image));return image;
 }
+load({...boards[0],id:0xffff00000000});
 for(const [i,base] of boards.entries()){
  const b=copy(base);load(b);step();snapshot();
  step(8);step(); // fixed launch release

@@ -79,7 +79,7 @@ bool busy() {return expected && millis()-touched<3000;}
 bool changed() {bool result=applied;applied=false;return result;}
 bool apply(const Table &next, unsigned size) {
     if(!validTable(next,size))return false;
-    bool reset=!game.started || table.h.id!=next.h.id || table.h.height!=next.h.height;
+    bool reset=!game.started || table.boardId()!=next.boardId() || table.h.height!=next.h.height;
     if(!reset) {
         uint8_t cooldown[MAX_OBJECTS]={},states[MAX_OBJECTS]={};
         int8_t ramps[3]={-1,-1,-1};
@@ -102,9 +102,9 @@ bool command(const char *p) {
     invalidatePreview();
     while(*p==' ')++p;
     char cmd=*p++;touched=millis();bool ok=false;
-    if(cmd=='?'){say("LIVE HELLO 1.4.18 PBT1 RAM SD RUBBER TRACE\n");return true;}
+    if(cmd=='?'){say("LIVE HELLO 1.4.18 PBT2 RAM SD RUBBER TRACE\n");return true;}
 #if PINBALL_SD_BOARDS
-    if (!table.h.id && (cmd=='R' || cmd=='Y' || cmd=='M' || cmd=='P' || cmd=='T')) {
+    if (!table.h.version && (cmd=='R' || cmd=='Y' || cmd=='M' || cmd=='P' || cmd=='T')) {
         reply(false);
         return false;
     }
@@ -137,7 +137,7 @@ bool command(const char *p) {
     }
     else if(cmd=='B' || cmd=='W') {
         uint32_t n=number(p);raw=cmd=='W';block=n;
-        expected=raw?512:(n>=96&&n<=sizeof(Table)?n:0);received=0;ok=expected!=0;
+        expected=raw?512:(n>=sizeof(TableHeader)&&n<=sizeof(Table)?n:0);received=0;ok=expected!=0;
     } else if(cmd=='D') {
         unsigned at=number(p);while(*p==' ')++p;
         unsigned n=strlen(p);
@@ -152,11 +152,11 @@ bool command(const char *p) {
         ok=expected==512 && raw && received==512 && hash(staging(),512)==h;
         if(ok){gfx_wait();ok=writeSector(block,staging()) && sd::read(block,gfx_chunkScratch()) && hash(gfx_chunkScratch(),512)==h;}
         expected=received=0;
-    } else if(cmd=='T') {data(reinterpret_cast<const uint8_t *>(&table),96+table.h.count*12);return true;}
+    } else if(cmd=='T') {data(reinterpret_cast<const uint8_t *>(&table),table.wireSize());return true;}
     else if(cmd=='G') {
         unsigned index=number(p);expected=received=0;
         ok=previewTable(index);
-        if(ok){data(reinterpret_cast<const uint8_t *>(&previewData()),96+previewData().h.count*12);return true;}
+        if(ok){data(reinterpret_cast<const uint8_t *>(&previewData()),previewData().wireSize());return true;}
     } else if(cmd=='L') {
         expected=received=0;scanTables();
         for(unsigned i=0;i<libraryCount;++i){say("LIVE BOARD ");number(i);say(" ");output(library[i].name,8);say("\n");}

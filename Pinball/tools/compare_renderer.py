@@ -45,7 +45,7 @@ int main(int argc,char **argv) {
     pb_init();
     for(int a=1;a<argc;++a) {
         FILE *f=fopen(argv[a],"rb");if(!f)return 2;
-        unsigned n=fread(pb_input(),1,960,f);fclose(f);if(!pb_apply(n))return 3;
+        unsigned n=fread(pb_input(),1,sizeof(pinball::Table),f);fclose(f);if(!pb_apply(n))return 3;
         sweep();
     }
     table.h.height=400;

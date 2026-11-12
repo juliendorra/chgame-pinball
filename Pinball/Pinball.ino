@@ -24,14 +24,18 @@ bool previewReady = false;
 int previewIndex = -1;
 struct Record { uint32_t id, score; };
 constexpr unsigned BankSize = MAX_TABLES / 2;
-constexpr unsigned LegacyRecords = 24;
-struct Bank { Record records[BankSize]; uint8_t soundOff; uint8_t reserved[3]; };
-constexpr unsigned LegacySoundOffset = LegacyRecords * sizeof(Record);
-constexpr unsigned LegacySize = LegacySoundOffset + 4;
-constexpr chsave::Id BANKS[] = {chsave::id("com.juliendorra.pinball"),
-                                 chsave::id("com.juliendorra.pinball.scores-b")};
+struct Bank {
+    Record records[BankSize];
+    uint8_t soundOff, reserved[3];
+    // Store the high words separately to keep the scores word aligned.
+    uint16_t idHigh[BankSize];
+};
+constexpr chsave::Id BANKS[] = {chsave::id("com.juliendorra.pinball.v2.scores-a"),
+                                 chsave::id("com.juliendorra.pinball.v2.scores-b")};
+static_assert(sizeof(Bank) == 484, "score file layout");
 static_assert(sizeof(Bank)<=chsave::MAX_DATA, "one sector per journal slot");
-static uint32_t scoreBoard, bestScore;
+static uint64_t scoreBoard;
+static uint32_t bestScore;
 static bool muted;
 static chsave::Store scoreSaves;
 
@@ -43,15 +47,6 @@ static chsave::Store scoreSaves;
 bool readBank(unsigned index, Bank &out) {
     const auto &id = BANKS[index];
     if (scoreSaves.load(id, 1, &out, sizeof out)) return true;
-    // The first journal keeps its original ID. Read a 24-score payload
-    // in place and expand it only when we next save a score or setting.
-    if (!index && scoreSaves.status() == chsave::Status::Incompatible &&
-        scoreSaves.load(id, 1, &out, LegacySize)) {
-        uint8_t sound = reinterpret_cast<const uint8_t *>(&out)[LegacySoundOffset];
-        memset(out.records + LegacyRecords, 0, sizeof out - LegacySoundOffset);
-        out.soundOff = sound;
-        return true;
-    }
     if (scoreSaves.status() != chsave::Status::Empty) return false;
     memset(&out, 0, sizeof out);
     return true;
@@ -59,6 +54,8 @@ bool readBank(unsigned index, Bank &out) {
 enum ScoreAction { Read, SaveScore, SaveSettings };
 void accessScores(ScoreAction action) {
     Bank bank;
+    const uint32_t low = uint32_t(scoreBoard);
+    const uint16_t high = scoreBoard >> 32;
     for (unsigned i = 0; i < 2; ++i) {
         if (!readBank(i, bank)) break;
         if (action == SaveSettings) {
@@ -68,26 +65,28 @@ void accessScores(ScoreAction action) {
         }
         if (action == Read && !i) muted = bank.soundOff;
         unsigned slot = BankSize;
+        uint32_t stored = 0;
         for (unsigned j = 0; j < BankSize; ++j) {
             uint32_t id = bank.records[j].id;
-            if (id == scoreBoard && id) { slot = j; break; }
-            if (!id && slot == BankSize) slot = j;
+            uint16_t idHigh = bank.idHigh[j];
+            if (id == low && idHigh == high) { slot = j; stored = bank.records[j].score; break; }
+            if (!(id | idHigh) && slot == BankSize) slot = j;
         }
         // The second journal gets entries once the first is full. When
         // both are full, reuse the final slot for a newly added board.
         if (slot == BankSize && !i) continue;
         if (slot == BankSize) --slot;
-        uint32_t stored = bank.records[slot].id == scoreBoard ? bank.records[slot].score : 0;
         bestScore = stored;
         if (action == Read || game.score <= stored) return;
-        bank.records[slot] = {scoreBoard, game.score};
+        bank.records[slot] = {low, game.score};
+        bank.idHigh[slot] = high;
         if (scoreSaves.store(BANKS[i], 1, bank)) { bestScore = game.score; return; }
         break;
     }
     if (action != Read) announce("SD SAVE FAILED", 180);
 }
 void loadScores() {
-    scoreBoard = table.h.id;
+    scoreBoard = table.boardId();
     bestScore = 0;
     accessScores(Read);
 }
@@ -130,7 +129,7 @@ void beginTable() {
     // Saving happens before the loader's transaction replaces its id.
     if (playing) remember();
     if (!loadTable(selected)) return;
-    if (scoreBoard != table.h.id) loadScores();
+    if (scoreBoard != table.boardId()) loadScores();
     palette();
     newGame();
     audio::setOn(!muted);
@@ -182,6 +181,9 @@ bool debugCommand(char cmd, const char *args) {
             game.shakeLevel, game.nudgeCooldown, game.shakeTicks, game.shakeX, game.shakeY, game.shakeDirection,
 #endif
             int32_t(game.metrics.searches),
+#ifdef CHSIM
+            table.h.idHigh,
+#endif
         };
 #ifdef CHSIM
         const char *names =
@@ -207,7 +209,7 @@ bool debugCommand(char cmd, const char *args) {
             "spinners\0" "drops\0" "kickbacks\0"
             "saucers\0" "shake_level\0" "shake_window\0" "shake_ticks\0" "shake_x\0" "shake_y\0" "shake_direction\0"
 #endif
-            "searches\0"
+            "searches\0" "id_high\0"
             ;
         dbg::print("PIN");
         for(int32_t value:values) {
@@ -338,7 +340,7 @@ void loop() {
     dbg::poll();live::poll();
     if (live::changed()) {
         gfx_wait();
-        if (scoreBoard != table.h.id) loadScores();
+        if (scoreBoard != table.boardId()) loadScores();
         palette();
         screen = Play;
         playing = true;

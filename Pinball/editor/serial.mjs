@@ -32,8 +32,10 @@ export class BrowserDevice {
   for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');if(cmd==='?')this.capabilities=new Set(line.split(' '));if(this.following&&["C","R","Q","P"].includes(cmd.split(" ")[0])){this.trace(line);if(cmd.startsWith("Q "))this.replay({type:"pause",paused:Number(cmd.slice(2))});}return [...lines,line];}}
   throw new Error('Unrecognized CHGame reply.');
  }
- requireBoardSupport(bytes){if(bytes[7]&1&&!this.capabilities?.has('RUBBER'))throw new Error('Update Pinball on CHGame to use editable rubber slingshots, then reconnect.');}
- async transfer(bytes,lba=null){if(lba===null)this.requireBoardSupport(bytes);await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
+ requireBoardSupport(){
+  if(!this.capabilities?.has('PBT2'))throw new Error('Update Pinball on CHGame to use this board, then reconnect.');
+ }
+ async transfer(bytes,lba=null){if(lba===null)this.requireBoardSupport();await this.request(lba===null?'B '+bytes.length:'W '+lba);for(let at=0;at<bytes.length;at+=32)await this.request(`D ${at} ${hex(bytes.slice(at,at+32))}`);await this.request(lba===null?'C':'F '+fnv(bytes));}
  replay(event){this.onReplay?.({...event,session:this.replaySession});}
  trace(line){const event=parseTrace(line,this.replayBuild,this.replayFrame);this.replayFrame=event.frame;this.replay(event);}
  beginFollow(bytes,seed,build,revision){return this.run(async()=>{
@@ -63,7 +65,7 @@ export class BrowserDevice {
   }finally{await this.request('Q '+paused);}
  });}
  inspectStorage(){return this.withCard(card=>card.inventory());}
- async save(stem,bytes,{automatic=false,...options}={}){this.requireBoardSupport(bytes);return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;},{automatic});}
+ async save(stem,bytes,{automatic=false,...options}={}){this.requireBoardSupport();return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;},{automatic});}
  revertSd(stem,options){return this.withCard(async card=>{const result=await card.revertProtected(stem,options);await this.request('L');return result;});}
  checkpointSd(stem,options){return this.withCard(card=>card.checkpointProtected(stem,options));}
  boards(){return this.run(async()=>{const list=await this.request('L'),result=[];for(const line of list){if(!line.startsWith('LIVE BOARD '))continue;const [,index,file]=line.match(/^LIVE BOARD (\d+) (.*)$/);const reply=await this.request('G '+index);result.push({index:Number(index),file:file.trim(),data:unhex(reply.at(-1).slice(10))});}return result;});}

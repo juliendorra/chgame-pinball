@@ -8,16 +8,17 @@ import threading
 GAME=Path(__file__).resolve().parents[1]
 ROOT=GAME.parent
 sys.path.insert(0,str(GAME/'tools'))
-from boards import encode,KINDS,checksum
+from boards import encode,KINDS,checksum,HEADER_BYTES
 NAMES=list(KINDS)
 
 def decode(data,filename='CUSTOM'):
-    if len(data)<96 or data[:4]!=b'PBT1':raise ValueError('Not a PBT1 board')
-    magic,version,theme,count,flags,height,gravity,ident,crc,title,mission,*pal=struct.unpack_from('<4sBBBBHHII20s24s16H',data)
-    if version!=1 or flags & ~1 or len(data)!=96+12*count or checksum(data)!=crc:raise ValueError('Invalid PBT size, version or checksum')
+    if len(data)<HEADER_BYTES or data[:4]!=b'PBT2':raise ValueError('Not a PBT2 board')
+    magic,version,theme,count,flags,height,gravity,ident,high,reserved,crc,title,mission,*pal=struct.unpack_from('<4sBBBBHHIHHI20s24s16H',data)
+    if version!=2 or reserved or flags & ~1 or len(data)!=HEADER_BYTES+12*count or checksum(data)!=crc:raise ValueError('Invalid PBT size, version or checksum')
+    ident|=high<<32
     board=dict(file=filename.removesuffix('.PBT'),id=ident,title=title.split(b'\0')[0].decode('ascii'),mission=mission.split(b'\0')[0].decode('ascii'),theme=theme,height=height,gravity=gravity,palette=[f'{v:03X}' for v in pal],objects=[])
     if flags: board["flags"]=flags
-    for at in range(96,len(data),12):
+    for at in range(HEADER_BYTES,len(data),12):
         kind,group,x,y,u,v,value=struct.unpack_from('<BBhhhhH',data,at)
         if kind>=len(NAMES):raise ValueError('Unknown element')
         board['objects'].append(dict(kind=NAMES[kind],group=group,x=x,y=y,u=u,v=v,value=value))

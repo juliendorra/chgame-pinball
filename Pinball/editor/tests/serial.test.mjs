@@ -6,7 +6,7 @@ import {fnv,encode} from '../model.mjs';
 import fs from 'node:fs';
 test('Automatic SD saves never pause active console play, including the launch lane',async()=>{
  for(const shooter of [0,1]){
-  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
   d.request=async command=>{calls.push(command);return ['LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,shooter,0,256,0,22].join(' ')];};
   await assert.rejects(()=>d.save('TEST',new Uint8Array(96),{automatic:true}),e=>e.code==='play_active');
   assert.deepEqual(calls,['V'],'no release, pause, card initialization or write');
@@ -15,7 +15,7 @@ test('Automatic SD saves never pause active console play, including the launch l
 test('Automatic SD saves proceed when paused or out of balls and retain the previous pause state',async()=>{
  const open=BoardCard.open;
  try{for(const [lives,paused] of [[3,1],[0,0]]){
-  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
   d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,lives,22,100,200,0,0,0,0,0,0,256,paused,22].join(' '):'LIVE OK'];};
   BoardCard.open=async()=>({saveProtected:async(file,bytes,options)=>{assert.equal(options.automatic,undefined);return {verified:true};}});
   assert.equal((await d.save('TEST',new Uint8Array(96),{automatic:true})).verified,true);
@@ -31,7 +31,7 @@ test('sector transfers use the bounded raw-sector protocol and exact checksum',a
 });
 test('failed direct SD initialization restores the previous pause state on the same connection',async()=>{
  for(const paused of [0,1]){
-  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
   d.request=async command=>{calls.push(command);if(command==='V')return ['LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,0,0,256,paused,22].join(' ')];if(command==='I')throw new Error('Card unavailable');return ['LIVE OK'];};
   await assert.rejects(()=>d.save('TEST',new Uint8Array()),/Card unavailable/);
   assert.deepEqual(calls,['V','X','Q 1','I','Q '+paused]);
@@ -43,16 +43,15 @@ test('seeded restart verifies all 32 seed bits via little-endian readback',async
  d.request=async c=>[c==='Z'?'LIVE DATA 01000000':'LIVE OK'];await assert.rejects(()=>d.restart(123),/seed readback differs/);
 });
 
-test('Editable-rubber boards reject an older console before RAM or SD writes',async()=>{
+test('PBT2 boards reject an older console before RAM or SD writes',async()=>{
  const d=new BrowserDevice();d.tail=Promise.resolve();let requests=0;d.request=async()=>{requests++;return ['LIVE OK'];};
- const bytes=new Uint8Array(96);bytes[7]=1;
+ const bytes=new Uint8Array(100);bytes[4]=2;
  await assert.rejects(()=>d.upload(bytes),/Update Pinball/);await assert.rejects(()=>d.save('TEST',bytes),/Update Pinball/);assert.equal(requests,0);
- d.capabilities=new Set(['RUBBER']);assert.doesNotThrow(()=>d.requireBoardSupport(bytes));
- assert.doesNotThrow(()=>new BrowserDevice().requireBoardSupport(new Uint8Array(96)),'old files still work on old firmware');
+ d.capabilities=new Set(['PBT2']);assert.doesNotThrow(()=>d.requireBoardSupport());
 });
 
 test('SD saving restores pause and never switches the console RAM board',async()=>{
- const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();
+ const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
  d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,0,0,256,0,22].join(' '):'LIVE OK'];};
  const open=BoardCard.open;BoardCard.open=async()=>({saveProtected:async()=>({verified:true})});
  try{const result=await d.save('TEST',new Uint8Array(96),{volume:'test',expected:null});assert.equal(result.verified,true);assert.deepEqual(calls,['V','X','Q 1','I','L','Q 0']);}finally{BoardCard.open=open;}
@@ -61,7 +60,7 @@ test('console mutation replies flush input history before the matching browser o
  const d=new BrowserDevice(),events=[],commands=[];
  const board=JSON.parse(fs.readFileSync(new URL('../../boards/tables.json',import.meta.url)))[0],bytes=encode(board);
  Object.assign(d,{tail:Promise.resolve(),following:true,replayBuild:123,replaySession:456,replayFrame:0,
-  capabilities:new Set(['TRACE','RUBBER']),onReplay:e=>events.push(e)});
+  capabilities:new Set(['TRACE','PBT2']),onReplay:e=>events.push(e)});
  let reply,frame=0;
  d.writer={write:async data=>{
   const c=new TextDecoder().decode(data).trim().slice(1);commands.push(c);

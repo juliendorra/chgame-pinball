@@ -60,7 +60,7 @@ def main():
 #include <cstdio>
 using namespace pinball;
 extern "C" {void pb_init();uint8_t *pb_input();int pb_apply(unsigned);void pb_step(unsigned);}
-int main(int argc,char **argv){pb_init();FILE *f=fopen(argv[1],"rb");if(!f)return 2;unsigned n=fread(pb_input(),1,960,f);fclose(f);if(!pb_apply(n))return 3;newGame(12345);
+int main(int argc,char **argv){pb_init();FILE *f=fopen(argv[1],"rb");if(!f)return 2;unsigned n=fread(pb_input(),1,sizeof(pinball::Table),f);fclose(f);if(!pb_apply(n))return 3;newGame(12345);
 for(unsigned frame=0;frame<150;++frame){if(frame==30)placeBall(0,60,254,0,-500);if(frame)pb_step(0);int camera=game.camera,zoom=game.zoom;game.camera=172;game.zoom=256;drawTable();char path[1024];snprintf(path,sizeof path,"%s/%03u.fb",argv[2],frame);f=fopen(path,"wb");if(!f)return 4;fwrite(gfx_fb,1,GFX_FB_BYTES,f);uint16_t colors[16];for(unsigned i=0;i<16;++i)colors[i]=gfx_paletteOut(i);fwrite(colors,1,sizeof colors,f);fclose(f);game.camera=camera;game.zoom=zoom;const auto &b=game.balls[0];printf("%d %d %d %d %d\\n",b.x,b.y,b.vx,b.vy,b.ramp);}}
 ''')
     flags,sources,_=engine_inputs(work);compiler=os.environ.get('CXX','clang++')

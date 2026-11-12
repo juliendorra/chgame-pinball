@@ -2,7 +2,7 @@ import {encode} from './model.mjs';
 const TICK_MS=1000/60;
 const REPLAY_BUFFER_MS=2*TICK_MS;
 const REPLAY_CATCH_UP_TICKS=8;
-export const STATE_FIELDS=['id','height','objects','score','lives','ticks','xq','yq','vx','vy','left','right','shooter','launching','camera','zoom','paused','over','ramp','hold','save','lanes','target','mult','tilt','zoom_ticks','ramp_camera','pop','pop_ticks','pop_kind','shake_level','shake_window','shake_ticks','shake_x','shake_y','shake_direction','searches','ramps','kickbacks','launch_held','frame','balls','shooter_flap','seed','rng','bonus','bonus_ticks','bonus_arg','bonus_next','bonus_next_arg','effective_mult','lane_goal','lane_groups','spin_q16','view_x','view_y','view_w','view_h'];
+export const STATE_FIELDS=['id','height','objects','score','lives','ticks','xq','yq','vx','vy','left','right','shooter','launching','camera','zoom','paused','over','ramp','hold','save','lanes','target','mult','tilt','zoom_ticks','ramp_camera','pop','pop_ticks','pop_kind','shake_level','shake_window','shake_ticks','shake_x','shake_y','shake_direction','searches','ramps','kickbacks','launch_held','frame','balls','shooter_flap','seed','rng','bonus','bonus_ticks','bonus_arg','bonus_next','bonus_next_arg','effective_mult','lane_goal','lane_groups','spin_q16','view_x','view_y','view_w','view_h','idHigh'];
 // Preserve sub-frame taps. Each transition is sampled for at least one tick.
 export class KeyQueue {
  constructor(){this.clear();}
@@ -12,7 +12,7 @@ export class KeyQueue {
 }
 export function readState(m){
  const at=m._pb_state()>>2,result={};STATE_FIELDS.forEach((name,i)=>result[name]=m.HEAP32[at+i]);
- result.id>>>=0;result.seed>>>=0;result.rng>>>=0;result.x=Math.trunc(result.xq/256);result.y=Math.trunc(result.yq/256);return result;
+ result.id=(result.id>>>0)+result.idHigh*2**32;delete result.idHigh;result.seed>>>=0;result.rng>>>=0;result.x=Math.trunc(result.xq/256);result.y=Math.trunc(result.yq/256);return result;
 }
 export class WasmEngine {
  static async create(onFrame,onApplied,onError){

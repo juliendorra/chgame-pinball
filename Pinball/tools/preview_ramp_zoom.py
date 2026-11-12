@@ -39,7 +39,7 @@ using namespace pinball;
 extern "C" {void pb_init();uint8_t *pb_input();int pb_apply(unsigned);void pb_step(unsigned);}
 int main(int argc,char **argv){
     pb_init();FILE *f=fopen(argv[1],"rb");if(!f)return 2;
-    unsigned n=fread(pb_input(),1,960,f);fclose(f);if(!pb_apply(n))return 3;
+    unsigned n=fread(pb_input(),1,sizeof(pinball::Table),f);fclose(f);if(!pb_apply(n))return 3;
     newGame(12345);bool diagonal=atoi(argv[3]);
     placeBall(0,diagonal?51:60,diagonal?301:313,diagonal?350:0,-500);
     game.camera=225;

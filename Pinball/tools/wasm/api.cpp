@@ -16,7 +16,7 @@ uint32_t pb_build(){return PINBALL_GAME_HASH;}
 void pb_init(){setup();chgame.startExits=false;}
 uint8_t *pb_input(){return reinterpret_cast<uint8_t *>(&editData());}
 int pb_apply(unsigned n){
-    if(n<96 || n>sizeof(Table) || !live::apply(editData(),n))return 0;
+    if(n<sizeof(TableHeader) || n>sizeof(Table) || !live::apply(editData(),n))return 0;
     // Process the sketch's palette/screen transition even on a display frame
     // with no physics tick due. This cannot advance the game clock.
     chgame.lockstep=0;loop();return 1;
@@ -45,11 +45,11 @@ const int32_t *pb_state(){
         game.launchHeld,int32_t(chgame.frameCount),int32_t(activeBalls()),game.shooterFlap,
         int32_t(game.seed),int32_t(game.rng),game.bonus,game.bonusTicks,game.bonusArg,
         game.bonusNext,game.bonusNextArg,int32_t(scoreMultiplier()),int32_t(laneGoal()),int32_t(laneGroups()),
-        game.balls[0].spin,viewX,viewY,viewW,viewH
+        game.balls[0].spin,viewX,viewY,viewW,viewH,table.h.idHigh
     };
     memcpy(state,values,sizeof values);return state;
 }
-unsigned pb_state_count(){return 58;}
+unsigned pb_state_count(){return 59;}
 const int32_t *pb_physics(){
     static const int32_t config[]={PINBALL_SPIN_GRIP,PINBALL_SPIN_FORGET,
         PINBALL_SCATTER_PASSIVE,PINBALL_SCATTER_POWERED,PINBALL_SCATTER_EJECT};
@@ -66,5 +66,5 @@ unsigned pb_render_size(){return (table.h.height+HEADER_HEIGHT)*GFX_FB_STRIDE+32
 const uint8_t *pb_lcd(){return gfx_fb;}
 unsigned pb_lcd_size(){return GFX_FB_BYTES;}
 const uint8_t *pb_table(){return reinterpret_cast<const uint8_t *>(&table);}
-unsigned pb_table_size(){return 96+table.h.count*12;}
+unsigned pb_table_size(){return table.wireSize();}
 }

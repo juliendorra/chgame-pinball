@@ -8,6 +8,7 @@ import math
 import re
 import struct
 from protocol import decode
+from boards import MAX_BYTES
 
 u16=lambda b,o:struct.unpack_from('<H',b,o)[0]
 u32=lambda b,o:struct.unpack_from('<I',b,o)[0]
@@ -114,7 +115,7 @@ class BoardCard:
         self.publish(slot,self.entry(b'PINBALL    ',cluster,0,True));return cluster
     def file(self,e):
         size=u32(e,28);out=bytearray()
-        if size>960:raise ValueError('Existing PBT file is oversized')
+        if size>MAX_BYTES:raise ValueError('Existing PBT file is oversized')
         for c in self.chain(self.cluster(e)):
             for s in range(self.sector(c),self.sector(c)+self.spc):
                 out.extend(self.read(s))

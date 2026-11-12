@@ -16,7 +16,7 @@ extern "C" const uint8_t *pb_render_draft(unsigned size) {
     uint8_t lcd[GFX_FB_BYTES];
     std::memcpy(lcd, gfx_fb, sizeof lcd);
 
-    if (draft.h.id == previous.h.id && draft.h.height == previous.h.height) {
+    if (draft.boardId() == previous.boardId() && draft.h.height == previous.h.height) {
         // Match unchanged parts by content, even if insertion or deletion
         // moved their index. A changed part starts with its idle appearance.
         std::memset(game.cooldown, 0, sizeof game.cooldown);

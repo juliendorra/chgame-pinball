@@ -35,7 +35,7 @@ to move, resize, mirror, duplicate, remove or change its score. Add more using
 anchor. Width and height include the base; rail thickness is retained when
 resizing. The curved band and the solid back/bottom contacts move together.
 
-PBT1 header flag bit 0 means the board explicitly lists its rubbers, including
+PBT2 header flag bit 0 means the board explicitly lists its rubbers, including
 an intentionally empty list. Kind 12 is `rubber`. Old flag-zero boards keep
 the original fixed pair on the console; Studio materializes that pair as
 editable objects on opening/import without changing their layout. Exports
