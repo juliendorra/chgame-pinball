@@ -29,6 +29,7 @@ on:
       - 'Pinball/tools/verify_browser_card.mjs'
       - 'Pinball/tools/verify_sim.py'
       - 'Pinball/tools/verify_theme_assets.py'
+      - 'Pinball/tools/verify_sd_scores.py'
       - 'Pinball/tools/verify_shake.py'
       - 'Pinball/tools/verify_flippers.py'
       - 'Pinball/tools/verify_regressions.py'

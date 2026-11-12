@@ -39,13 +39,12 @@ Pinball Studio uses the same crests in its board picker, including cloned
 and imported boards. A loads and starts a fresh game, B resumes the current one, and
 SELECT rescans the SD.
 In pause, A or START resumes and B toggles sound. At game over, A or Down
-starts again. The best scores for the most recent 24 scored tables and the
-sound setting are stored in the SD card's `5T668NAZ.SAV` journal (`com.juliendorra.pinball`). The normal
-`pinball.py` build uses the shared SD backend for firmware, native simulation
-and WASM. Saves alternate between two checked 512-byte records and verify
-writes by readback. No flash save pages are written or reserved by that backend.
-Old saves require explicit computer-side conversion; firmware performs no
-legacy import. The complete app ID is checked before writing.
+starts again. Pinball stores 96 high scores across two SD journals of 48
+scores each. The first journal also stores the sound setting. Each journal
+alternates between two checked 512-byte records and verifies writes by
+readback. The original 24-score SD journal expands on its first successful
+write. Saves from the older flash format require computer-side conversion.
+The complete app ID is checked before writing.
 
 Insert the card before starting the game. Prepare a missing save file with
 `python3 tools/sd_saves.py prepare --card /path/to/card`; existing journals are

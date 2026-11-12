@@ -23,39 +23,84 @@ bool playing = false, resultSaved = false;
 bool previewReady = false;
 int previewIndex = -1;
 struct Record { uint32_t id, score; };
-struct Scores { Record records[24]; uint8_t muted; uint8_t reserved[3]; } scores = {};
-constexpr auto SAVE_ID = chsave::id("com.juliendorra.pinball");
-chsave::Store scoreSaves;
+constexpr unsigned BankSize = MAX_TABLES / 2;
+constexpr unsigned LegacyRecords = 24;
+struct Bank { Record records[BankSize]; uint8_t soundOff; uint8_t reserved[3]; };
+constexpr unsigned LegacySoundOffset = LegacyRecords * sizeof(Record);
+constexpr unsigned LegacySize = LegacySoundOffset + 4;
+constexpr chsave::Id BANKS[] = {chsave::id("com.juliendorra.pinball"),
+                                 chsave::id("com.juliendorra.pinball.scores-b")};
+static_assert(sizeof(Bank)<=chsave::MAX_DATA, "one sector per journal slot");
+static uint32_t scoreBoard, bestScore;
+static bool muted;
+static chsave::Store scoreSaves;
+
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC push_options
 #pragma GCC optimize("Oz")
 #endif
 
-void storeScores() {
-    if (!scoreSaves.store(SAVE_ID, 1, scores)) announce("SD SAVE FAILED",180);
+bool readBank(unsigned index, Bank &out) {
+    const auto &id = BANKS[index];
+    if (scoreSaves.load(id, 1, &out, sizeof out)) return true;
+    // The first journal keeps its original ID. Read a 24-score payload
+    // in place and expand it only when we next save a score or setting.
+    if (!index && scoreSaves.status() == chsave::Status::Incompatible &&
+        scoreSaves.load(id, 1, &out, LegacySize)) {
+        uint8_t sound = reinterpret_cast<const uint8_t *>(&out)[LegacySoundOffset];
+        memset(out.records + LegacyRecords, 0, sizeof out - LegacySoundOffset);
+        out.soundOff = sound;
+        return true;
+    }
+    if (scoreSaves.status() != chsave::Status::Empty) return false;
+    memset(&out, 0, sizeof out);
+    return true;
 }
-
+enum ScoreAction { Read, SaveScore, SaveSettings };
+void accessScores(ScoreAction action) {
+    Bank bank;
+    for (unsigned i = 0; i < 2; ++i) {
+        if (!readBank(i, bank)) break;
+        if (action == SaveSettings) {
+            bank.soundOff = muted;
+            if (scoreSaves.store(BANKS[i], 1, bank)) return;
+            break;
+        }
+        if (action == Read && !i) muted = bank.soundOff;
+        unsigned slot = BankSize;
+        for (unsigned j = 0; j < BankSize; ++j) {
+            uint32_t id = bank.records[j].id;
+            if (id == scoreBoard && id) { slot = j; break; }
+            if (!id && slot == BankSize) slot = j;
+        }
+        // The second journal gets entries once the first is full. When
+        // both are full, reuse the final slot for a newly added board.
+        if (slot == BankSize && !i) continue;
+        if (slot == BankSize) --slot;
+        uint32_t stored = bank.records[slot].id == scoreBoard ? bank.records[slot].score : 0;
+        bestScore = stored;
+        if (action == Read || game.score <= stored) return;
+        bank.records[slot] = {scoreBoard, game.score};
+        if (scoreSaves.store(BANKS[i], 1, bank)) { bestScore = game.score; return; }
+        break;
+    }
+    if (action != Read) announce("SD SAVE FAILED", 180);
+}
 void loadScores() {
-    scoreSaves.load(SAVE_ID, 1, scores);
+    scoreBoard = table.h.id;
+    bestScore = 0;
+    accessScores(Read);
+}
+uint32_t best() { return bestScore; }
+void storeSettings() { accessScores(SaveSettings); }
+void remember() {
+    if (scoreBoard && game.score > bestScore) accessScores(SaveScore);
 }
 
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC pop_options
 #endif
 
-uint32_t best() {
-    for (const Record &r : scores.records) if (r.id == table.h.id) return r.score;
-    return 0;
-}
-void remember() {
-    if (!game.score || game.score <= best()) return;
-    gfx_wait();
-    unsigned slot = 23;
-    for (unsigned i = 0; i < 24; ++i) if (scores.records[i].id == table.h.id || !scores.records[i].id) { slot = i; break; }
-    for (unsigned i = slot; i > 0; --i) scores.records[i] = scores.records[i - 1];
-    scores.records[0] = {table.h.id, game.score};
-    storeScores();
-}
 void palette(const Table &source = table) {
     uint16_t colors[16];
     memcpy(colors, source.h.palette, sizeof colors);
@@ -85,9 +130,10 @@ void beginTable() {
     // Saving happens before the loader's transaction replaces its id.
     if (playing) remember();
     if (!loadTable(selected)) return;
+    if (scoreBoard != table.h.id) loadScores();
     palette();
     newGame();
-    audio::setOn(!scores.muted);
+    audio::setOn(!muted);
     screen = Play;
     playing = true;
     resultSaved = false;
@@ -222,7 +268,7 @@ bool debugCommand(char cmd, const char *args) {
     if(cmd=='H') {
         Serial.print("OVERVIEW ");Serial.println((table.h.height+HEADER_HEIGHT)*64+32);
         drawOverview([](const uint8_t *p,unsigned n,void *){Serial.write(p,n);},nullptr);
-        if(game.over)drawGameOver(best());else if(game.paused)drawPause(!scores.muted);
+        if(game.over)drawGameOver(best());else if(game.paused)drawPause(!muted);
         gfx_flush();return true;
     }
     if (cmd == 'I') {
@@ -279,7 +325,7 @@ void setup() {
 #endif
     palette();
     loadScores();
-    audio::begin(nullptr, 0, !scores.muted);
+    audio::begin(nullptr, 0, !muted);
     rumble::begin();
 #if !PINBALL_SD_BOARDS
     scanTables();
@@ -290,7 +336,15 @@ void setup() {
 void loop() {
     rumble::update();
     dbg::poll();live::poll();
-    if(live::changed()){gfx_wait();palette();screen=Play;playing=true;resultSaved=false;previewIndex=-1;}
+    if (live::changed()) {
+        gfx_wait();
+        if (scoreBoard != table.h.id) loadScores();
+        palette();
+        screen = Play;
+        playing = true;
+        resultSaved = false;
+        previewIndex = -1;
+    }
     if(screen==Library && live::busy())return;
     if (!chgame.nextFrame()) return;
 #if CHGAME_DEBUG && defined(CHSIM)
@@ -324,10 +378,10 @@ void loop() {
         } else {
             if (chgame.justPressed(START_BUTTON) || (game.paused && chgame.justPressed(A_BUTTON))) {
                 game.paused = !game.paused;
-                audio::setOn(!game.paused && !scores.muted);
+                audio::setOn(!game.paused && !muted);
             } else if (game.paused && chgame.justPressed(B_BUTTON)) {
-                scores.muted = !scores.muted;
-                storeScores();
+                muted = !muted;
+                storeSettings();
             } else updateGame(chgame.buttons(), chgame.justPressedMask(), chgame.justReleased(A_BUTTON | DOWN_BUTTON) ?
                              (A_BUTTON | DOWN_BUTTON) : 0);
         }
@@ -356,7 +410,7 @@ void loop() {
     else {
         drawTable();
         if (game.over) drawGameOver(best());
-        else if (game.paused) drawPause(!scores.muted);
+        else if (game.paused) drawPause(!muted);
     }
     dbg::markRenderEnd();
     present();
