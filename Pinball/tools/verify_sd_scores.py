@@ -4,14 +4,12 @@ from pathlib import Path
 import importlib.util,json,os,struct,sys,zlib
 G=Path(__file__).resolve().parents[1];R=G.parent
 sys.path[:0]=[str(Path(__file__).resolve().parents[2]/'tools'),str(R/'CHGame/tools/chsim'),str(R/'chgame-sd-saves/tools'),str(R/'CHGame/platform/board/arduino/CHGame/libraries/CHSd/tools')]
-from sd_saves import overlay
 import prepare
 from fatimg import build_image,FatVolume,short_name
-from chsim import build
+from sim_build import build
 from chdrivelib import Driver,SimTransport
 from boards import encode
 O=G/'out/sd-scores';O.mkdir(parents=True,exist_ok=True)
-os.environ['CHSIM_CHGAME']=str(overlay()/'CHGame/src')
 os.environ['CHSIM_FLAGS']=f'-fsanitize=undefined,bounds -fsanitize-ignorelist={G}/tools/sanitizer.ignore -fno-sanitize-recover=all'
 exe=build(G,out=O/'sim-scores');ID='com.juliendorra.pinball.v2.scores-a';NAME=prepare.save_path(ID)
 SECOND_ID='com.juliendorra.pinball.v2.scores-b'

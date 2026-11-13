@@ -39,6 +39,8 @@ sys.path.insert(0, str(REPO / "tools"))
 import paths  # noqa: E402
 
 LIBRARIES = paths.LIBRARIES
+EXTRA_LIBRARIES = ()
+CHSD = None
 FQBN_DEBUG = "CHGame:ch32v:rev0:opt=oslto,rtlib=nano,periph=game"
 FQBN_RELEASE = FQBN_DEBUG + ",usb=uploadonly"
 
@@ -66,8 +68,8 @@ def build(sketch, debug=False, flags=""):
     if extra.strip():
         cmd += ["--build-property", "build.extra_flags=" + extra.strip()]
     # All three every time: Arduino links only the ones a sketch includes.
-    for lib in ("CHGfx", "CHGame", "CHSd"):
-        cmd += ["--library", str(LIBRARIES / lib)]
+    for lib in (LIBRARIES / "CHGfx", LIBRARIES / "CHGame", CHSD or LIBRARIES / "CHSd", *EXTRA_LIBRARIES):
+        cmd += ["--library", str(lib)]
     cmd.append(str(sketch))
     r = subprocess.run(cmd, capture_output=True, text=True)
     if r.returncode:

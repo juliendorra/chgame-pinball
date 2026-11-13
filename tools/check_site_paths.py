@@ -8,7 +8,7 @@ paths=[line.split("'",2)[1] for line in workflow.splitlines() if line.startswith
 def matches(path):return any(fnmatch.fnmatchcase(path,p) for p in paths)
 for name in ('Pinball/Physics.cpp','Pinball/src/rumble/Rumble.cpp','Pinball/editor/.htaccess',
              'Pinball/editor/app.mjs','Pinball/boards/tables.json','Pinball/sprites/element_sprites.json',
-             'Pinball/tools/verify_sim.py','tools/deploy_sftp.py','tools/deploy_known_hosts','tools/deploy-target.json','CHGame/tools/gamecfg.py','tools/sd_saves.py','vendor/sd-spi/SdSpi.cpp','requirements.txt','save-config.json'):
+             'Pinball/tools/verify_sim.py','tools/deploy_sftp.py','tools/deploy_known_hosts','tools/deploy-target.json','CHGame/tools/gamecfg.py','tools/sd_saves.py','chgame-sd-saves/extras/CHSd/src/FatWrite.cpp','requirements.txt','save-config.json'):
     assert matches(name),f'Missing site trigger: {name}'
 for name in ('README.md','Pinball/README.md','Pinball/docs/cart.png','Pinball/research/gator/verify_rom.py',
              'Pinball/chgame.json','Pinball/tools/install_built.py','tools/build_current_gcc.py','arduino-cli.yaml'):

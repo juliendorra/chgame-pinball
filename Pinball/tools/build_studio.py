@@ -18,11 +18,9 @@ import tempfile
 
 GAME=Path(__file__).resolve().parents[1];ROOT=GAME.parent
 OUT=GAME/'build/studio';WORK=GAME/'out/wasm'
-# Match the normal game launcher: firmware and browser/native targets use the
-# same SD journal implementation, not the SDK's legacy shared-flash backend.
+# Firmware, simulator and Studio build the same installed library sources.
 sys.path.insert(0,str(ROOT/'tools'))
-from sd_saves import overlay as save_overlay
-LIB=save_overlay()
+from sd_saves import SDK as LIB, CHSD, PUBLIC
 HOST=ROOT/'CHGame/tools/chsim/host';SDK=ROOT/'.toolchains/pinball-emsdk'
 VERSION='4.0.15'
 EXPORTS=['build','init','input','apply','step','restart','pause','place','state','state_count','physics','render','render_draft','render_size','lcd','lcd_size','table','table_size']
@@ -49,9 +47,7 @@ def inputs():
         files.add(GAME/'tools'/name)
     files.add(ROOT/'tools/sd_saves.py')
     for folder in [GAME/'src',GAME/'sprites',GAME/'boards',GAME/'editor',GAME/'tools/wasm',HOST,ROOT/'CHGame/tools',
-                   ROOT/'CHGame/platform/board/arduino/CHGame/libraries/CHSd/host',
-                   LIB/'CHGame/src',LIB/'CHGfx/src',LIB/'CHSd/src',ROOT/'tools/sd_saves/src',
-                   ROOT/'vendor/sd-spi']:
+                   CHSD/'host', LIB/'CHGame/src', LIB/'CHGfx/src', CHSD/'src', PUBLIC/'src']:
         files.update(p for p in folder.rglob('*') if p.is_file() and p.suffix in
                      ('.h','.cpp','.c','.ino','.json','.mjs','.css','.html','.py','.htaccess')
                      and not {'build','__pycache__'}&set(p.relative_to(folder).parts))
@@ -82,10 +78,11 @@ def engine_inputs(work=WORK):
     game_sources+=sorted(p for p in (GAME/'src').rglob('*') if p.suffix in ('.cpp','.c'))
     sources=[unit,*game_sources,
              *sorted((LIB/'CHGfx/src').glob('*.cpp')),
-             *sorted((LIB/'CHGame/src').rglob('*.cpp')),*sorted((LIB/'CHSd/src').glob('*.cpp')),
+             *sorted((LIB/'CHGame/src').rglob('*.cpp')),*sorted((CHSD/'src').glob('*.cpp')),
+             *sorted((PUBLIC/'src').rglob('*.cpp')),
              GAME/'tools/wasm/platform.cpp',GAME/'tools/wasm/api.cpp']
     sources=[s for s in sources if s.name not in ('CHGfx.cpp',)]
-    includes=[HOST,GAME,LIB/'CHGfx/src',LIB/'CHGame/src',LIB/'CHSd/src']
+    includes=[HOST,GAME,LIB/'CHGfx/src',LIB/'CHGame/src',CHSD/'src', PUBLIC/'src']
     sys.path.insert(0,str(ROOT/'CHGame/tools'))
     import gamecfg
     shared_defines=gamecfg.load(GAME).DEFINES
@@ -187,7 +184,7 @@ def main():
     result={'schema':1,'engine':'shared Pinball sketch + CHGame/CHGfx C++',
             'emscripten':VERSION,'sourceHash':fingerprint,'sources':before,'artifacts':artifacts,
             'nativeCompiler':subprocess.check_output([os.environ.get('CXX','clang++'),'--version'],text=True).splitlines()[0],
-            'sharedDefines':shared_defines,'physics':physics,'saveBackend':'per-game SD journal (tools/sd_saves overlay)',
+            'sharedDefines':shared_defines,'physics':physics,'saveBackend':'CHSave with bundled CHSd',
             'validation':'native/WASM deterministic replay: state + LCD/full-board pixels + live edits'}
     if a.firmware:
         result['firmware']={'sha256':digest(a.firmware),'bytes':a.firmware.stat().st_size}

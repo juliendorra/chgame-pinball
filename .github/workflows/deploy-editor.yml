@@ -42,10 +42,9 @@ on:
       - 'tools/requirements-deploy.txt'
       - 'tools/check_site_paths.py'
       - 'tools/sd_saves.py'
-      - 'tools/sd_saves/**'
+      - 'chgame-sd-saves/extras/CHSd/**'
       - 'chgame-sd-saves/src/**'
       - 'chgame-sd-saves/library.properties'
-      - 'vendor/sd-spi/**'
 
 permissions:
   contents: read

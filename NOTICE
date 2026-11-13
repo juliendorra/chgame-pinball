@@ -5,8 +5,8 @@ CHGame is a bundled SDK source snapshot by bateske (see CHGame/VENDOR.json). Its
 per-component notices apply, including CHGfx and CHSd.
 
 chgame-sd-saves is CHSave by Julien Dorra, under its included MIT LICENSE.
-vendor/sd-spi contains the CHSd transport adapted via Mystic Balloon; see its
-MIT LICENSE and NOTICE. Compiler tools retain their existing licenses and
+The bundled CHSd transport has its own MIT LICENSE and NOTICE.
+Compiler tools retain their existing licenses and
 third-party patch notices in tools/toolchain/.
 
 Game Boy research tools and symbol names are reference material only. No Game

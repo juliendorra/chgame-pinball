@@ -145,9 +145,9 @@ def uses(sketch, inos, pattern):
 def chsd_dir(sketch, inos):
     """CHSd's folder if the sketch includes it, else None: $CHSIM_CHSD, else
     this repository's copy, else the sketchbook's libraries/CHSd."""
-    if not uses(sketch, inos, r'#\s*include\s*<(Fat|SdSpi)\.h>'):
-        return None
     env = os.environ.get("CHSIM_CHSD")
+    if not env and not uses(sketch, inos, r'#\s*include\s*<(Fat|SdSpi)\.h>'):
+        return None
     d = Path(env) if env else VENDORED_CHSD
     if not (d / "src" / "Fat.h").exists():
         d = sketchbook() / "libraries" / "CHSd"
@@ -229,6 +229,10 @@ def build(sketch, defines=(), out=None):
         chgame = chgame_dir()
         srcs += sorted(p for p in chgame.rglob("*") if p.suffix in (".cpp", ".c"))
         includes.append(chgame)
+    for library in filter(None, os.environ.get("CHSIM_EXTRA_LIBRARIES", "").split(os.pathsep)):
+        src = Path(library) / "src"
+        srcs += sorted(p for p in src.rglob("*") if p.suffix in (".cpp", ".c"))
+        includes.append(src)
     chsd = chsd_dir(sketch, inos)
     if chsd:
         # The FAT reader as it is; SdSpi.cpp compiles to nothing under

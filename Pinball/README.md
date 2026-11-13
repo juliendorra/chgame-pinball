@@ -42,14 +42,11 @@ In pause, A or START resumes and B toggles sound. At game over, A or Down
 starts again. Pinball stores 96 high scores across two SD journals of 48
 scores each. The first journal also stores the sound setting. Each journal
 alternates between two checked 512-byte records and verifies writes by
-readback. The original 24-score SD journal expands on its first successful
-write. Saves from the older flash format require computer-side conversion.
-The complete app ID is checked before writing.
+readback. CHSave creates both files automatically in `/SAVES/` on the first
+write. The complete app ID is checked before writing.
 
-Insert the card before starting the game. Prepare a missing save file with
-`python3 tools/sd_saves.py prepare --card /path/to/card`; existing journals are
-preserved. Saves happen on game over, table changes and sound-setting changes,
-outside active ball movement. A write failure reports `SD SAVE FAILED`.
+Saves happen on game over, table changes and sound-setting changes. A write
+failure reports `SD SAVE FAILED`.
 
 Version 1.4.1 adds PWM rumble on **GPIO1 / PC0 / H1.8**, routed to TIM2
 channel 4. Actual flipper contacts, bumpers, slings, launches, ramps,

@@ -77,7 +77,7 @@ See [third-party notices](NOTICE) for dependency licenses.
 
 ## SD saves
 
-Pinball uses [CHSave 0.6.0](https://github.com/juliendorra/chgame-sd-saves/tree/v0.6.0).
+Pinball uses [CHSave 0.6.1](https://github.com/juliendorra/chgame-sd-saves/tree/v0.6.1).
 Scores and mute settings are saved automatically in `/SAVES/`.
 
 To keep scores from 1.4.18, move its `2A69WJNM.SAV` and `O92D2HN3.SAV`
