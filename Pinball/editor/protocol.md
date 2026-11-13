@@ -9,7 +9,7 @@ hook, adding its standard `OK`/`ERR` terminator after the `LIVE` response.
 
 | Command | Reply / effect |
 | --- | --- |
-| `@?` | `LIVE HELLO 1.4.19 PBT2 RAM SD RUBBER TRACE` |
+| `@?` | `LIVE HELLO 1.4.20 PBT2 RAM SD RUBBER TRACE` |
 | `@B <bytes>` | Begin a 100–964 byte PBT2 RAM upload; `LIVE OK` |
 | `@D <offset> <hex>` | Append 1–32 bytes at the exact next offset; `LIVE OK` |
 | `@C` | Validate complete PBT header, FNV checksum, geometry and length, then apply; `LIVE OK` |
