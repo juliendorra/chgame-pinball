@@ -334,15 +334,15 @@ function releaseDevice(){
  deviceKeys.clear();clearTimeout(deviceTimer);deviceTimer=undefined;
  storage.disconnect();updateDeviceUi();
 }
-async function deviceLost(error,device=state.direct){
+async function deviceLost(device=state.direct,message='CHGame disconnected'){
  if(!device||state.direct!==device)return;
  const wasBusy=connectionBusy;
  connectionBusy=true;state.direct=null;
  releaseDevice();
+ toast(message);
  closingDevice=Promise.allSettled([device.close(),play.disconnect(board(),state.revision),storage.idle()]);
  await closingDevice;
  if(!wasBusy)await finishConnection();
- toast(error.message||'CHGame disconnected.');
 }
 async function finishConnection(){
  if(closingDevice){await closingDevice;closingDevice=null;}
@@ -360,7 +360,7 @@ async function openDevice(automatic=false){
  if(device.stopped){await device.close();throw new Error('CHGame disconnected.');}
  preferredPort=device.port;
  state.direct=device;state.device=true;state.reconnected=automatic;
- device.onDisconnect=error=>deviceLost(error,device);
+ device.onDisconnect=()=>deviceLost(device);
  updateDeviceUi();
  try{
   await storage.connect(device,{check:!automatic});
@@ -369,6 +369,7 @@ async function openDevice(automatic=false){
    play.attach(device);
    if(device.capabilities.has('TRACE'))play.notice='CHGame connected. Select Resync to start Console Play.';
    play.changed();
+   toast('CHGame reconnected!');
    return;
   }
   const valid=state.validBoards[state.id]||board();
@@ -376,7 +377,7 @@ async function openDevice(automatic=false){
   if(state.direct!==device)return;
   if(play.controlsConsole)state.lastRam=copy(valid);
   else if($('#liveDevice').checked)await uploadDevice();
- }catch(error){await deviceLost(error,device);}
+ }catch(error){await deviceLost(device,error.message);}
 }
 async function reconnectDevice(){
  if(!serial||!state.ready||state.device||!$('#autoReconnect').checked)return;
@@ -408,7 +409,7 @@ async function uploadDevice(){
  if(state.uploading){state.uploadAgain=true;return;}state.uploading=true;const revision=state.revision,snapshot=copy(board());renderStorage();
  const device=state.direct;
  try{await device.upload(encode(snapshot),revision);if(state.direct===device)state.lastRam=snapshot;}
- catch(e){if(device.stopped)await deviceLost(e,device);else if(state.direct===device)toast(e.message);}
+ catch(e){if(device.stopped)await deviceLost(device);else if(state.direct===device)toast(e.message);}
  finally{state.uploading=false;renderStorage();if(state.uploadAgain||revision!==state.revision){state.uploadAgain=false;if(state.direct===device)uploadDevice();}}
 }
 function storageChanged(){if(!board())return;persist();refreshLibrary();renderStorage();}
@@ -540,7 +541,7 @@ try{
   try{$('#autoReconnect').checked=localStorage.getItem(reconnectPreference)==='true';}catch{}
   serial.addEventListener('connect',reconnectDevice);
   serial.addEventListener('disconnect',event=>{
-   if((event.port||event.target)===state.direct?.port)deviceLost(new Error('CHGame disconnected.'));
+   if((event.port||event.target)===state.direct?.port)deviceLost();
   });
  }
  updateDeviceUi();reconnectDevice();

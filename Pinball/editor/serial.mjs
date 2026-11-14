@@ -33,7 +33,7 @@ export class BrowserDevice {
   const text=new TextDecoder();
   try{while(!this.stopped){const {value,done}=await this.reader.read();if(done)break;this.buffer+=text.decode(value,{stream:true});let at;while((at=this.buffer.indexOf('\n'))>=0){let line=this.buffer.slice(0,at).trim();this.buffer=this.buffer.slice(at+1);const waiter=this.waiters.shift();if(waiter)waiter.resolve(line);else this.lines.push(line);}}}
   catch(e){this.readError=e;}finally{
-   const lost=!this.stopped,error=this.readError||new Error('CHGame disconnected.');
+   const lost=!this.stopped,error=new Error('CHGame disconnected',{cause:this.readError});
    this.stopped=true;for(const w of this.waiters.splice(0))w.reject(error);
    if(lost)this.onDisconnect?.(error);
   }
