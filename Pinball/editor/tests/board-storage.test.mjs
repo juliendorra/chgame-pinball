@@ -22,6 +22,25 @@ class Device{
  async checkpointSd(file,options){const item=this.items.find(b=>b.file===file);assert.deepEqual(item.data,options.expected);item.checkpoint=copy(item.data);return copy({...item,volume:this.volume});}
 }
 function setup(boards,options={}){const device=new Device(boards),storage=new BoardStorage({delay:15,...options});for(const b of boards)storage.record(b);return {device,storage};}
+test('USB reconnection leaves SD idle even with dirty drafts and auto-save on',async()=>{
+ const b=board(8),{storage,device}=setup([b]);
+ await storage.connect(device);
+ storage.disconnect();
+ storage.setAuto(true);
+ b.objects[0].x++;storage.changed(b);
+ let checks=0;
+ const inspect=device.inspectStorage.bind(device);
+ device.inspectStorage=async()=>{checks++;return inspect();};
+ await storage.connect(device,{check:false});
+ await tick();
+ assert.equal(checks,0);
+ assert.equal(device.writes.length,0);
+ assert.equal(storage.view(b).kind,'unchecked');
+ await storage.save(b);
+ assert.equal(checks,1);
+ assert.equal(device.writes.length,1);
+ storage.disconnect();
+});
 test('Connecting and selecting never auto-overwrite a board; legacy conversion is already saved',async()=>{
  const raw=copy(templates[0]),b=editableBoard(raw),{storage,device}=setup([raw]);
  storage.select(b);await storage.connect(device);await tick();assert.equal(device.writes.length,0);assert.equal(storage.view(b).kind,'saved');assert.ok(matchesSd(b,encode(raw)));storage.disconnect();

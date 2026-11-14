@@ -1,6 +1,15 @@
 // Direct browser connection to the same release protocol as the local bridge.
 import {BoardCard} from './card.mjs';
 import {fnv,decode} from './model.mjs';
+const CHGAME_USB={usbVendorId:0x16c0,usbProductId:0x27dd};
+
+export async function authorizedCHGame(serial,preferred){
+ const ports=(await serial.getPorts()).filter(port=>{
+  const {usbVendorId,usbProductId}=port.getInfo();
+  return port.connected!==false&&usbVendorId===CHGAME_USB.usbVendorId&&usbProductId===CHGAME_USB.usbProductId;
+ });
+ return ports.includes(preferred)?preferred:ports.length===1?ports[0]:null;
+}
 export function parseTrace(line,build,previous=0){
  if(!/^LIVE DATA [0-9a-f]+$/.test(line)||(line.length-10)%2)throw new Error('Invalid console replay reply.');
  const bytes=unhex(line.slice(10));
@@ -15,19 +24,24 @@ export function parseTrace(line,build,previous=0){
  return {type:'steps',frame,runs};
 }
 export class BrowserDevice {
- async connect(){
-  this.port=await navigator.serial.requestPort({filters:[{usbVendorId:0x16c0,usbProductId:0x27dd}]});
+ async connect(port){
+  this.port=port??await navigator.serial.requestPort({filters:[CHGAME_USB]});
   try{await this.port.open({baudRate:115200});await this.port.setSignals({dataTerminalReady:true});this.reader=this.port.readable.getReader();this.writer=this.port.writable.getWriter();this.buffer='';this.lines=[];this.waiters=[];this.stopped=false;this.tail=Promise.resolve();this.readLoop();await this.run(()=>this.request('?'));}
   catch(e){await this.close();if(e.name==='NetworkError')throw new Error('CHGame USB is in use. Close other editor tabs or serial apps, then reconnect.');throw e;}return this;
  }
  async readLoop(){
   const text=new TextDecoder();
   try{while(!this.stopped){const {value,done}=await this.reader.read();if(done)break;this.buffer+=text.decode(value,{stream:true});let at;while((at=this.buffer.indexOf('\n'))>=0){let line=this.buffer.slice(0,at).trim();this.buffer=this.buffer.slice(at+1);const waiter=this.waiters.shift();if(waiter)waiter.resolve(line);else this.lines.push(line);}}}
-  catch(e){this.readError=e;}finally{this.stopped=true;for(const w of this.waiters.splice(0))w.reject(this.readError||new Error('CHGame disconnected.'));}
+  catch(e){this.readError=e;}finally{
+   const lost=!this.stopped,error=this.readError||new Error('CHGame disconnected.');
+   this.stopped=true;for(const w of this.waiters.splice(0))w.reject(error);
+   if(lost)this.onDisconnect?.(error);
+  }
  }
  line(){if(this.lines.length)return Promise.resolve(this.lines.shift());if(this.stopped)return Promise.reject(new Error('CHGame disconnected.'));return new Promise((resolve,reject)=>{let w={resolve:v=>{clearTimeout(timer);resolve(v);},reject:e=>{clearTimeout(timer);reject(e);}};let timer=setTimeout(()=>{this.waiters=this.waiters.filter(v=>v!==w);reject(new Error('CHGame did not answer. Install Pinball 1.4, then reconnect.'));},2500);this.waiters.push(w);});}
  run(fn){const p=this.tail.then(fn);this.tail=p.catch(()=>{});return p;}
  async request(cmd){
+  if(this.stopped)throw new Error('CHGame disconnected.');
   await this.writer.write(new TextEncoder().encode('@'+cmd+'\n'));const lines=[];
   for(let i=0;i<130;i++){const line=await this.line();if(line.startsWith('LIVE ERR'))throw new Error('CHGame refused '+cmd.split(' ')[0]);if(line.startsWith('LIVE BOARD '))lines.push(line);else if(line.startsWith('LIVE ')){if(cmd==='?'&&!line.startsWith('LIVE HELLO 1.4'))throw new Error('Install Pinball 1.4 or newer.');if(cmd==='?')this.capabilities=new Set(line.split(' '));if(this.following&&["C","R","Q","P"].includes(cmd.split(" ")[0])){this.trace(line);if(cmd.startsWith("Q "))this.replay({type:"pause",paused:Number(cmd.slice(2))});}return [...lines,line];}}
   throw new Error('Unrecognized CHGame reply.');
@@ -75,7 +89,10 @@ export class BrowserDevice {
  place(x,y){return this.run(async()=>{await this.request(`P ${x},${y}`);if(this.following)this.replay({type:'place',x,y});});}
  async close(){
   if(this.stopped&& !this.port)return;this.stopped=true;
-  try{if(this.reader){await this.reader.cancel();this.reader.releaseLock();}}catch{}
+  if(this.reader){
+   try{await this.reader.cancel();}catch{}
+   this.reader.releaseLock();
+  }
   try{this.writer?.releaseLock();await this.port?.close();}catch{}
   this.port=null;
  }

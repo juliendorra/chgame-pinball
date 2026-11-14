@@ -18,8 +18,11 @@ export class PlaySession{
   if(event.type==='pause')return this.device.pause(event.paused);
   if(event.type==='place')return this.device.place(event.x,event.y);
  }
- async connect(device,board,revision,separate=false){
+ attach(device){
   this.device=device;device.onReplay=event=>{if(event.session===this.session&&this.followsConsole)this.engine.consoleEvent(event);};
+ }
+ async connect(device,board,revision,separate=false){
+  this.attach(device);
   if(separate||!device.capabilities?.has('TRACE')){
    this.mode='web';this.notice=separate?'':'Update Pinball on CHGame to enable console play.';
    if(device.capabilities?.has('TRACE'))await device.endFollow();this.changed();return;

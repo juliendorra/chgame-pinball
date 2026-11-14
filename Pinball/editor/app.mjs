@@ -2,7 +2,7 @@ import {BoardStorage} from './board-storage.mjs';
 import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
 import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,nextBoardFilename,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
-import {BrowserDevice} from './serial.mjs';
+import {BrowserDevice,authorizedCHGame} from './serial.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
 import {PlaySession} from './play-session.mjs';
@@ -282,7 +282,7 @@ function renderPlayMode(){
  const lag=Math.max(0,(engine?.receivedFrame||0)-(engine?.appliedFrame||0));
  $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · browser follows'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+' Choose separate web play or Resync.'):state.device?'Independent browser and console games':'Keyboard → browser';
  $('#separatePlay').checked=!state.device||mode==='web';$('#separatePlay').disabled=!state.device||mode==='starting';
- $('#resyncPlay').hidden=!state.device||mode==='web';$('#resyncPlay').disabled=mode==='starting';
+ $('#resyncPlay').hidden=!state.device||mode==='web'&&!(state.reconnected&&state.direct?.capabilities.has('TRACE'));$('#resyncPlay').disabled=mode==='starting';
  $('#liveDevice').disabled=mode==='console'||mode==='starting';if($('#liveDevice').disabled)$('#liveDevice').checked=true;
  if(play?.notice)$('#playModeDescription').textContent+=' '+play.notice;
 }
@@ -293,7 +293,7 @@ async function connectSimulator(){
  play=new PlaySession({engine,onChange:renderPlayMode,onError:e=>toast(e.message)});renderPlayMode();
  state.ready=true;const valid=state.validBoards[state.id]||board();if(!validate(valid).errors.length)send({type:'board',board:copy(valid),revision:state.revision});publishKeys();
 }
-const deviceKeys=new DeviceKeyStream(mask=>state.device&&play?.controlsConsole?deviceAction('keys',{mask}):Promise.resolve(),e=>deviceLost(e));
+const deviceKeys=new DeviceKeyStream(mask=>state.device&&play?.controlsConsole?deviceAction('keys',{mask}):Promise.resolve(),e=>{if(state.device)toast(e.message);});
 function publishKeys(){state.mask=[...state.pressed.values()].reduce((a,b)=>a|b,0);send({type:'keys',mask:state.mask});if(state.device&&play?.controlsConsole)deviceKeys.push(state.mask);else deviceKeys.clear();}
 function releaseKeys(){state.pressed.clear();engine?.release();publishKeys();}
 const isForm=e=>e.target.closest?.('input,textarea,select,[contenteditable=true],#boardPicker');
@@ -311,20 +311,105 @@ async function deviceAction(op,args={}){
  if(state.direct){if(op==='keys')return state.direct.keys(args.mask);if(op==='upload')return state.direct.upload(encode(args.board),args.revision);if(op==='boards'){const entries=await state.direct.boards();return entries.map(e=>({...e,board:decode(e.data,e.file)}));}}
  throw new Error('Connect CHGame using browser USB first.');
 }
-function deviceUi(connected){state.device=connected;if(!connected){deviceKeys.clear();state.lastRam=null;storage.disconnect();}$('#deviceBadge').textContent=connected?'CONNECTED':'OFFLINE';$('#deviceBadge').style.color=connected?'var(--accent)':'';$('#connectButton').firstChild.textContent=connected?'Disconnect CHGame ':'Connect CHGame ';$('#readBoards').disabled=!connected;$('#deviceStatus').textContent=connected?'Live edits change console RAM. SD auto-save and recovery are shown above the board.':'Connect CHGame to check SD versions and save your browser drafts.';renderStorage();}
-function deviceLost(e){deviceUi(false);play?.disconnect(board(),state.revision).catch(()=>{});const direct=state.direct;state.direct=null;direct?.close().catch(()=>{});renderPlayMode();toast(e.message||'CHGame disconnected.');}
-async function connectDevice(){try{
- if(!('serial' in navigator))throw new Error('Direct CHGame USB needs Chrome or Edge on a computer. Browser play and editing work here.');
- if(state.device){if(storage.pending().length&&!confirm('Some board edits are not verified on SD. Browser drafts will be kept. Disconnect CHGame?'))return;releaseKeys();storage.disconnect();await storage.idle();await play.disconnect(board(),state.revision);if(state.direct){await state.direct.close();state.direct=null;}deviceUi(false);renderPlayMode();return;}
- releaseKeys();state.direct=await new BrowserDevice().connect();deviceUi(true);await storage.connect(state.direct);
- const valid=state.validBoards[state.id]||board();await play.connect(state.direct,copy(valid),state.revision,!!state.separatePlay);
- if(play.controlsConsole)state.lastRam=copy(valid);else if($('#liveDevice').checked)await uploadDevice();renderStorage();renderPlayMode();
- }catch(e){toast(e.message);}}
+const reconnectPreference='midnight-studio-auto-reconnect';
+const serial=navigator.serial;
+let preferredPort,connectionBusy=false,reconnectQueued=false,closingDevice;
+function updateDeviceUi(){
+ const connected=state.device,auto=$('#autoReconnect').checked;
+ $('#deviceBadge').textContent=connectionBusy?(connected?'CONNECTED':'CONNECTING…'):connected?'CONNECTED':auto?'WAITING FOR USB':'OFFLINE';
+ $('#deviceBadge').style.color=connected?'var(--accent)':'';
+ $('#connectButton').disabled=connectionBusy||!state.ready;
+ $('#connectButton').firstChild.textContent=connected?'Disconnect CHGame ':'Connect CHGame ';
+ $('#readBoards').disabled=!connected;
+ $('#deviceStatus').textContent=connected?'Live edits change console RAM.':auto?'Waiting for a previously approved CHGame.':'Connect CHGame to access console boards.';
+ renderStorage();renderPlayMode();
+}
+function setAutoReconnect(enabled){
+ $('#autoReconnect').checked=enabled;
+ try{localStorage.setItem(reconnectPreference,JSON.stringify(enabled));}catch{}
+ updateDeviceUi();
+}
+function releaseDevice(){
+ state.device=false;state.reconnected=false;state.lastRam=null;
+ deviceKeys.clear();clearTimeout(deviceTimer);deviceTimer=undefined;
+ storage.disconnect();updateDeviceUi();
+}
+async function deviceLost(error,device=state.direct){
+ if(!device||state.direct!==device)return;
+ const wasBusy=connectionBusy;
+ connectionBusy=true;state.direct=null;
+ releaseDevice();
+ closingDevice=Promise.allSettled([device.close(),play.disconnect(board(),state.revision),storage.idle()]);
+ await closingDevice;
+ if(!wasBusy)await finishConnection();
+ toast(error.message||'CHGame disconnected.');
+}
+async function finishConnection(){
+ if(closingDevice){await closingDevice;closingDevice=null;}
+ connectionBusy=false;updateDeviceUi();
+ if(reconnectQueued){reconnectQueued=false;reconnectDevice();}
+}
+async function openDevice(automatic=false){
+ const device=new BrowserDevice();
+ if(automatic){
+  const port=await authorizedCHGame(serial,preferredPort);
+  if(!port||!$('#autoReconnect').checked)return;
+  await device.connect(port);
+  if(!$('#autoReconnect').checked){await device.close();return;}
+ }else await device.connect();
+ if(device.stopped){await device.close();throw new Error('CHGame disconnected.');}
+ preferredPort=device.port;
+ state.direct=device;state.device=true;state.reconnected=automatic;
+ device.onDisconnect=error=>deviceLost(error,device);
+ updateDeviceUi();
+ try{
+  await storage.connect(device,{check:!automatic});
+  if(state.direct!==device)return;
+  if(automatic){
+   play.attach(device);
+   if(device.capabilities.has('TRACE'))play.notice='CHGame connected. Select Resync to start Console Play.';
+   play.changed();
+   return;
+  }
+  const valid=state.validBoards[state.id]||board();
+  await play.connect(device,copy(valid),state.revision,!!state.separatePlay);
+  if(state.direct!==device)return;
+  if(play.controlsConsole)state.lastRam=copy(valid);
+  else if($('#liveDevice').checked)await uploadDevice();
+ }catch(error){await deviceLost(error,device);}
+}
+async function reconnectDevice(){
+ if(!serial||!state.ready||state.device||!$('#autoReconnect').checked)return;
+ if(connectionBusy){reconnectQueued=true;return;}
+ connectionBusy=true;updateDeviceUi();
+ try{await openDevice(true);}catch(error){toast(error.message);}
+ finally{await finishConnection();}
+}
+async function connectDevice(){
+ if(connectionBusy||!state.ready)return;
+ if(!serial){toast('Direct CHGame USB needs Chrome or Edge on a computer. Browser play and editing work here.');return;}
+ if(state.device&&storage.pending().length&&!confirm('Some board edits are not verified on SD. Browser drafts will be kept. Disconnect CHGame?'))return;
+ connectionBusy=true;updateDeviceUi();
+ try{
+  releaseKeys();
+  if(state.device){
+   const device=state.direct;
+   device.onDisconnect=null;
+   setAutoReconnect(false);
+   releaseDevice();
+   try{await storage.idle();await play.disconnect(board(),state.revision);}
+   finally{await device.close();state.direct=null;}
+  }else await openDevice();
+ }catch(error){toast(error.message);}
+ finally{await finishConnection();}
+}
 async function uploadDevice(){
  if(!state.device||validate(board()).errors.length)return;
  if(state.uploading){state.uploadAgain=true;return;}state.uploading=true;const revision=state.revision,snapshot=copy(board());renderStorage();
- try{await deviceAction('upload',{board:snapshot,revision});state.lastRam=snapshot;}
- catch(e){deviceLost(e);}finally{state.uploading=false;renderStorage();if(state.uploadAgain||revision!==state.revision){state.uploadAgain=false;if(state.device)uploadDevice();}}
+ const device=state.direct;
+ try{await device.upload(encode(snapshot),revision);if(state.direct===device)state.lastRam=snapshot;}
+ catch(e){if(device.stopped)await deviceLost(e,device);else if(state.direct===device)toast(e.message);}
+ finally{state.uploading=false;renderStorage();if(state.uploadAgain||revision!==state.revision){state.uploadAgain=false;if(state.direct===device)uploadDevice();}}
 }
 function storageChanged(){if(!board())return;persist();refreshLibrary();renderStorage();}
 function renderStorage(){
@@ -335,7 +420,7 @@ function renderStorage(){
  const ramMatches=state.lastRam&&JSON.stringify(state.lastRam)===JSON.stringify(board());
  $('#ramStatus').textContent=!state.device?'Console offline':state.uploading?'Sending to RAM…':ramMatches?'Console RAM up to date':$('#liveDevice').checked?'RAM update pending':'RAM updates off';
  $('#saveSd').disabled=!(current.canSave||state.device&&current.kind==='error'&&!storage.checking);$('#saveSd').textContent=current.kind==='saving'?'Saving…':current.kind==='error'?'Retry SD save':'Save to SD now';
- $('#revertSd').disabled=!state.device||!current.revert||current.kind==='saving'||current.kind==='conflict'||storage.checking;
+ $('#revertSd').disabled=!state.device||!current.revert||current.kind==='saving'||current.kind==='conflict'||storage.checking||storage.needsCheck;
  $('#checkSd').disabled=!state.device||storage.checking;$('#setCheckpoint').disabled=!state.device||current.kind!=='saved';$('#resetLayout').hidden=!bases?.some(b=>b.id===board().id);
  $('#saveSummary').textContent=pending.length?pending.length+' board'+(pending.length===1?'':'s')+' not saved to SD':'All boards';
  $('#saveAllSd').disabled=!state.device||!pending.length||storage.checking;
@@ -395,6 +480,10 @@ $('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;se
 $('#separatePlay').onchange=async e=>{releaseKeys();state.separatePlay=e.target.checked;persist();try{if(state.separatePlay)await play.separate(copy(state.validBoards[state.id]||board()),state.revision);else await play.start(copy(state.validBoards[state.id]||board()),state.revision);}catch(error){toast(error.message);}renderPlayMode();};
 $('#resyncPlay').onclick=async()=>{releaseKeys();await play.start(copy(state.validBoards[state.id]||board()),state.revision);};
 $('#connectButton').onclick=connectDevice;$('#readBoards').onclick=retrieve;$('#saveSd').onclick=saveSd;
+$('#autoReconnect').onchange=e=>{
+ setAutoReconnect(e.target.checked);
+ if(e.target.checked)reconnectDevice();
+};
 const autoSaveDialog=$('#autoSaveDialog');
 $('#autoSaveSd').onchange=e=>{
  if(!e.target.checked){storage.setAuto(false);return;}
@@ -446,6 +535,15 @@ try{
  state.separatePlay=!!saved?.separatePlay;
  state.boards=saved?.boards?.length&&saved.boards.every(b=>b&&Number.isInteger(b.id)&&Array.isArray(b.objects))?saved.boards:templates;state.validBoards=saved?.validBoards||{};for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.boards=state.boards.map(editableBoard);for(const b of state.boards)if(!validate(b).errors.length)state.validBoards[b.id]=copy(b);state.id=state.boards.some(b=>b.id===saved?.id)?saved.id:state.boards.at(-1).id;storage=new BoardStorage({saved:saved?.storage,onChange:storageChanged});for(const b of state.boards)storage.record(b);persist();
  THEMES.forEach((name,i)=>$('#themeSelect').add(new Option(name,i)));paletteButtons();refresh();fit();await connectSimulator();
+ if(serial){
+  $('#reconnectControl').hidden=false;
+  try{$('#autoReconnect').checked=localStorage.getItem(reconnectPreference)==='true';}catch{}
+  serial.addEventListener('connect',reconnectDevice);
+  serial.addEventListener('disconnect',event=>{
+   if((event.port||event.target)===state.direct?.port)deviceLost(new Error('CHGame disconnected.'));
+  });
+ }
+ updateDeviceUi();reconnectDevice();
 }catch(e){$('#engineLoading').textContent=e.message;status(e.message,true);}
 // Read-only test/accessibility handle. All changes still use the public UI.
 window.pinballStudio={get board(){return copy(board());},get status(){return {ready:state.ready,revision:state.revision,selected:state.selected,keys:state.mask,game:copy(state.lastState),device:state.device};}};

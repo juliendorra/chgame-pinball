@@ -107,6 +107,14 @@ The ordinary release carries the live protocol; diagnostic hardware builds
 omit it to leave space for the larger performance/testing interface.
 
 **Connect CHGame** uses Web Serial directly in desktop Chrome or Edge.
+Enable **Auto-reconnect** to reopen USB after unplugging or reloading, using
+permission already granted to this site. If several approved CHGame devices
+are plugged in and Studio cannot identify the last one, use **Connect CHGame**
+to choose. **Disconnect CHGame** turns auto-reconnect off and releases USB.
+An automatic connection leaves the current games running. Use **Resync** to
+start a new shared Console Play session, or keep playing separately. Use
+**Check SD** or **Save to SD now** when you're ready for Studio to read the card
+and verify saved versions.
 Choose CHGame in the browser's device chooser. Use HTTPS or localhost;
 other browsers can still play and edit without a device connection.
 Only one browser tab or application can own the serial port at a time.

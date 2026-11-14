@@ -1,9 +1,41 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {BrowserDevice,hex} from '../serial.mjs';
+import {authorizedCHGame,BrowserDevice,hex} from '../serial.mjs';
 import {BoardCard} from '../card.mjs';
 import {fnv,encode} from '../model.mjs';
 import fs from 'node:fs';
+
+test('automatic USB selection only uses approved CHGame ports and requires a choice if ambiguous',async()=>{
+ const port=(vendor,product)=>({getInfo:()=>({usbVendorId:vendor,usbProductId:product})});
+ const first=port(0x16c0,0x27dd),second=port(0x16c0,0x27dd),other=port(0x16c0,0x27de);
+ const serial={getPorts:async()=>[other,first]};
+ assert.equal(await authorizedCHGame(serial),first);
+ serial.getPorts=async()=>[other,first,second];
+ assert.equal(await authorizedCHGame(serial),null);
+ assert.equal(await authorizedCHGame(serial,second),second);
+ serial.getPorts=async()=>[other];
+ assert.equal(await authorizedCHGame(serial,second),null);
+});
+
+test('an approved port only receives the Pinball handshake and reports unexpected EOF',async()=>{
+ let input,closed=false;
+ const commands=[],readable=new ReadableStream({start(controller){input=controller;}});
+ const writable=new WritableStream({write(bytes){
+  commands.push(new TextDecoder().decode(bytes));
+  input.enqueue(new TextEncoder().encode('LIVE HELLO 1.4.20 PBT2 TRACE\n'));
+ }});
+ const port={readable,writable,open:async()=>{},setSignals:async()=>{},close:async()=>{closed=true;}};
+ const device=await new BrowserDevice().connect(port);
+ const disconnected=new Promise(resolve=>{device.onDisconnect=resolve;});
+ input.close();
+ assert.match((await disconnected).message,/disconnected/);
+ await assert.rejects(device.keys(0),/disconnected/);
+ await device.close();
+ assert.deepEqual(commands,['@?\n']);
+ assert.equal(closed,true);
+ assert.equal(readable.locked,false);
+ assert.equal(writable.locked,false);
+});
 test('Automatic SD saves never pause active console play, including the launch lane',async()=>{
  for(const shooter of [0,1]){
   const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
