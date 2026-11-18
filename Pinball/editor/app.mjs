@@ -196,10 +196,11 @@ function followViewport(game,force=false){
 $('#boardViewport').addEventListener('wheel',()=>{state.cameraHoldUntil=performance.now()+1200;},{passive:true});
 function paintIcons(){if(!sprites||!board())return;const inks={'.':-1,'0':2,w:1,m:3,t:4,d:7,i:5,c:4,o:9,g:10,b:12,p:13,s:14,r:6};
  for(const def of CATALOG){const c=document.querySelector(`[data-part="${def.kind}"] canvas`),ctx=c.getContext('2d'),frame=sprites[def.sprite]?.[0];ctx.clearRect(0,0,c.width,c.height);
+ if(def.kind==='wall'){drawPartPreview(c,{...def.defaults,x:8,y:21,u:31,v:6},sprites,board().palette);continue;}
  if(def.kind==='rubber'){drawPartPreview(c,{...def.defaults,x:12,y:3,u:12,v:21},sprites,board().palette);continue;}
  if(def.kind==='gate'){drawPartPreview(c,{...def.defaults,x:8,y:18,u:33,v:18},sprites,board().palette);continue;}
  if(def.kind==='ramp'){drawPartPreview(c,{...def.defaults,x:20,y:18,u:24,v:-10},sprites,board().palette);continue;}
- if(!frame){ctx.strokeStyle='#baff76';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(6,22);ctx.quadraticCurveTo(14,5,33,6);ctx.stroke();continue;}
+ if(!frame)continue;
  const scale=Math.max(1,Math.min(2,Math.floor(40/frame[0].length)));const x=(40-frame[0].length*scale)/2,y=(28-frame.length*scale)/2;
  frame.forEach((r,j)=>[...r].forEach((v,i)=>{if(inks[v]<0)return;ctx.fillStyle='#'+board().palette[inks[v]];ctx.fillRect(x+i*scale,y+j*scale,scale,scale);}));
  }
