@@ -553,7 +553,13 @@ static void scoreDigits(const ThemeArt &art, const char *digits, int x, int y, i
         sprite4(data, dx, y, remap, scale);
     }
 }
+#ifdef CHSIM
+static bool externalPopup;
+#endif
 static bool popupClear() {
+#ifdef CHSIM
+    if(externalPopup)return true;
+#endif
     // Fixed top anchor: multiball must never make an announcement jump.
     // Hide briefly if a ball crosses the full banner/shadow band instead.
     int x0 = 0, y0 = 0, width, height;
@@ -653,6 +659,53 @@ static __attribute__((noinline)) void bonusPopup(unsigned bonus) {
     }
     gfx_resetClip();
 }
+#ifdef CHSIM
+bool drawFeedback(uint8_t *pixels, char *label) {
+    unsigned bonus=game.stuck && !game.paused?BonusStuck:game.bonusTicks?game.bonus:BonusNone;
+    const char *plain=game.tilt>=3?"TILT - WAIT FOR DRAIN":game.over?"GAME OVER":
+        game.shakeTicks?(game.shakeLevel==SHAKE_LEVELS?"DANGER - EASY ON SHAKING":"SHAKE"):
+        messageTicks?message:nullptr;
+    if(!bonus && !game.scorePopTicks && !plain)return false;
+    // Browser-only surface: reuse the actual popup renderer without obscuring
+    // a ball or touching the console LCD, physics, timers or RNG stream.
+    uint8_t previous[GFX_FB_BYTES];memcpy(previous,gfx_fb,sizeof previous);
+    int bounds[4];gfx_getClip(&bounds[0],&bounds[1],&bounds[2],&bounds[3]);
+    int cx=clipX,cy=clipY,cw=clipW,ch=clipH;
+    gfx_resetClip();gfx_clear(PANEL);externalPopup=true;
+    if(bonus) {
+        bonusPopup(bonus);
+        static const char *const labels[]={"Saucer bonus", "Kickback - ball saved", "Lane bonus",
+            "Double score", "Multiball ready - shoot scoop", "Multiball", "Ball save", "Super jackpot", "Ball stuck - Right or A to shake"};
+        strcpy(label,labels[bonus-1]);
+        if(bonus==BonusBallSave){strcat(label," ");fmtInt(label+strlen(label),game.bonusArg);strcat(label," seconds");}
+    } else if(game.scorePopTicks) {
+        scorePopup(artFor(table.h.theme));
+        strcpy(label,game.scorePopKind==2?"Lucky score ":"Score milestone ");fmtInt(label+strlen(label),game.scorePopValue);
+    } else {
+        gfx_fillRoundRect(2,16,124,33,4,GRID);gfx_roundRect(2,16,124,33,4,scoreColor());
+        // Footer text is small on the LCD; give it two large readable rows
+        // in the browser's dedicated announcement surface.
+        char words[96];strcpy(words,plain);unsigned length=strlen(words),split=0,distance=length;
+        for(unsigned i=1;i<length;++i)if(words[i]==' ') {
+            unsigned d=abs(int(i*2)-int(length));if(d<distance){split=i;distance=d;}
+        }
+        if(text35Width(words)<=58)resultText(28,words,WHITE);
+        else if(split) {
+            words[split]=0;
+            if(text35Width(words)<=58 && text35Width(words+split+1)<=58) {
+                resultText(21,words,WHITE);resultText(35,words+split+1,scoreColor());
+            } else center(30,plain,WHITE);
+        } else center(30,plain,WHITE);
+        strcpy(label,plain);
+    }
+    externalPopup=false;
+    memcpy(pixels,gfx_fb+12*GFX_FB_STRIDE,48*GFX_FB_STRIDE);
+    for(unsigned i=0;i<16;++i){uint16_t color=gfx_paletteOut(i);memcpy(pixels+48*GFX_FB_STRIDE+i*2,&color,2);}
+    memcpy(gfx_fb,previous,sizeof previous);gfx_setClip(bounds[0],bounds[1],bounds[2],bounds[3]);
+    clipX=cx;clipY=cy;clipW=cw;clipH=ch;
+    return true;
+}
+#endif
 static __attribute__((noinline)) void footer(const char *text,uint8_t color) {
     if(laneGroups()!=7){center(122,text,color);return;}
     for(unsigned g=0;g<3;++g) {

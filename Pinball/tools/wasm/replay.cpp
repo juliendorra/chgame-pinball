@@ -14,6 +14,7 @@ void pb_restart(unsigned);void pb_pause(unsigned);int pb_place(int,int,int,int);
 const int32_t *pb_state();unsigned pb_state_count();
 const int32_t *pb_physics();
 const uint8_t *pb_render();unsigned pb_render_size();
+const uint8_t *pb_feedback();const char *pb_feedback_label();
 const uint8_t *pb_lcd();unsigned pb_lcd_size();
 const uint8_t *pb_table();unsigned pb_table_size();
 }
@@ -128,6 +129,9 @@ int main(){
             const uint8_t *p=pb_render();write32(pb_render_size());fwrite(p,1,pb_render_size(),stdout);
             write32(pb_lcd_size());fwrite(pb_lcd(),1,pb_lcd_size(),stdout);
             write32(pb_table_size());fwrite(pb_table(),1,pb_table_size(),stdout);
+            const uint8_t *feedback=pb_feedback();unsigned size=feedback?48*64+32:0;
+            write32(size);if(size)fwrite(feedback,1,size,stdout);
+            const char *label=size?pb_feedback_label():"";write32(strlen(label));fwrite(label,1,strlen(label),stdout);
         }else return 3;
     }
     return 0;

@@ -8,6 +8,8 @@
 using namespace pinball;
 void setup();void loop();void studio_clock(uint32_t);
 static uint32_t frames;
+static uint8_t feedback[48*GFX_FB_STRIDE+32];
+static char feedbackLabel[96];
 static uint8_t overview[(480+HEADER_HEIGHT)*GFX_FB_STRIDE+32];
 // Fixed-width state ABI, independent of C++ struct padding/pointers/bool size.
 static int32_t state[64];
@@ -63,6 +65,8 @@ const uint8_t *pb_render(){
     return overview;
 }
 unsigned pb_render_size(){return (table.h.height+HEADER_HEIGHT)*GFX_FB_STRIDE+32;}
+const uint8_t *pb_feedback(){return drawFeedback(feedback,feedbackLabel)?feedback:nullptr;}
+const char *pb_feedback_label(){return feedbackLabel;}
 const uint8_t *pb_lcd(){return gfx_fb;}
 unsigned pb_lcd_size(){return GFX_FB_BYTES;}
 const uint8_t *pb_table(){return reinterpret_cast<const uint8_t *>(&table);}

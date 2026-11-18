@@ -26,7 +26,7 @@ static std::vector<uint8_t> render(bool banner){
 }
 int main(int argc,char **argv){
     check(argc==2,"output directory");pb_init();
-    lab({Scoop,0,60,180,8,0,100});game.targetMask=7;placeBall(0,60,180,0,0);tick();
+    lab({Scoop,0,60,180,8,0,100});game.targetMask=7;placeBall(0,60,181,0,-200);tick();
     check(activeBalls()==3 && game.ballSave==600,"real multiball grants ten-second save");
     check(game.bonus==BonusBallSave && game.bonusArg==10 && game.bonusTicks==BONUS_FRAMES,"immediate BALL SAVE 10 SECONDS announcement");
     check(game.bonusNext==BonusMultiball,"multiball celebration queues behind save notice");
@@ -48,6 +48,13 @@ int main(int argc,char **argv){
     // Crossing the top band may hide the banner, but never relocates it.
     check(safe==plain,"top ball hides banner without moving it to the bottom");
     shot(argv[1],"save-top-blocked");
+    uint8_t feedback[48*64+32],savedLcd[GFX_FB_BYTES];char label[96];
+    const Game beforeFeedback=game;memcpy(savedLcd,gfx_fb,sizeof savedLcd);
+    check(drawFeedback(feedback,label),"browser shows bonus even when a ball blocks the LCD popup band");
+    check(!strcmp(label,"Ball save 10 seconds"),"browser announcement has a meaningful accessible label");
+    check(!memcmp(&game,&beforeFeedback,sizeof game),"browser announcement preserves game state, timers and RNG");
+    check(!memcmp(savedLcd,gfx_fb,sizeof savedLcd),"browser announcement preserves faithful LCD pixels");
+
     placeBall(1,60,210,0,0); // LCD y=102; both popup bands are occupied
     check(render(true)==render(false),"defer drawing rather than obscure balls at both ends");
     game.balls[0].y=180*ONE;game.balls[1].active=false;
@@ -68,7 +75,7 @@ int main(int argc,char **argv){
     game.camera=120;game.zoom=256;game.bonusTicks-=20;shot(argv[1],"multiball");
     // A real jackpot is higher priority than incidental rewards.
     lab({Scoop,0,60,180,8,0,100});game.modeTicks=600;game.multiplier=3;
-    placeBall(0,60,180,0,0);placeBall(1,90,240,0,0);tick();
+    placeBall(0,60,181,0,-200);placeBall(1,90,240,0,0);tick();
     check(game.bonus==BonusJackpot && game.score==60600,"real jackpot announcement preserves exact scoring");
     game.camera=120;game.zoom=256;game.bonusTicks-=20;shot(argv[1],"jackpot");
     // Score milestones use the same fixed top band.
@@ -76,26 +83,26 @@ int main(int argc,char **argv){
     for(Ball &b:game.balls)b.active=false;placeBall(0,60,145,0,0);
     drawTable();std::vector<uint8_t> blockedScore(gfx_fb,gfx_fb+GFX_FB_BYTES);
     game.scorePopTicks=0;drawTable();check(!std::memcmp(gfx_fb,blockedScore.data(),GFX_FB_BYTES),"score milestone also hides rather than changing anchor");
-    placeBall(0,60,180,0,0);game.scorePopTicks=20;drawTable();
+    placeBall(0,60,181,0,-200);game.scorePopTicks=20;drawTable();
     std::vector<uint8_t> topScore(gfx_fb,gfx_fb+GFX_FB_BYTES);game.scorePopTicks=0;drawTable();
     check(std::memcmp(gfx_fb,topScore.data(),60*64)!=0 && !std::memcmp(gfx_fb+60*64,topScore.data()+60*64,60*64),"score milestone remains in top band");
-    lab({Scoop,0,60,180,8,0,100});placeBall(0,60,180,0,0);tick();
+    lab({Scoop,0,60,180,8,0,100});placeBall(0,60,181,0,-200);tick();
     check(game.bonus==BonusDoubleScore,"single-ball scoop announces double score");
     // Re-entering a temporary scoring mode must not repeat its announcement.
-    game.bonusTicks=40;game.cooldown[0]=0;messageTicks=0;placeBall(0,60,180,0,0);tick();
+    game.bonusTicks=40;game.cooldown[0]=0;messageTicks=0;placeBall(0,60,181,0,-200);tick();
     check(game.modeTicks==600 && game.score==300,"repeat scoop preserves double scoring and refreshes the existing timer");
     check(game.bonus==BonusDoubleScore && game.bonusTicks==39 && !game.bonusNext && !messageTicks,"repeat scoop does not restart active banner or footer");
-    game.bonusTicks=0;game.cooldown[0]=0;placeBall(0,60,180,0,0);tick();
+    game.bonusTicks=0;game.cooldown[0]=0;placeBall(0,60,181,0,-200);tick();
     check(!game.bonusTicks && !game.bonusNext && !messageTicks,"expired banner stays silent while scoring mode is still active");
-    celebrate(BonusSaucer);game.bonusTicks=40;game.cooldown[0]=0;placeBall(0,60,180,0,0);tick();
+    celebrate(BonusSaucer);game.bonusTicks=40;game.cooldown[0]=0;placeBall(0,60,181,0,-200);tick();
     check(game.bonus==BonusSaucer && game.bonusTicks==39 && !game.bonusNext,"refresh cannot replace a different reward banner");
-    celebrate(BonusJackpot);game.bonusTicks=40;game.cooldown[0]=0;placeBall(0,60,180,0,0);tick();
+    celebrate(BonusJackpot);game.bonusTicks=40;game.cooldown[0]=0;placeBall(0,60,181,0,-200);tick();
     check(game.bonus==BonusJackpot && game.bonusTicks==39 && !game.bonusNext,"refresh cannot queue another double-score banner behind a jackpot");
     game.modeTicks=1;game.bonusTicks=0;game.cooldown[0]=0;messageTicks=0;
-    unsigned beforeRenewal=game.score;placeBall(0,60,180,0,0);tick();
+    unsigned beforeRenewal=game.score;placeBall(0,60,181,0,-200);tick();
     check(game.modeTicks==600 && game.score==beforeRenewal+100 && game.bonus==BonusDoubleScore && game.bonusTicks==BONUS_FRAMES && messageTicks,"new bonus after actual expiry is announced again");
     // A jackpot is a new award on each qualified hit, even within one mode.
-    game.cooldown[0]=0;placeBall(1,90,240,0,0);placeBall(0,60,180,0,0);tick();
+    game.cooldown[0]=0;placeBall(1,90,240,0,0);placeBall(0,60,181,0,-200);tick();
     check(game.bonus==BonusJackpot && game.bonusTicks==BONUS_FRAMES,"new jackpot reward still announces during active double scoring");
     lab({Target,2,60,180,8,6,100});game.targetMask=3;placeBall(0,60,176,0,512);tick();
     check(game.bonus==BonusReady,"completed target banks announce multiball ready");

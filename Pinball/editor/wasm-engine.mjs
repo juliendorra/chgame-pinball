@@ -42,6 +42,11 @@ export class WasmEngine {
   this.loaded=true;
   this.onApplied(revision);
  }
+ feedback(){
+  const m=this.module,at=m._pb_feedback?.();if(!at)return null;
+  const text=m._pb_feedback_label(),end=m.HEAPU8.indexOf(0,text);
+  return {pixels:m.HEAPU8.slice(at,at+48*64+32),label:new TextDecoder().decode(m.HEAPU8.subarray(text,end))};
+ }
  frame(now){
   if(!this.running)return;
   // Do not catch up a hidden tab with seconds of uncontrolled physics.
@@ -99,10 +104,10 @@ export class WasmEngine {
      const at=m._pb_render_draft(bytes.length);
      if(!at)throw new Error('Game rejected this draft preview.');
      const size=(draft.board.height+24)*64+32;
-     this.onFrame(state,m.HEAPU8.slice(at,at+size),draft.board);
+     this.onFrame(state,m.HEAPU8.slice(at,at+size),draft.board,this.feedback());
     }else{
      const at=m._pb_render(),size=m._pb_render_size();
-     this.onFrame(state,m.HEAPU8.slice(at,at+size));
+     this.onFrame(state,m.HEAPU8.slice(at,at+size),undefined,this.feedback());
     }
     this.drawnDraft=draft;
    }

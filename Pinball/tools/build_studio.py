@@ -23,7 +23,7 @@ sys.path.insert(0,str(ROOT/'tools'))
 from sd_saves import SDK as LIB, CHSD, PUBLIC
 HOST=ROOT/'CHGame/tools/chsim/host';SDK=ROOT/'.toolchains/pinball-emsdk'
 VERSION='4.0.15'
-EXPORTS=['build','init','input','apply','step','restart','pause','place','state','state_count','physics','render','render_draft','render_size','lcd','lcd_size','table','table_size']
+EXPORTS=['build','init','input','apply','step','restart','pause','place','state','state_count','physics','render','render_draft','render_size','feedback','feedback_label','lcd','lcd_size','table','table_size']
 PHYSICS_KEYS=('spin_grip','spin_forget','scatter_passive','scatter_powered','scatter_eject')
 
 def physics_config(defines):

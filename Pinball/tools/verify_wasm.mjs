@@ -45,6 +45,13 @@ function snapshot(){
  const before=readState(m),p=m._pb_render(),n=m._pb_render_size();outputs.push(u32(n),Buffer.from(m.HEAPU8.slice(p,p+n)));assert.deepEqual(readState(m),before,'overview must not mutate game state');
  const lcd=m._pb_lcd(),lcdSize=m._pb_lcd_size();outputs.push(u32(lcdSize),Buffer.from(m.HEAPU8.slice(lcd,lcd+lcdSize)));
  const t=m._pb_table(),size=m._pb_table_size();outputs.push(u32(size),Buffer.from(m.HEAPU8.slice(t,t+size)));snapshots++;
+ const beforeFeedback=readState(m),lcdBeforeFeedback=m.HEAPU8.slice(lcd,lcd+lcdSize);
+ const feedback=m._pb_feedback(),length=feedback?48*64+32:0;
+ outputs.push(u32(length));if(length)outputs.push(Buffer.from(m.HEAPU8.slice(feedback,feedback+length)));
+ const labelAt=length?m._pb_feedback_label():0,end=length?m.HEAPU8.indexOf(0,labelAt):0;
+ const label=m.HEAPU8.slice(labelAt,end);outputs.push(u32(label.length),Buffer.from(label));
+ assert.deepEqual(readState(m),beforeFeedback,'external message rendering preserves physics/timers/RNG');
+ assert.deepEqual(m.HEAPU8.slice(lcd,lcd+lcdSize),lcdBeforeFeedback,'external message rendering preserves faithful LCD');
 }
 function lcdSnapshot(){
  inputs.push(Buffer.from('H'));const at=m._pb_lcd(),n=m._pb_lcd_size(),image=m.HEAPU8.slice(at,at+n);

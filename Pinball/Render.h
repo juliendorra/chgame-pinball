@@ -10,6 +10,8 @@ void drawGameOver(uint32_t best);
 #ifdef CHSIM
 // The console's actual zoom/camera crop, in playfield coordinates.
 void cameraView(int &x,int &y,int &width,int &height);
+// Draw browser announcements with the shared pixel art, preserving the LCD.
+bool drawFeedback(uint8_t *pixels, char *label);
 // Render the entire playfield without advancing or changing game state.
 void drawOverview(void (*write)(const uint8_t *, unsigned, void *), void *context);
 #endif
