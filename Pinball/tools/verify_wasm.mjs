@@ -77,6 +77,25 @@ for(const [i,base] of boards.entries()){
  }
  command('R');step();snapshot();
 }
+// Same-key shake series have a seeded first direction and increasing reversals.
+const shakeBoard={...copy(boards[0]),height:480,gravity:12,objects:[]};
+load(shakeBoard);
+const shakeStarts=new Set();
+for(const seed of [1,2]){
+ command('R',seed);place(60,100);let first=0,previous=0;
+ for(let n=1;n<=3;n++){
+  const rng=readState(m).rng;step(1);step();const s=readState(m);
+  if(n===1){first=s.shake_direction;shakeStarts.add(first);}
+  assert.equal(s.shake_level,n);
+  assert.equal(s.shake_direction,first*(n===2?-1:1));
+  assert.equal(s.rng!==rng,n===1);
+  assert.ok(s.vx*s.shake_direction<0,'stronger alternating shove reverses actual velocity');
+  assert.ok(Math.abs(s.vx)>Math.abs(previous));previous=s.vx;snapshot();
+ }
+ step(1);step();assert.equal(readState(m).tilt,3);snapshot();
+}
+assert.equal(shakeStarts.size,2);
+console.log('Shake series: seeded opposite starts, increasing alternating ball impulses, fourth-press tilt match native/WASM.');
 // A local draft must render through the game art without committing a table
 // or disturbing the replay state or the faithful LCD view.
 const draftBase=copy(boards[0]);load(draftBase);place(60,200,70,150);step();

@@ -57,7 +57,9 @@ It saves/restores camera and zoom, omits score celebrations in the overview,
 and leaves physics state and time untouched. The normal LCD stream retains
 all camera zooms, score popups and overlays.
 
-A (1) launches in the shooter lane and shakes left during play; Right (32) shakes right. Down (8) only launches. Shakes use press edges. Four rapid taps within the progressive 420 ms windows reach tilt level three until drain.
+A (1) launches in the shooter lane; A or Right (32) shakes during play.
+A series starts in a seeded random direction and alternates on each fresh press,
+with increasing force at levels 1, 2 and 3, regardless of which button is used. Down (8) only launches. Shakes use press edges. Four rapid taps within the progressive 420 ms windows reach tilt level three until drain.
 
 `K` mirrors the current mask; it does not schedule an input at a named physics
 tick. Matching seeds alone therefore does not synchronize two live games.

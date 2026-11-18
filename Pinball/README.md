@@ -27,8 +27,8 @@ The cart exporter includes `docs/cart.png` through `chgame.json`.
 | --- | --- |
 | Left | Left flippers on every tier |
 | B | Right flippers on every tier |
-| A | Launch while in the shooter lane; shake left during play |
-| Right | Shake right during play |
+| A | Launch while in the shooter lane; shake during play |
+| Right | Shake during play |
 | Down | Tap to shoot at fixed power; holding waits until release |
 | START | Pause/resume; hold three seconds for the CHGame menu |
 | SELECT | Open the table library and suspend the current game |
@@ -356,8 +356,9 @@ pirate addition also recalls [Bally's Black Rose](https://flyers.arcade-museum.c
 
 ## Progressive shake
 
-A and Right shove the cabinet left and right. The free ball receives the
-opposite lateral impulse, without changing gravity. Like Flipkit's Tab shake,
+A and Right both shake the cabinet. Each series starts left or right using
+one seeded random choice, then reverses direction on each fresh tap. The free
+ball receives the opposite lateral impulse, without changing gravity. Like Flipkit's Tab shake,
 fresh taps within 420 ms build three levels and restart a damped
 700 ms cabinet wobble. Their force, rumble and visual amplitudes match the old
 levels 1, 3 and 5: level 3 retains the previous maximum. Held buttons count
@@ -368,7 +369,8 @@ a short progressive rumble pulse on GPIO1/PC0. A still launches before play;
 Down always serves as the launcher. The score and warning strip stay steady.
 
 `tools/verify_shake.py` checks input edges, inertia, timing, tilt, drain reset,
-paused state and pixel-exact playfield shifts against the real native engine.
+paused state, seeded alternating direction with increasing ball-velocity reversals,
+and pixel-exact playfield shifts against the real native engine.
 It also verifies all 90 score glyphs after lossless flash packing.
 
 Version 1.4.5 makes each shove easier to read: the first tap now moves the

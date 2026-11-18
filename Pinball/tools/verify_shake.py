@@ -20,10 +20,12 @@ def check(v,label):
  checks+=1
 def state():
  return {k:int(v) for k,v in (p.split('=') for p in d.query('V','PIN ').split()[1:])}
+def rng():
+ return int.from_bytes(bytes.fromhex(c.request('Z')[-1].split()[-1])[4:],'little')
 def tap(mask):
  d.buttons(mask);d.frames(1);d.buttons(0);d.frames(1)
-def reset():
- d.buttons(0);c.request('Q 0');c.request('R');d.frames(1)
+def reset(seed=1):
+ d.buttons(0);c.request('Q 0');c.request('R '+str(seed));d.frames(1)
 def ball(y=180):d.cmd(f'J 60,{y},0,0')
 def overview():
  t.send('H');n=int(d.expect('OVERVIEW ').split()[1]);data=t.read(n);d.expect('OK');return data
@@ -35,7 +37,7 @@ try:
  reset();tap(32);check(state()['shake_level']==0 and state()['shooter'],'no prelaunch shake')
  # Only fresh press edges escalate, even with repeated USB key heartbeats.
  reset();ball();d.buttons(1);d.frames(1)
- check(state()['shake_level']==1 and state()['vx']>0,'left shove gives rightward inertia')
+ check(state()['shake_level']==1 and state()['vx']*state()['shake_direction']<0,'ball inertia opposes the sampled cabinet direction')
  for _ in range(10):d.buttons(1);d.frames(1)
  check(state()['shake_level']==1 and state()['tilt']==0,'held/repeated key is one shove')
  d.buttons(0);d.frames(50);check(state()['shake_ticks']==0 and state()['shake_x']==state()['shake_y']==0,'700 ms animation settles')
@@ -44,18 +46,36 @@ try:
  for gap,expected in ((25,2),(26,1)):
   reset();ball();d.buttons(1);d.frames(1);d.buttons(0);d.frames(gap-1)
   d.buttons(32);d.frames(1);check(state()['shake_level']==expected,f'combo boundary at {gap} frames')
- reset();ball();tap(32);check(state()['vx']<0,'right shove gives leftward inertia')
- reset();ball();tap(33);check(state()['shake_level']==1 and state()['vx']<0,'simultaneous keys count one shove')
+ reset();ball();tap(32);check(state()['vx']*state()['shake_direction']<0,'Right uses the same seeded first shove as A')
+ reset();ball();tap(33);check(state()['shake_level']==1 and state()['vx']*state()['shake_direction']<0,'simultaneous keys count one sampled shove')
  # Compare vertical dynamics with an identical unshaken ball.
  reset();ball();d.frames(1);vy=state()['vy']
  reset();ball();d.buttons(1);d.frames(1);check(state()['vy']==vy,'shake preserves gravity and has no vertical impulse')
- # Repeat alternating nudges so the ball stays away from cabinet walls.
- reset();ball()
- for n in range(1,4):
-  ball()
-  tap(1 if n%2 else 32);s=state();check(s['shake_level']==n and s['tilt']==0,f'progression level {n}')
-  strength=2*n-1;expected=int(int(strength*256*1023/1024)*1023/1024)
-  check(abs(s['vx'])==expected,f'level {n} maps to old strength {strength}, including unchanged maximum')
+ # Both same-key and mixed-key series alternate, independent of the key.
+ starts=set()
+ for seed in range(1,33):
+  for keys in ((1,1,1),(32,32,32),(1,32,1),(33,33,33)):
+   reset(seed);ball();first=0
+   for n,key in enumerate(keys,1):
+    ball();before=rng();tap(key);s=state();after=rng()
+    if n==1:first=s['shake_direction'];starts.add(first)
+    check(s['shake_level']==n and s['tilt']==0,f'progression level {n}')
+    check(s['shake_direction']==first*(-1 if n==2 else 1),'every follow-up reverses the cabinet direction')
+    check((after!=before)==(n==1),'only the start consumes one seeded random sample')
+    strength=2*n-1;expected=int(int(strength*256*1023/1024)*1023/1024)
+    check(s['vx']==-s['shake_direction']*expected,f'level {n} applies opposite signed force {strength}')
+   if keys==(1,1,1):reference=(first,after)
+   else:check((first,after)==reference,'same seed replays the same series regardless of shake key')
+ check(starts=={-1,1},'seed sweep covers both random start directions')
+ # Do not reset ball velocity: each stronger reversal must actually overcome
+ # the previous impulse, not merely change the direction of the animation.
+ for seed in (1,2):
+  reset(seed);ball(100);previous=0
+  for key in (1,1,1):
+   tap(key);s=state()
+   check(s['vx']*s['shake_direction']<0,'stronger shove reverses actual ball velocity')
+   check(abs(s['vx'])>abs(previous),'each reversal has a larger net lateral velocity')
+   previous=s['vx']
  score=s['score'];tap(32);s=state();check(s['tilt']==3 and s['save']==0,'fourth rapid tap tilts and cancels ball save')
  d.buttons(18);d.frames(5);check(state()['left']==state()['right']==0,'tilt disables both flippers')
  d.cmd('O 10000');check(state()['score']==score,'tilt refuses score awards')

@@ -56,6 +56,11 @@ are supported; zero means choose the next default seed.
 - Studio: Restart chooses a fresh seed; Shift-click Restart reuses the current
   seed. A directly connected console receives that same explicit replay seed.
 
+Shake series also use this stream: the first accepted tap samples one left/right
+choice, then the next two taps alternate direction with forces 3 and 5 (the
+first is 1). Either A or Right continues the same series. Only a new series
+consumes another sample; same-seed input replay stays deterministic.
+
 Live geometry/theme edits preserve the RNG stream. Pausing freezes it. Rendering
 extra frames does not consume it. To reproduce a run, keep the initial board,
 seed, frame-timed controls and any edits; a seed alone cannot reproduce different

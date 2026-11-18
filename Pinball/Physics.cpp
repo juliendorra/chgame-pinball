@@ -99,10 +99,13 @@ void newGame(uint32_t seed) {
     game.started = true;
     serve();
 }
+static uint32_t nextRandom() {
+    uint32_t r=game.rng;r^=r<<13;r^=r>>17;r^=r<<5;return game.rng=r;
+}
 void scatterBall(Ball &b, unsigned scale) {
     if(game.scattered)return;
     game.scattered=true;
-    uint32_t r=game.rng;r^=r<<13;r^=r>>17;r^=r<<5;game.rng=r;
+    uint32_t r=nextRandom();
     // Symmetric triangular distribution: small angles are most likely.
     int s=(int(r&31)-int((r>>5)&31))*int(scale);
 #if defined(PINBALL_SCATTER_ANGLE_ZERO) && PINBALL_SCATTER_ANGLE_ZERO
@@ -531,7 +534,9 @@ void updateGame(uint8_t held, uint8_t pressed, uint8_t released) {
     if(live && !ready && game.tilt < 3 && (pressed & (A_BUTTON|RIGHT_BUTTON))) {
         game.shakeLevel=game.nudgeCooldown ? game.shakeLevel+1 : 1;
         game.nudgeCooldown=26; // accept another press through frame 25 (~417 ms)
-        game.shakeDirection=(pressed & RIGHT_BUTTON) ? 1 : -1;
+        // Either shake button continues the series. Only its first tap samples
+        // the replay RNG; stronger follow-up taps reverse the cabinet impulse.
+        game.shakeDirection=game.shakeLevel==1 ? (nextRandom()&1 ? 1 : -1) : -game.shakeDirection;
         if(game.shakeLevel > SHAKE_LEVELS) {
             game.shakeLevel=SHAKE_LEVELS;game.tilt=3;game.ballSave=0;
             game.modeTicks=game.scorePopTicks=0;
