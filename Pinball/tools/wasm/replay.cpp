@@ -61,6 +61,34 @@ int main(){
         if(x!=rx || y!=ry)return 14;
     }
     fprintf(stderr,"Rubber geometry: 1799 mirrored curve samples, including both lower joints, passed\n");
+    unsigned guideCases=0;
+    for(int left=20;left<=38;++left)for(int right=82;right<=100;++right){
+        pinball::GuideRail guides[pinball::MAX_FLIPPER_GUIDES],mirrored[pinball::MAX_FLIPPER_GUIDES];
+        if(pinball::flipperGuides(left,right,160,false,guides)!=8)return 15;
+        pinball::flipperGuides(118-right,118-left,160,false,mirrored);
+        for(unsigned side=0;side<2;++side){
+            const int wall=side?112:6,pivot=side?right:left,direction=side?-1:1;
+            for(unsigned i=0;i<4;++i){
+                const auto &rail=guides[side*4+i],&opposite=mirrored[(1-side)*4+i];
+                if(rail.x+opposite.x!=118 || rail.u+opposite.u!=118 ||
+                   rail.y!=opposite.y || rail.v!=opposite.v)return 16;
+                if((rail.u-rail.x)*direction<=0 || rail.v<=rail.y ||
+                   (rail.u-pivot)*direction>0 || rail.v>160)return 17;
+                if(i==0 && (rail.x!=wall || rail.y!=142))return 18;
+                if(i==3 && (rail.u!=pivot || rail.v!=160))return 19;
+                if(i==1 && (rail.u-wall)*direction*2>=(pivot-wall)*direction)return 22;
+                if(i && (rail.x!=guides[side*4+i-1].u || rail.y!=guides[side*4+i-1].v))return 20;
+                // At each sample, the visible/collision polyline stays within
+                // half a board pixel of the original quadratic control curve.
+                double t=(i+1)/4.0,span=(pivot-wall)*direction;
+                double distance=t*t*span;
+                if(fabs((rail.u-wall)*direction-distance)>.5 ||
+                   fabs(rail.v-(142+18*t))>.5)return 21;
+                ++guideCases;
+            }
+        }
+    }
+    fprintf(stderr,"Flipper guides: %u shifted curve samples, monotonic, connected and mirrored, passed\n",guideCases);
     const auto savedTable=pinball::table;
     const char *savedMessage=pinball::message;unsigned savedMessageTicks=pinball::messageTicks;
     pinball::table.h.count=0;pinball::table.h.height=432;

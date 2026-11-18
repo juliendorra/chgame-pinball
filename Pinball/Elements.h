@@ -22,7 +22,8 @@ GuideRail gateArm(const Object &gate, unsigned opening);
 GuideRail shooterFlapArm(unsigned opening);
 int gateDirection(const Object &gate);
 // Shared by collision and drawing, so a visible pivot protector is solid.
-unsigned flipperGuides(int left, int right, int y, bool main, GuideRail (&rails)[4]);
+constexpr unsigned MAX_FLIPPER_GUIDES=8;
+unsigned flipperGuides(int left, int right, int y, bool main, GuideRail (&rails)[MAX_FLIPPER_GUIDES]);
 struct ElementDefinition { const char *name; const char *behavior; const char *sprite; };
 extern const ElementDefinition ELEMENT_LIBRARY[KIND_COUNT];
 }  // namespace pinball

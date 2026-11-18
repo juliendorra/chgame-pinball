@@ -277,7 +277,7 @@ void collideFlipper(Ball &b, int pivot, int y, int length, bool right, int level
     }
 }
 static __attribute__((noinline)) void flippers(Ball &b, int left, int right, int y, int length, int previousLeft, int previousRight) {
-    GuideRail guides[4];
+    GuideRail guides[MAX_FLIPPER_GUIDES];
     unsigned n = flipperGuides(left, right, y, y == table.h.height - 25, guides);
     for (unsigned i = 0; i < n; ++i) segment(b, guides[i].x, guides[i].y, guides[i].u, guides[i].v);
     collideFlipper(b, left, y, length, false, game.left, previousLeft);

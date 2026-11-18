@@ -61,7 +61,7 @@ GuideRail shooterFlapArm(unsigned opening) {
     static const Object flap={Gate,0,124,43,111,56,0};
     return gateArm(flap,opening);
 }
-unsigned flipperGuides(int left, int right, int y, bool main, GuideRail (&rails)[4]) {
+__attribute__((noinline)) unsigned flipperGuides(int left, int right, int y, bool main, GuideRail (&rails)[MAX_FLIPPER_GUIDES]) {
     if (main) {
         // Narrow outlanes outside these dividers; return lanes between the
         // dividers and slings feed directly onto the flipper rubber.
@@ -69,12 +69,21 @@ unsigned flipperGuides(int left, int right, int y, bool main, GuideRail (&rails)
         rails[1] = {18, y - 15, left, y};
         rails[2] = {100, y - 48, 100, y - 15};
         rails[3] = {100, y - 15, right, y};
-    } else {
-        rails[0] = {6, y - 18, left - 10, y - 9};
-        rails[1] = {left - 10, y - 9, left, y};
-        rails[2] = {112, y - 18, right + 10, y - 9};
-        rails[3] = {right + 10, y - 9, right, y};
+        return 4;
     }
-    return 4;
+    for (unsigned side=0;side<2;++side) {
+        const int wall=side?112:6, pivot=side?right:left, direction=side?-1:1;
+        const unsigned span=(pivot-wall)*direction;
+        int x=wall, top=y-18;
+        // Start tangent to the cabinet wall, then bend toward the pivot.
+        // The control point stays at the wall as the flipper moves sideways.
+        for (unsigned step=1;step<=4;++step) {
+            const int distance=(step*step*span+8)>>4;
+            const int u=wall+direction*distance, v=y-18+int((18*step+2)>>2);
+            rails[side*4+step-1]={x,top,u,v};
+            x=u;top=v;
+        }
+    }
+    return MAX_FLIPPER_GUIDES;
 }
 }  // namespace pinball

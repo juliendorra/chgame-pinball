@@ -388,12 +388,15 @@ static void elementSprite(SpriteId id, unsigned frame, int x, int y, uint8_t col
     sprite4(id == SPR_BALL || id == SPR_RAMP ? data : expandSprite(data), left, top, remap, scale);
 }
 static void bats(int left, int right, int y, int length) {
-    GuideRail guides[4];
+    GuideRail guides[MAX_FLIPPER_GUIDES];
     unsigned n = flipperGuides(left, right, y, y == table.h.height - 25, guides);
-    for (unsigned i = 0; i < n; i += 2) {
-        RailPoint path[3] = {{int16_t(guides[i].x),int16_t(guides[i].y)},
-            {int16_t(guides[i].u),int16_t(guides[i].v)}, {int16_t(guides[i+1].u),int16_t(guides[i+1].v)}};
-        railRun(path,3,GOLD);
+    const unsigned segments=n/2;
+    for (unsigned first=0;first<n;first+=segments) {
+        const GuideRail *guide=guides+first;
+        RailPoint path[MAX_FLIPPER_GUIDES/2+1];
+        path[0]={int16_t(guide[0].x),int16_t(guide[0].y)};
+        for(unsigned i=0;i<segments;++i)path[i+1]={int16_t(guide[i].u),int16_t(guide[i].v)};
+        railRun(path,segments+1,GOLD,segments==2);
     }
     int py = sy(y);
     if (py < clipY - 20 || py >= clipY + clipH + 20) return;
