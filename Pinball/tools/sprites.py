@@ -101,7 +101,7 @@ def theme_assets():
     top = None
     themes = []
     for (name, skin), digits in zip(borders.items(), fonts.values()):
-        for part, (width, height) in {"top": (128, 34), "side": (11, 16), "emblem": (12, 8)}.items():
+        for part, (width, height) in {"top": (128, 34), "side": (11, 16), "emblem": (12, 8), "crown": (16, 12)}.items():
             rows = skin[part]
             if len(rows) != height or any(len(row) != width for row in rows):
                 raise ValueError(f"{name} {part}: expected {width}x{height}")
@@ -111,6 +111,7 @@ def theme_assets():
         top = roof
         side = pack(skin["side"], trim=True)
         emblem = pack(skin["emblem"], trim=True)
+        crown = pack(skin["crown"], trim=True)
         if len(digits) != 10 or any(len(d) != 9 or any(len(row) != 7 for row in d) for d in digits):
             raise ValueError(f"{name}: ten 7x9 digits required")
         inks = {INK[c] for digit in digits for row in digit for c in row}
@@ -121,12 +122,12 @@ def theme_assets():
         for digit in digits:
             rows = [sum(palette.index(INK[c]) << (x*2) for x, c in enumerate(row)) for row in digit]
             packed_digits.append(struct.pack("<9H", *rows))
-        themes.append((side, emblem, bytes(palette + [15]*(4-len(palette))), packed_digits))
+        themes.append((side, emblem, bytes(palette + [15]*(4-len(palette))), packed_digits, crown))
 
     # Fixed PBA1 field sizes let regenerated packs work with installed carts.
-    side_size, emblem_size = 155, 50
-    if any(len(side) > side_size or len(emblem) > emblem_size for side, emblem, _, _ in themes):
-        raise ValueError("theme side or emblem exceeds its PBA1 field")
+    side_size, emblem_size, crown_size = 155, 50, 96
+    if any(len(side) > side_size or len(emblem) > emblem_size or len(crown) > crown_size for side, emblem, _, _, crown in themes):
+        raise ValueError("theme side, emblem or crown exceeds its PBA1 field")
     header = """// Generated from board_borders.json and score_digits.json by tools/sprites.py.
 #pragma once
 #include "SpriteData.h"
@@ -141,17 +142,17 @@ def theme_assets():
 
 namespace pinball {
 struct ThemeArt {
-    uint8_t side[%d], emblem[%d], palette[4], digits[10][18];
+    uint8_t side[%d], emblem[%d], palette[4], digits[10][18], crown[%d];
 };
-""" % (side_size, emblem_size)
+""" % (side_size, emblem_size, crown_size)
 
     def array(data):
         return "{" + ",".join(map(str, data)) + "}"
 
     def initializer(theme):
-        side, emblem, palette, digits = theme
+        side, emblem, palette, digits, crown = theme
         return "    {" + ",\n     ".join((array(side), array(emblem), array(palette),
-                                          "{" + ",\n      ".join(map(array, digits)) + "}")) + "},\n"
+                                          "{" + ",\n      ".join(map(array, digits)) + "}", array(crown))) + "},\n"
 
     header += "static const uint8_t THEME_ROOF[] PB_SPRITE = " + array(top) + ";\n"
     header += "static const ThemeArt THEME_ART[] PB_SPRITE = {\n" + initializer(themes[0])
@@ -161,9 +162,11 @@ struct ThemeArt {
     # Theme N (1–8) occupies sector N-1. Each sector is self-contained, so
     # changing boards requires one data read, even on a fragmented FAT card.
     sectors = []
-    for index, (side, emblem, palette, digits) in enumerate(themes[1:], 1):
+    for index, (side, emblem, palette, digits, crown) in enumerate(themes[1:], 1):
         data = b"PBA1" + bytes([index]) + side.ljust(side_size, b"\0") + emblem.ljust(emblem_size, b"\0")
-        data += palette + b"".join(digits)
+        # The new crown occupies previously zero-filled PBA1 padding. Original
+        # side/emblem/score offsets and the one-sector-per-theme layout stay put.
+        data += palette + b"".join(digits) + crown.ljust(crown_size, b"\0")
         if len(data) > 508:
             raise ValueError("theme payload does not fit a single sector")
         data = data.ljust(508, b"\0")

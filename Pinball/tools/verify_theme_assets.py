@@ -111,6 +111,20 @@ def main():
             image(card, {**boards, PACK: pack}, fs=fs, spc=1, fragment={PACK: 8})
             assert capture(loader, card, boards) == reference, f"{fs}: themed menu and game pixels differ"
 
+        # New ornaments occupy the old PBA1 padding. A legacy pack remains
+        # readable without changing its score, central emblems or side art.
+        legacy = bytearray(pack)
+        for base in range(0,len(legacy),512):
+            legacy[base+394:base+490] = bytes(96)
+            value=2166136261
+            for byte in legacy[base:base+508]:value=((value^byte)*16777619)&0xffffffff
+            struct.pack_into('<I',legacy,base+508,value)
+        image(card,{**boards,PACK:bytes(legacy)},fs='fat16',spc=1)
+        menu,frames=capture(loader,card,boards)
+        assert menu==reference[0], "legacy theme pack must retain the same menu art and score font"
+        assert all(a[1]==b[1] for a,b in zip(frames,reference[1])), "legacy pack must preserve lower-board art"
+        assert any(a[0]!=b[0] for a,b in zip(frames,reference[1])), "legacy padding omits only the new roof ornaments"
+
         # CARNIVAL uses theme 6. A corrupt sector must leave the other seven
         # themes usable. Test the integrity check and independently the sprite
         # bounds check by giving the malformed sprite a correct checksum.

@@ -73,16 +73,19 @@ have been removed: the active mechanisms supply the decoration. All nine
 boards have their own colored felt and asymmetric layouts.
 
 Each board now has themed top and side sprites that include the rail faces:
-road markings and a car, circuitry and a robot, gantries and a shuttle, storm
-clouds and a jet, temple columns and a pyramid, gothic ironwork and a manor,
-carnival stripes and a tent, masonry and a dragon, or timber, rope and a pirate
-skull. The emblems wrap around the sloping upper rails, on the same felt as
+road markings and a car, circuitry and a robot, solar grids and a shuttle,
+lightning and a jet, geometric glyphs and a pyramid, gothic lattice and a manor,
+carnival checks and a tent, scales and a dragon, or rope knots and a pirate
+skull. The rail prints and corner trims use abstract motifs, without repeating
+the main crest. The emblems wrap around the sloping upper rails, on the same felt as
 the rest of the board.
 The side ornaments remain outside the ball paths and clear of the launcher.
 
-The large top decorations are restored in 1.4.2: each theme has a 36×24 crest
-above the roof, connected to the upper rails by shaded supports. The small
-corner emblems and side artwork remain. The camera reveals the complete
+Each theme has a large 36×24 crest above the roof, flanked by original
+ornaments: police beacons, robot machinery, satellite panels, thunderclouds,
+winged suns, bats, balloons, dragon braziers or treasure chests. These replace
+the old disconnected brackets and upright rail strips. The small corner
+emblems and side artwork remain. The camera reveals the complete
 header near the top, and Studio includes it above the editable playfield.
 All transparent areas use the board's own felt; there is no separate panel.
 
@@ -287,7 +290,9 @@ An empty or unreadable card shows its status in the picker. Insert a card
 with valid boards and press SELECT to rescan.
 
 `/PINBALL/THEMES.PBA` contains the eight additional themes' side rails, crests,
-and score digits. The console reads the selected theme when browsing or
+roof ornaments and score digits. The 16×12 ornaments occupy previously unused
+PBA1 sector padding, keeping the file at 4 KB and all older field offsets
+intact. Older packs can omit the ornaments without losing their existing art. The console reads the selected theme when browsing or
 switching boards and keeps one theme in RAM. Neon Pursuit and the shared roof
 trim are built in, so a missing, unreadable, or corrupt theme falls back to
 Neon art with the selected board's palette. Layouts and scoring still work.

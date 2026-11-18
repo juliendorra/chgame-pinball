@@ -41,6 +41,27 @@ try:
                         check(pixel(shot,46+x*3+dx,14+y*3+dy)==color,f"{spec['title']} crest pixel {x},{y}:{dx},{dy}")
                         marks+=color not in (0,2)
         check(marks>250,spec['title']+' has a large, recognizable central crest')
+        for anchor in (10,86):
+            ornaments=0
+            for y,row in enumerate(skin['crown']):
+                for x,ink in enumerate(row):
+                    color=0 if ink=='.' else colors[spec['theme']] if ink=='c' else INK[ink]
+                    for dy in range(2):
+                        for dx in range(2):
+                            check(pixel(shot,anchor+x*2+dx,15+y*2+dy)==color,f"{spec['title']} ornament pixel {anchor}:{x},{y}:{dx},{dy}")
+                            ornaments+=color not in (0,2)
+            check(ornaments>120,spec['title']+' has recognizable themed side ornaments')
+        for anchor in (0,120):
+            for y in range(4,12):
+                for x in range(4):
+                    ink=skin['side'][y][x]
+                    if ink=='.':continue
+                    color=colors[spec['theme']] if ink=='c' else INK[ink]
+                    for dy in range(2):
+                        for dx in range(2):
+                            check(pixel(shot,anchor+x*2+dx,43+(y-4)*2+dy)==color,f"{spec['title']} abstract corner trim {anchor}:{x},{y}")
+
+
         region=bytes(pixel(shot,x,y) for y in range(14,38) for x in range(46,82))
         signatures.add(hashlib.sha256(region).hexdigest())
         t.send('H');header=d.expect('OVERVIEW ');n=int(header.split()[1]);data=t.read(n);d.expect('OK')

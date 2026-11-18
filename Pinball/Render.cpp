@@ -54,6 +54,10 @@ static __attribute__((noinline)) bool readThemeArt(unsigned theme) {
         !validThemeSprite(buf + 5, sizeof cachedArt.side, 11, 16) ||
         !validThemeSprite(buf + 5 + sizeof cachedArt.side, sizeof cachedArt.emblem, 12, 8))
         return false;
+    // Crowns extend PBA1 into its old zero padding. Older packs can omit
+    // them while retaining their original side art, emblem and score font.
+    const unsigned crownAt=5+sizeof(ThemeArt)-sizeof cachedArt.crown;
+    if(buf[crownAt] && !validThemeSprite(buf+crownAt,sizeof cachedArt.crown,16,12))return false;
     for (unsigned i = 0; i < 4; ++i)
         if (buf[5 + sizeof cachedArt.side + sizeof cachedArt.emblem + i] > 15) return false;
     memcpy(&cachedArt, buf + 5, sizeof cachedArt);
@@ -721,18 +725,27 @@ static __attribute__((noinline)) void borderSkins(const ThemeArt &skin) {
     remap[8]=scoreColor();
     if(sy(34)>clipY && sy(-HEADER_HEIGHT)<clipY+clipH) {
         sprite4(THEME_ROOF,0,sy(6),remap);
-        // The large theme crest rises from the roof on joined, shaded
-        // brackets. Empty pixels expose the same felt as the playfield.
-        RailPoint left[]={{23,8},{29,-5},{44,-5}},right[]={{84,-5},{92,-5},{98,8}};
-        railRun(left,3,scoreColor());railRun(right,3,scoreColor());
-        sprite4(side,20,sy(-12),remap);
-        sprite4(side,96,sy(-12),remap);
+        // The central crest is framed by authored theme ornaments, not
+        // decorative hardware that could be mistaken for playable rails.
+        if(skin.crown[0]) {
+            sprite4(skin.crown,10,sy(-21),remap,512);
+            sprite4(skin.crown,86,sy(-21),remap,512);
+        }
         sprite4(skin.emblem,46,sy(-22),remap,768);
-        // Fill the felt cheeks outside the sloping roof rails. At 16x11
-        // pixels the skull, ghost, rocket, etc. remain legible on the LCD
-        // and in Studio's full-table view; transparent edges follow the rail.
-        sprite4(skin.emblem,0,sy(7),remap,352);
-        sprite4(skin.emblem,112,sy(7),remap,352);
+        // Continue the abstract rail print onto the two upper cheeks.
+        // Crop away the upright hardware profile so these remain decoration.
+        int y=sy(7);
+        for(unsigned corner=0;corner<2;++corner) {
+            int x=corner*120;
+            int left=x>clipX?x:clipX,top=y>clipY?y:clipY;
+            int right=x+8<clipX+clipW?x+8:clipX+clipW;
+            int bottom=y+16<clipY+clipH?y+16:clipY+clipH;
+            if(right>left && bottom>top) {
+                gfx_setClip(left,top,right-left,bottom-top);
+                sprite4(side,x,y-8,remap,512);
+            }
+        }
+        gfx_setClip(clipX,clipY,clipW,clipH);
     }
     // Tile only visible world rows. Both the printed face and its shadow
     // remain registered to the actual cabinet rails at x=6 and x=124.
