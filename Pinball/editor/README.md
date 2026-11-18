@@ -139,7 +139,7 @@ are plugged in and Studio cannot identify the last one, use **Connect CHGame**
 to choose. **Disconnect CHGame** turns auto-reconnect off and releases USB.
 An automatic connection leaves the current games running. Use **Resync** to
 start a new shared Console Play session, or keep playing separately. Use
-**Check SD** or **Save to SD now** when you're ready for Studio to read the card
+**Check for SD changes** or **Save to SD now** when you're ready for Studio to read the card
 and verify saved versions.
 Choose CHGame in the browser's device chooser. Use HTTPS or localhost;
 other browsers can still play and edit without a device connection.
@@ -164,10 +164,16 @@ the player's controls. It writes when the tester pauses or the game has no balls
 left. The save panel says **Auto-save queued · pause console to save**; browser
 drafts keep saving and RAM live edits continue in both console-play and separate
 web-play modes. Connecting or selecting a board alone never overwrites a layout.
-**Save to SD now** and **All boards → Save all pending** explicitly save
+**Save to SD now** and **Board menu → Save all** explicitly save
 immediately and may briefly pause a running game.
-The previous SD version is protected as `<filename>.PBK` before the first
-overwrite. **Revert…** restores that checkpoint; later auto-saves retain it.
+Saving verifies the new board data before publishing the SD file and keeps
+external-change checks. It no longer creates or uses `.PBK` revert points;
+legacy backup files are left untouched. Use Export/Import to keep versions,
+and Undo for edits within the current session. **Revert to built-in board**
+restores the bundled default for a shipped board; it is hidden for custom boards.
+**Check for SD changes** optionally rereads saved boards after outside edits or
+a failed read. Connection checks automatically; the first save after idle USB
+reconnection checks when needed without interrupting play on reconnect.
 Different SD versions or changed cards require review rather than overwriting
 them silently. Existing browser drafts survive updated shipped defaults.
 

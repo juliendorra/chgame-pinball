@@ -139,25 +139,25 @@ before publishing the directory entry. The handheld is paused during the SD
 transaction and its previous pause state is restored afterward. No drive
 mount, serial emulation, firmware reflash or Python bridge is involved.
 
-The save panel above the board shows browser, console RAM and SD state
-separately. **Auto-save to SD** is on by default: a valid edit is saved after
-1.5 seconds without another edit. Merely opening Studio, selecting a board or
-connecting does not overwrite an SD layout. **All boards** shows pending
-drafts and failures even when another board is selected. **Save to SD now**
-and **Save all pending** remain available for manual use.
+The left save panel shows browser, console RAM and SD state separately.
+**Auto-save to SD** is off by default. When enabled, it queues valid edits and
+saves after console play pauses or ends. Connecting, selecting a board or
+opening Studio never overwrites a layout. The main board picker shows each
+board's save status and contains **Save all** and **Check for SD changes**.
+**Save to SD now** and **Save all** explicitly write pending edits immediately
+and may briefly pause console play.
 
-Before the first overwrite, the writer stores and verifies the previous board
-as `PINBALL/NAME.PBK`. Further auto-saves retain that revert point across
-restarts and reconnects. **Revert…** restores it; the current browser draft
-remains in Undo. **Set new revert point…** explicitly replaces the checkpoint.
-PBK contains normal PBT bytes but stays out of the console board picker.
+The editor no longer creates or uses SD revert points. Existing `.PBK` files
+are left untouched. Use Export/Import to keep versions and Undo for changes
+in the current session. **Revert to built-in board** restores the shipped
+layout for a bundled board; custom boards have no built-in default.
 
 Different SD versions, changed cards and filename/board-ID collisions block
 unattended overwrite. Load the SD version while retaining a separate browser
 draft, or save a copy with a new identity and filename. Invalid drafts stay in
 the browser while the previous valid geometry keeps playing. Disconnect and
 page-close warnings make pending SD changes visible. Existing browser drafts
-are preserved when shipped defaults change; **Use shipped layout…** is an
+are preserved when shipped defaults change; **Revert to built-in board** is an
 explicit, undoable replacement.
 
 The writer supports mirrored FAT16/FAT32 volumes and PINBALL folder

@@ -484,24 +484,20 @@ function renderStorage(){
  const ramMatches=state.lastRam&&JSON.stringify(state.lastRam)===JSON.stringify(board());
  $('#ramStatus').textContent=!state.device?'Console offline':state.uploading?'Sending to RAM…':ramMatches?'Console RAM up to date':$('#liveDevice').checked?'RAM update pending':'RAM updates off';
  $('#saveSd').disabled=!(current.canSave||state.device&&current.kind==='error'&&!storage.checking);$('#saveSd').textContent=current.kind==='saving'?'Saving…':current.kind==='error'?'Retry SD save':'Save to SD now';
- $('#revertSd').disabled=!state.device||!current.revert||current.kind==='saving'||current.kind==='conflict'||storage.checking||storage.needsCheck;
- $('#checkSd').disabled=!state.device||storage.checking;$('#setCheckpoint').disabled=!state.device||current.kind!=='saved';$('#resetLayout').hidden=!bases?.some(b=>b.id===board().id);
- $('#saveSummary').textContent=pending.length?pending.length+' board'+(pending.length===1?'':'s')+' not saved to SD':'All boards';
+ $('#checkSd').disabled=!state.device||storage.checking;$('#resetLayout').hidden=!bases?.some(b=>b.id===board().id);
+ $('#boardSaveSummary').textContent=pending.length?pending.length+' board'+(pending.length===1?'':'s')+' not saved to SD':'No pending edits';
  $('#saveAllSd').disabled=!state.device||!pending.length||storage.checking;
- const failures=pending.filter(r=>r.error||r.conflict);$('#saveSummary').dataset.state=failures.length?'error':'';
- const list=$('#boardSaveList');list.replaceChildren();for(const b of state.boards){const view=storage.view(b),row=document.createElement('button'),name=document.createElement('strong'),label=document.createElement('span');row.type='button';row.setAttribute('aria-label',b.title+': '+view.label);name.textContent=b.title;label.textContent=view.label;label.dataset.state=view.kind;row.append(name,label);row.onclick=()=>{$('#saveOverview').open=false;choose(b.id);};list.append(row);}
- let warning=current.detail;if(!warning&&failures.length)warning='SD save needs attention for '+failures.map(r=>r.board.title).join(', ')+'. Open All boards to review.';
+ $('#boardPending').hidden=!pending.length;$('#boardPending').textContent=pending.length?pending.length+' unsaved':'';if($('#boardPicker').open)boardPicker.position();
+ const failures=pending.filter(r=>r.error||r.conflict);$('#boardSaveSummary').dataset.state=failures.length?'error':'';
+
+ let warning=current.detail;if(!warning&&failures.length)warning='SD save needs attention for '+failures.map(r=>r.board.title).join(', ')+'. Open the board menu to review.';
  if(current.kind==='invalid')warning='This draft is kept in the browser. Fix the board limits before RAM or SD can use it.';
  if(!state.device&&pending.length)warning='Edits are in this browser only. Connect CHGame to save them to SD.';
  if(!state.browserSaved)warning='Browser storage is unavailable. Export your draft before closing this tab.';
  $('#storageWarning').hidden=!warning;$('#storageWarningText').textContent=warning||'';
  $('#useSdVersion').hidden=current.kind!=='conflict'||!storage.sdBoard(board());$('#saveCopySd').hidden=!['conflict','error'].includes(current.kind);
 }
-async function saveSd(){try{if(storage.error)await storage.check();await storage.save(board());toast('Saved to SD and read back. Revert point is protected.');}catch(e){toast(e.message);}renderStorage();}
-async function revertSd(){
- const original=copy(board());if(!confirm('Revert '+original.file+'.PBT to its protected SD version? Your current draft stays available in Undo.'))return;
- try{const restored=await storage.recover(original);if(state.id===original.id){remember();state.boards[state.boards.findIndex(b=>b.id===original.id)]=restored;state.selected=-1;refresh();edited(false);}toast('Reverted on SD. Undo can bring back your previous draft.');}catch(e){toast(e.message);}
-}
+async function saveSd(){try{if(storage.error)await storage.check();await storage.save(board());toast('Saved to SD and verified.');}catch(e){toast(e.message);}renderStorage();}
 async function useSdVersion(){
  await storage.check();const current=board(),saved=storage.sdBoard(current);if(!saved)return;
  if(!confirm('Load '+current.file+'.PBT from SD? Your browser version will be kept as a separate draft.'))return;
@@ -558,12 +554,11 @@ $('#autoSaveSd').onchange=e=>{
 autoSaveDialog.addEventListener('close',()=>{
  if(autoSaveDialog.returnValue==='enable')storage.setAuto(true);
 });
-$('#resetLayout').onclick=()=>{const base=bases.find(b=>b.id===board().id);if(!base||!confirm('Use the current shipped layout? Your draft stays in Undo. If auto-save is on and CHGame is connected, the new layout will also be saved to SD.'))return;remember();state.boards[state.boards.findIndex(b=>b.id===state.id)]=editableBoard(copy(base));state.selected=-1;refresh();edited(false);};
-$('#revertSd').onclick=revertSd;$('#checkSd').onclick=()=>storage.check();
+$('#resetLayout').onclick=()=>{const base=bases.find(b=>b.id===board().id);if(!base||!confirm('Revert to the built-in board? Your current draft stays in Undo. If auto-save is on and CHGame is connected, the new layout will also be saved to SD.'))return;remember();state.boards[state.boards.findIndex(b=>b.id===state.id)]=editableBoard(copy(base));state.selected=-1;refresh();edited(false);};
+$('#checkSd').onclick=()=>storage.check();
 $('#saveAllSd').onclick=()=>storage.saveAll();
 $('#useSdVersion').onclick=useSdVersion;
 $('#saveCopySd').onclick=()=>{const b=newIdentity(board(),[...state.boards,...(storage.inventory||[]).map(e=>({file:e.file}))]);state.boards.push(b);choose(b.id);storage.changed(b);};
-$('#setCheckpoint').onclick=async()=>{if(!confirm('Use the current SD version as the new revert point? This replaces the previous revert point.'))return;try{await storage.recover(board(),true);toast('New SD revert point set.');}catch(e){toast(e.message);}};
 window.addEventListener('beforeunload',e=>{if(storage.pending().length||[...storage.records.values()].some(r=>r.saving)||!state.browserSaved){e.preventDefault();e.returnValue='';}});
 
 $('#browserUsb').hidden=true;$('#browserUsb').onclick=connectDevice;

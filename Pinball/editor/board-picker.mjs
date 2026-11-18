@@ -13,10 +13,11 @@ export function paintEmblem(canvas,board,art){
 }
 export class BoardPicker{
  constructor(root,onChoose,onOpen){
-  this.root=root;this.trigger=root.querySelector('summary');this.menu=root.querySelector('[role=listbox]');
+  this.root=root;this.trigger=root.querySelector('summary');this.menu=root.querySelector('[role=listbox]');this.popup=root.querySelector('.board-picker-popover');
   this.onChoose=onChoose;this.onOpen=onOpen;
   root.addEventListener('toggle',()=>{this.trigger.setAttribute('aria-expanded',String(root.open));if(root.open){this.position();onOpen();}});
   root.addEventListener('keydown',event=>{
+   if(event.key!=='Escape'&&event.target.closest('.board-menu-saving')){event.stopPropagation();return;}
    const rows=[...this.menu.querySelectorAll('[role=option]')],index=rows.indexOf(document.activeElement);
    if(event.key==='Escape'&&root.open){event.preventDefault();root.open=false;this.trigger.focus();}
    else if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
@@ -36,8 +37,8 @@ export class BoardPicker{
  }
  position(){
   const r=this.trigger.getBoundingClientRect(),width=Math.min(300,innerWidth-16);
-  this.menu.style.width=width+'px';this.menu.style.left=Math.min(r.left,innerWidth-width-8)+'px';
-  this.menu.style.top=(r.bottom+6)+'px';this.menu.style.maxHeight=Math.max(80,Math.min(560,innerHeight-r.bottom-18))+'px';
+  this.popup.style.width=width+'px';this.popup.style.left=Math.min(r.left,innerWidth-width-8)+'px';
+  this.popup.style.top=(r.bottom+6)+'px';this.popup.style.maxHeight=Math.max(80,Math.min(560,innerHeight-r.bottom-18))+'px';
  }
  update(boards,id,art,stateFor){
   this.menu.replaceChildren();

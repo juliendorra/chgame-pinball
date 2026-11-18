@@ -79,9 +79,7 @@ export class BrowserDevice {
   }finally{await this.request('Q '+paused);}
  });}
  inspectStorage(){return this.withCard(card=>card.inventory());}
- async save(stem,bytes,{automatic=false,...options}={}){this.requireBoardSupport();return this.withCard(async card=>{const result=await card.saveProtected(stem,bytes,options);await this.request('L');return result;},{automatic});}
- revertSd(stem,options){return this.withCard(async card=>{const result=await card.revertProtected(stem,options);await this.request('L');return result;});}
- checkpointSd(stem,options){return this.withCard(card=>card.checkpointProtected(stem,options));}
+ async save(stem,bytes,{automatic=false,...options}={}){this.requireBoardSupport();return this.withCard(async card=>{const result=await card.saveChecked(stem,bytes,options);await this.request('L');return result;},{automatic});}
  boards(){return this.run(async()=>{const list=await this.request('L'),result=[];for(const line of list){if(!line.startsWith('LIVE BOARD '))continue;const [,index,file]=line.match(/^LIVE BOARD (\d+) (.*)$/);const reply=await this.request('G '+index);result.push({index:Number(index),file:file.trim(),data:unhex(reply.at(-1).slice(10))});}return result;});}
  keys(mask){if(this.keyBusy)return Promise.resolve();this.keyBusy=true;return this.run(()=>this.request('K '+mask)).finally(()=>this.keyBusy=false);}
  restart(seed=0){return this.run(async()=>{await this.request(seed?'R '+seed:'R');if(this.following)this.replay({type:'restart',seed});if(seed){const data=unhex((await this.request('Z')).at(-1).slice(10));if(data.length!==8||new DataView(data.buffer,data.byteOffset,4).getUint32(0,true)!==(seed>>>0))throw new Error('CHGame seed readback differs. Install Pinball 1.4.9 or newer.');}});}

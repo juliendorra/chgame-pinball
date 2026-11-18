@@ -12,14 +12,14 @@ export class BoardStorage{
  }
  record(board){
   const k=key(board);let r=this.records.get(k);
-  if(!r){r={...this.saved[k],id:board.id,file:board.file,dirty:!!this.saved[k]?.dirty};this.records.set(k,r);
-   if(this.device&&this.inventory&&!this.needsCheck&&!this.checking){const item=this.inventory.find(i=>i.file===board.file);r.volume=this.volume;r.expected=item?.data||null;r.checkpoint=item?.checkpoint||null;r.error=item?.error;
+  if(!r){const saved=this.saved[k];r={id:board.id,file:board.file,dirty:!!saved?.dirty,expected:saved?.expected,volume:saved?.volume,savedAt:saved?.savedAt};this.records.set(k,r);
+   if(this.device&&this.inventory&&!this.needsCheck&&!this.checking){const item=this.inventory.find(i=>i.file===board.file);r.volume=this.volume;r.expected=item?.data||null;r.error=item?.error;
     if(r.expected&&!matchesSd(board,r.expected))r.conflict='This SD board differs from your browser draft. Load the SD version or save a copy.';
    }
   }
   r.board=copy(board);return r;
  }
- export(){const records={};for(const [k,r] of this.records)records[k]={id:r.id,file:r.file,dirty:r.dirty,expected:r.expected,checkpoint:r.checkpoint,volume:r.volume,savedAt:r.savedAt};return {autoSaveOptIn:this.auto,records};}
+ export(){const records={};for(const [k,r] of this.records)records[k]={id:r.id,file:r.file,dirty:r.dirty,expected:r.expected,volume:r.volume,savedAt:r.savedAt};return {autoSaveOptIn:this.auto,records};}
  notify(){this.onChange();}
  select(board){this.record(board);this.notify();}
  changed(board){for(const old of this.records.values())if(old.id===board.id&&old.file!==board.file){clearTimeout(old.timer);old.dirty=false;old.obsolete=true;}
@@ -39,7 +39,7 @@ export class BoardStorage{
   else if(r.dirty){kind='pending';label=this.auto?(r.deferred?'Auto-save queued · pause console to save':'Waiting to auto-save'):'Changes not saved to SD';}
   else if(r.expected){kind='conflict';label='Different version on SD';}
   else{kind='new';label='Not on SD yet';}
-  return {kind,label,detail:r.conflict||r.error||this.error||'',revert:!!r.checkpoint?.length,savedAt:r.savedAt,canSave:!!this.device&&!this.checking&&!invalid&&!r.conflict&&!r.saving&&!this.error};
+  return {kind,label,detail:r.conflict||r.error||this.error||'',savedAt:r.savedAt,canSave:!!this.device&&!this.checking&&!invalid&&!r.conflict&&!r.saving&&!this.error};
  }
  async connect(device,{check=true}={}){this.device=device;this.epoch++;this.needsCheck=true;this.error=null;if(check)await this.check();else this.notify();}
  disconnect(){this.device=null;this.epoch++;this.checking=false;for(const r of this.records.values())clearTimeout(r.timer);this.notify();}
@@ -56,7 +56,7 @@ export class BoardStorage{
     if(!r.error&&actual&&!matchesSd(r.board,actual)&&(!r.dirty||r.expected===undefined||external||changedCard))r.conflict='This SD board differs from your browser draft. Load the SD version or save a copy.';
     if(!r.error&&r.dirty&&changedCard)r.conflict='A different SD card is connected. Review its board or save a copy.';
     if(!r.error&&r.dirty&&external&&!matchesSd(r.board,actual))r.conflict='This board changed or was removed on SD. Review it before saving.';
-    r.volume=inventory.volume;r.expected=actual;r.checkpoint=item?.checkpoint||null;
+    r.volume=inventory.volume;r.expected=actual;
     if(matchesSd(r.board,actual)){r.dirty=false;r.conflict=null;}
    }
   }catch(e){if(epoch===this.epoch)this.error=e.message;}
@@ -84,25 +84,14 @@ export class BoardStorage{
    if(epoch!==this.epoch)throw new Error('CHGame disconnected before saving.');if(r.obsolete||automatic&&!this.auto)return;
    const snapshot=copy(r.board),result=await device.save(snapshot.file,encode(snapshot),{volume:r.volume,expected:r.expected,automatic});
    r.deferred=false;
-   r.expected=result.data;r.checkpoint=result.checkpoint;r.volume=result.volume;r.savedAt=Date.now();r.dirty=!matchesSd(r.board,result.data);
-   this.inventory=this.inventory.filter(i=>i.file!==r.file).concat({file:r.file,data:result.data,checkpoint:result.checkpoint});
+   r.expected=result.data;r.volume=result.volume;r.savedAt=Date.now();r.dirty=!matchesSd(r.board,result.data);
+   this.inventory=this.inventory.filter(i=>i.file!==r.file).concat({file:r.file,data:result.data});
   }).catch(e=>{if(automatic&&e.code==='play_active'){r.deferred=true;return;}r.error=e.message;if(['conflict','card_changed'].includes(e.code))r.conflict=e.message;throw e;})
    .finally(()=>{r.saving=false;r.job=null;this.schedule(r);this.notify();});
   r.job=job;this.tail=job.catch(()=>{});return job;
  }
  async saveAll(){for(const r of this.pending()){try{await this.save(r.board);}catch{}}}
  async idle(){await this.tail;}
- async recover(board,checkpoint=false){
-  const r=this.record(board);clearTimeout(r.timer);if(r.job)await r.job;
-  if(!this.device||this.needsCheck||r.conflict||this.error)throw new Error(r.conflict||this.error||'Connect CHGame and check the SD card first.');
-  const options={volume:r.volume,expected:r.expected};r.saving=true;this.notify();
-  const device=this.device,epoch=this.epoch;
-  const task=this.tail.then(()=>{if(this.epoch!==epoch)throw new Error('CHGame disconnected.');return checkpoint?device.checkpointSd(r.file,options):device.revertSd(r.file,options);});this.tail=task.catch(()=>{});
-  try{const result=await task;r.expected=result.data;r.checkpoint=result.checkpoint;r.savedAt=Date.now();r.error=null;r.dirty=!matchesSd(r.board,result.data);
-   this.inventory=this.inventory.filter(i=>i.file!==r.file).concat({file:r.file,data:result.data,checkpoint:result.checkpoint});return editableBoard(decode(new Uint8Array(result.data),r.file));}
-  catch(e){r.error=e.message;if(['conflict','card_changed'].includes(e.code))r.conflict=e.message;throw e;}
-  finally{r.saving=false;this.schedule(r);this.notify();}
- }
  sdBoard(board){const r=this.record(board);return r.expected?editableBoard(decode(new Uint8Array(r.expected),r.file)):null;}
  acceptSd(board){const r=this.record(board);r.conflict=null;r.error=null;r.dirty=false;this.notify();}
 }

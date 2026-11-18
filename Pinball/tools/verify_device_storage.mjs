@@ -1,5 +1,5 @@
 // Production BrowserDevice + BoardStorage + FAT writer, real console sectors.
-// Owns only the absent PBAUTOT.PBT/PBK test files and removes them afterwards.
+// Owns only the absent PBAUTOT.PBT test file and removes it afterwards.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,7 +19,7 @@ createInterface({input:child.stdout}).on('line',line=>{const response=JSON.parse
 child.on('exit',code=>{for(const r of requests.values())r.reject(new Error('USB bridge stopped: '+code));requests.clear();});
 const device=new BrowserDevice();device.tail=Promise.resolve();
 device.request=command=>new Promise((resolve,reject)=>{if(command.startsWith('W '))writes++;const id=++sequence;requests.set(id,{resolve,reject});child.stdin.write(JSON.stringify({id,command})+'\n');});
-const report={result:'failed',checks:[]},owned=new Set();let storage,original,inventory,paused;
+const report={result:'failed',checks:[]},owned=new Set();let storage,original,inventory,paused,legacyBackupEntry;
 const check=label=>{report.checks.push(label);console.log('PASS: '+label);};
 const ram=async()=>unhex((await device.request('T')).at(-1).slice(10));
 const inventoryKey=items=>JSON.stringify([...items].sort((a,b)=>a.file.localeCompare(b.file)));
@@ -28,27 +28,30 @@ try{
  const hello=(await device.request('?')).at(-1);device.capabilities=new Set(hello.split(' '));report.hello=hello;
  original=await ram();paused=(await device.request('V')).at(-1).split(' ').map(Number).at(-2);
  inventory=await device.inspectStorage();assert.equal(writes,0);
- await device.withCard(async card=>{assert.equal(await card.saved('PBAUTOT'),null);assert.equal(await card.saved('PBAUTOT','PBK'),null);});
+ await device.withCard(async card=>{assert.equal(await card.saved('PBAUTOT'),null);const folder=await card.folder(false);legacyBackupEntry=folder===null?null:await card.find(folder,new TextEncoder().encode('PBAUTOT PBK'));});
  const board=editableBoard(copy(JSON.parse(fs.readFileSync(path.join(game,'boards/tables.json')))[0]));
  Object.assign(board,{file:'PBAUTOT',id:0x4155544f,title:'AUTOSAVE TEST'});
  storage=new BoardStorage({delay:100});storage.select(board);await storage.connect(device);assert.equal(writes,0);check('Connecting/selecting reads the SD without writing');
- // Ownership is claimed only after verifying that both filenames are absent.
+ // Ownership is claimed only after verifying that the PBT filename is absent.
  owned.add('PBAUTOT');storage.changed(board);
  storage.setAuto(true);
  await wait(()=>storage.view(board).kind==='saved');await storage.idle();
- const first=encode(board);assert.deepEqual(await ram(),original);check('Opted-in auto-save verifies SD without switching the active RAM board');
+ assert.deepEqual(await ram(),original);check('Opted-in auto-save verifies SD without switching the active RAM board');
  board.title='AUTOSAVE SECOND';storage.changed(board);await wait(()=>storage.view(board).kind==='saved');await storage.idle();
- await device.withCard(async card=>{assert.deepEqual(await card.saved(board.file),encode(board));assert.deepEqual(await card.saved(board.file,'PBK'),first);});
- check('Second auto-save preserves the original SD revert point');
- const restored=await storage.recover(board);storage.changed(restored);assert.deepEqual(encode(restored),first);check('Revert restores the protected PBT and cancels pending re-save');
- const beforeInvalid=writes;const invalid={...restored,height:1};storage.changed(invalid);await new Promise(resolve=>setTimeout(resolve,180));assert.equal(storage.view(invalid).kind,'invalid');assert.equal(writes,beforeInvalid);storage.changed(restored);check('Invalid drafts remain in the editor without SD writes');
+ await device.withCard(async card=>{
+  assert.deepEqual(await card.saved(board.file),encode(board));
+  const folder=await card.folder(false);assert.deepEqual(await card.find(folder,new TextEncoder().encode('PBAUTOT PBK')),legacyBackupEntry);
+ });
+ check('Repeated auto-save updates the PBT without creating or changing a legacy backup');
+ const beforeInvalid=writes;const invalid={...board,height:1};storage.changed(invalid);await new Promise(resolve=>setTimeout(resolve,180));assert.equal(storage.view(invalid).kind,'invalid');assert.equal(writes,beforeInvalid);storage.changed(board);check('Invalid drafts remain in the editor without SD writes');
  assert.deepEqual(await ram(),original);report.result='passed';
 }finally{
  storage?.disconnect();await storage?.idle();
  try{
   if(owned.size)await device.withCard(async card=>{
    const folder=await card.folder(false);if(folder===null)return;
-   for(const stem of owned)for(const ext of ['PBT','PBK']){
+   for(const stem of owned){
+    const ext='PBT';
     const entry=await card.find(folder,new TextEncoder().encode(stem.padEnd(8)+ext));if(!entry)continue;
     assert.equal(decode(await card.file(entry[2]),stem).id,0x4155544f,'Cleanup only owns its temporary board ID');
     const chain=await card.chain(card.cluster(entry[2])),deleted=entry[2].slice();deleted[0]=229;
@@ -56,7 +59,7 @@ try{
    }
   });
   if(owned.size)await device.request('L');
-  if(inventory){const after=await device.inspectStorage();assert.equal(inventoryKey(after.items),inventoryKey(inventory.items));check('Temporary test files removed; every existing board/checkpoint is unchanged');}
+  if(inventory){const after=await device.inspectStorage();assert.equal(inventoryKey(after.items),inventoryKey(inventory.items));check('Temporary test files removed; every existing board is unchanged');}
   if(original){assert.deepEqual(await ram(),original);const values=(await device.request('V')).at(-1).split(' ').map(Number);assert.equal(values.at(-2),paused);check('Console RAM board and pause state preserved');}
  }catch(error){report.result='failed';report.cleanup_error=error.message;throw error;}
  finally{report.sector_writes=writes;fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(report,null,2)+'\n');child.stdin.end();}

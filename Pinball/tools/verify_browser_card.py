@@ -16,14 +16,14 @@ with tempfile.TemporaryDirectory(dir=GAME/'out/wasm') as tmp:
     for fs in ('fat16','fat32'):
         for mbr in (False,True):
             path=Path(tmp)/'card.img'
-            files={'KEEP.DAT':b'Keep this file\x00'*93,'GAMES/KEEP.CHG':b'Other cartridge'*150,'PINBALL/ORIGINAL.PBT':encode(boards[0])}
+            files={'KEEP.DAT':b'Keep this file\x00'*93,'GAMES/KEEP.CHG':b'Other cartridge'*150,'PINBALL/ORIGINAL.PBT':encode(boards[0]),'PINBALL/SAFE.PBK':b'Legacy backup file: keep unchanged'}
             build_image(path,files,fs=fs,mbr=mbr,spc=1)
             subprocess.run([node(),str(GAME/'tools/verify_browser_card.mjs'),str(path)],check=True)
             with FatVolume(path) as reader:
                 assert reader.read_file('KEEP.DAT')==files['KEEP.DAT']
                 assert reader.read_file('GAMES/KEEP.CHG')==files['GAMES/KEEP.CHG']
-                assert reader.read_file('PINBALL/SAFE.PBT')==encode(boards[0])
-                assert reader.read_file('PINBALL/SAFE.PBK')==encode(boards[0])
+                assert reader.read_file('PINBALL/SAFE.PBT')==encode({**boards[0],'title':'Safe edit two'})
+                assert reader.read_file('PINBALL/SAFE.PBK')==files['PINBALL/SAFE.PBK']
                 assert reader.read_file('PINBALL/FAILSAFE.PBT')==encode(boards[0])
                 assert reader.read_file('PINBALL/ORIGINAL.PBT')==encode(boards[8])
                 assert reader.read_file('PINBALL/CLONE19.PBT')==encode(boards[1])
@@ -33,4 +33,4 @@ with tempfile.TemporaryDirectory(dir=GAME/'out/wasm') as tmp:
     with FatVolume(path) as reader:
         assert reader.read_file('PINBALL/NEWBOARD.PBT')==encode(boards[2])
         assert reader.read_file('KEEP.DAT')==b'preserve'
-print('Browser SD writer: FAT16/FAT32, MBR/superfloppy, directory growth, protected auto-save/revert, conflict guards, failure recovery and independent readback passed.')
+print('Browser SD writer: FAT16/FAT32, MBR/superfloppy, directory growth, PBT-only auto-save, unchanged legacy backups, conflict guards, failure recovery and independent readback passed.')

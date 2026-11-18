@@ -49,7 +49,7 @@ test('Automatic SD saves proceed when paused or out of balls and retain the prev
  try{for(const [lives,paused] of [[3,1],[0,0]]){
   const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
   d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,lives,22,100,200,0,0,0,0,0,0,256,paused,22].join(' '):'LIVE OK'];};
-  BoardCard.open=async()=>({saveProtected:async(file,bytes,options)=>{assert.equal(options.automatic,undefined);return {verified:true};}});
+  BoardCard.open=async()=>({saveChecked:async(file,bytes,options)=>{assert.equal(options.automatic,undefined);return {verified:true};}});
   assert.equal((await d.save('TEST',new Uint8Array(96),{automatic:true})).verified,true);
   assert.deepEqual(calls,['V','X','Q 1','I','L','Q '+paused]);
  }}finally{BoardCard.open=open;}
@@ -85,7 +85,7 @@ test('PBT2 boards reject an older console before RAM or SD writes',async()=>{
 test('SD saving restores pause and never switches the console RAM board',async()=>{
  const d=new BrowserDevice(),calls=[];d.tail=Promise.resolve();d.capabilities=new Set(['PBT2']);
  d.request=async command=>{calls.push(command);return [command==='V'?'LIVE STATE '+[1,0,3,22,100,200,0,0,0,0,0,0,256,0,22].join(' '):'LIVE OK'];};
- const open=BoardCard.open;BoardCard.open=async()=>({saveProtected:async()=>({verified:true})});
+ const open=BoardCard.open;BoardCard.open=async()=>({saveChecked:async()=>({verified:true})});
  try{const result=await d.save('TEST',new Uint8Array(96),{volume:'test',expected:null});assert.equal(result.verified,true);assert.deepEqual(calls,['V','X','Q 1','I','L','Q 0']);}finally{BoardCard.open=open;}
 });
 test('console mutation replies flush input history before the matching browser operation',async()=>{
@@ -106,7 +106,7 @@ test('console mutation replies flush input history before the matching browser o
  await d.upload(bytes,7);await d.pause(true);await d.place(40,100);await d.restart(999);
  assert.deepEqual(events.map(e=>e.type),['steps','board','steps','pause','steps','place','steps','restart']);
  assert.equal(events[1].revision,7);assert.equal(events[2].frame,2);assert.ok(events.every(e=>e.session===456));
- const open=BoardCard.open;BoardCard.open=async()=>({saveProtected:async()=>({verified:true})});
+ const open=BoardCard.open;BoardCard.open=async()=>({saveChecked:async()=>({verified:true})});
  try{await d.save('TEST',bytes,{});}finally{BoardCard.open=open;}
  assert.deepEqual(events.slice(-4).map(e=>e.type),['steps','pause','steps','pause']);
  assert.equal(events.at(-3).paused,1);assert.equal(events.at(-1).paused,0);
