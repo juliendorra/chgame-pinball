@@ -9,7 +9,7 @@ import {WasmEngine} from './wasm-engine.mjs';
 import {PlaySession} from './play-session.mjs';
 import {fitBoard,followScroll} from './layout.mjs';
 const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',HEADER_HEIGHT=24;
-const state={boards:[],validBoards:{},id:null,selected:-1,undo:[],redo:[],revision:0,zoom:1.5,fit:true,mask:0,pressed:new Map(),device:false,direct:null,uploading:false,lastState:null,lastFrame:null,drag:null,ready:false};
+const state={boards:[],validBoards:{},id:null,selected:-1,undo:[],redo:[],revision:0,zoom:1.5,fit:true,mask:0,pressed:new Map(),device:false,liveEdits:true,direct:null,uploading:false,lastState:null,lastFrame:null,drag:null,ready:false};
 const board=()=>state.boards.find(b=>b.id===state.id);
 let engine,play,deviceTimer,toastTimer,sprites,bases,borders;
 let storage=new BoardStorage({onChange:storageChanged});
@@ -23,7 +23,7 @@ function historyButtons(){$('#undoButton').disabled=!state.undo.length;$('#redoB
 function restore(redo=false){const source=redo?state.redo:state.undo,target=redo?state.undo:state.redo;if(!source.length)return;target.push(copy(board()));state.boards[state.boards.findIndex(b=>b.id===state.id)]=source.pop();state.selected=-1;refresh();edited(false);}
 function send(data){if(play)Promise.resolve(play.send(data)).catch(e=>toast(e.message));else engine?.send(data);}
 function edited(snapshot=true,isEdit=true){
- if(snapshot)remember();state.revision++;refreshLibrary();refreshFieldLimits();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} / 72 elements`;
+ if(snapshot)remember();state.revision++;refreshLibrary();refreshFieldLimits();$('#boardHeading').textContent=board().title;$('#elementCount').textContent=`${board().objects.length} elements · limit 72`;
  const result=validate(board());if(!result.errors.length)state.validBoards[state.id]=copy(board());persist();showValidation(result);selection();
  clearTimeout(deviceTimer);deviceTimer=undefined;
  if(isEdit)storage.changed(board());else storage.select(board());
@@ -38,7 +38,7 @@ function choose(id){releaseKeys();state.id=Number(id);state.selected=-1;state.un
 function refresh(){
  refreshLibrary();historyButtons();const b=board();$('#boardHeading').textContent=b.title;
  for(const [selector,key] of [['#titleInput','title'],['#missionInput','mission'],['#heightInput','height'],['#gravityInput','gravity'],['#fileInput','file'],['#themeSelect','theme']])$(selector).value=b[key];
- $('#elementCount').textContent=`${b.objects.length} / 72 elements`;themeStrip();inspector();refreshFieldLimits();showValidation(validate(b));resizeCanvas();selection();paintIcons();renderStorage();
+ $('#elementCount').textContent=`${b.objects.length} elements · limit 72`;themeStrip();inspector();refreshFieldLimits();showValidation(validate(b));resizeCanvas();selection();paintIcons();renderStorage();
 }
 function themeStrip(){const strip=$('#themeStrip');strip.replaceChildren();board().palette.slice(0,15).forEach(c=>{const s=document.createElement('span');s.style.background='#'+c;strip.append(s);});}
 function resizeCanvas(){const c=$('#boardCanvas'),height=Number.isInteger(board().height)&&board().height>=256&&board().height<=480?board().height:(state.validBoards[state.id]?.height||384);if(c.height!==height){c.height=height;$('#selection').setAttribute('viewBox',`0 0 128 ${height}`);}c.style.width=128*state.zoom+'px';c.style.height=height*state.zoom+'px';$('#headerCanvas').style.width=128*state.zoom+'px';$('#headerCanvas').style.height=HEADER_HEIGHT*state.zoom+'px';$('#fitButton').textContent=state.fit?'Fit':Math.round(state.zoom*100)+'%';}
@@ -254,14 +254,16 @@ function showShake(s){
  if(active){const direction=s.shake_direction<0?'←':'→',label=s.tilt>=3?'TILT · WAIT FOR DRAIN':`${direction} ${s.shake_level>=3?'DANGER':'SHAKE'} · ${s.shake_level}/3`;
   if(badge.textContent!==label)badge.textContent=label;badge.dataset.danger=String(s.shake_level>=3||s.tilt>=3);}
 }
-function engineFrame(game,bytes,draft){
+function engineFrame(game,bytes,draft,feedback){
  const visible=draft||game;
  if(visible.id!==board().id||visible.height!==canvas.height)return;
  const full=image(bytes,128,visible.height+HEADER_HEIGHT,draft?.palette);$('#headerCanvas').getContext('2d').putImageData(full,0,0);canvas.getContext('2d').putImageData(full,0,-HEADER_HEIGHT);
  if(game.id!==visible.id||game.height!==visible.height)return;
  state.lastState=game;const pause=$('#pauseButton'),pauseLabel=game.paused?'▶ Resume':'Ⅱ Pause';if(pause.textContent!==pauseLabel)pause.textContent=pauseLabel;pause.setAttribute('aria-label',game.paused?'Resume':'Pause');pause.dataset.paused=String(Boolean(game.paused));
  $('#playScore').textContent=game.score.toLocaleString();$('#playBall').textContent=game.over?'GAME OVER':`${game.lives} BALL${game.lives===1?'':'S'} · ×${game.effective_mult}`;
- const mission=$('#laneMission');mission.hidden=game.lane_groups!==7;
+ const announcement=$('#playAnnouncement');announcement.hidden=!feedback;
+ if(feedback){announcement.getContext('2d').putImageData(image(feedback.pixels,128,48),0,0);announcement.setAttribute('aria-label',feedback.label);}
+ const mission=$('#laneMission');mission.hidden=Boolean(feedback)||game.lane_groups!==7;
  if(!mission.hidden){
   const missing=[];
   for(let g=0;g<3;g++){
@@ -280,12 +282,14 @@ function engineFrame(game,bytes,draft){
 }
 function renderPlayMode(){
  const mode=play?.mode||'web',panel=$('#playStatus');panel.dataset.mode=mode;
- $('#playModeTitle').textContent=mode==='console'?'CONSOLE PLAY':mode==='starting'?'STARTING CONSOLE PLAY':mode==='error'?'CONSOLE PLAY INTERRUPTED':state.device?'WEB PLAY · SEPARATE GAMES':'WEB PLAY';
+ $('#playModeTitle').textContent=mode==='console'?'Console play':mode==='starting'?'Connecting play…':mode==='error'?'Play interrupted':'Web play';
  const lag=Math.max(0,(engine?.receivedFrame||0)-(engine?.appliedFrame||0));
- $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · browser follows'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+' Choose separate web play or Resync.'):state.device?'Independent browser and console games':'Keyboard → browser';
+ $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · mirrored here'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+' Choose an independent browser game or Resync.'):state.device?'Own ball & score · keyboard → browser':'Keyboard → browser';
+ $('#independentPlayControl').hidden=!state.device;
  $('#separatePlay').checked=!state.device||mode==='web';$('#separatePlay').disabled=!state.device||mode==='starting';
  $('#resyncPlay').hidden=!state.device||mode==='web'&&!(state.reconnected&&state.direct?.capabilities.has('TRACE'));$('#resyncPlay').disabled=mode==='starting';
- $('#liveDevice').disabled=mode==='console'||mode==='starting';if($('#liveDevice').disabled)$('#liveDevice').checked=true;
+ $('#liveDevice').disabled=!state.device||mode==='console'||mode==='starting';
+ $('#liveDevice').checked=Boolean(state.device&&(mode==='console'||mode==='starting'||state.liveEdits));
  if(play?.notice)$('#playModeDescription').textContent+=' '+play.notice;
 }
 async function connectSimulator(){
@@ -586,7 +590,7 @@ for(const [id,key,pattern] of [['titleInput','title',/^[\x20-\x7e]{1,19}$/],['mi
  input.onblur=()=>{if(board())input.value=board()[key];};
 }
 $('#themeSelect').onchange=e=>{remember();board().theme=Number(e.target.value);board().palette=copy(bases.find(b=>b.theme===board().theme).palette);themeStrip();paintIcons();edited(false);canvas.focus({preventScroll:true});};
-$('#liveDevice').onchange=()=>{if(state.device&&$('#liveDevice').checked)uploadDevice();renderStorage();};
+$('#liveDevice').onchange=()=>{state.liveEdits=$('#liveDevice').checked;if(state.device&&$('#liveDevice').checked)uploadDevice();renderStorage();};
 new ResizeObserver(()=>{if(state.fit&&board())fit();}).observe($('#boardViewport'));
 try{
  const asset=async name=>{const r=await fetch(new URL('./assets/'+name,import.meta.url));if(!r.ok)throw new Error('Missing Studio asset: '+name);return r.json();};

@@ -32,7 +32,7 @@ export class BoardStorage{
   else if(invalid){kind='invalid';label='Not saved · fix board limits';}
   else if(r.conflict){kind='conflict';label='SD version needs review';}
   else if(r.error||this.error){kind='error';label='SD save needs attention';}
-  else if(!this.device){kind=r.dirty?'pending':'offline';label=r.dirty?'Browser draft · not saved to SD':r.expected?'Last saved to SD · offline':'SD not checked · offline';}
+  else if(!this.device){kind=r.dirty?'pending':'offline';label=r.dirty?'Not saved to SD':r.expected?'Last saved to SD · offline':'SD not checked · offline';}
   else if(this.checking){kind='checking';label='Checking SD…';}
   else if(this.needsCheck){kind='unchecked';label='SD not checked';}
   else if(matchesSd(board,r.expected)){kind='saved';label='Saved to SD';}

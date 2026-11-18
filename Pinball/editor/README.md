@@ -11,10 +11,23 @@ adapted to the measured HTML viewport. Resizing updates the available area.
 Dragging parts, editing properties, pausing or temporarily scrolling by hand
 takes priority over automatic following.
 
-Connection, board retrieval and live-edit controls are in the top toolbar.
-The strip below it holds play mode, score, lane progress and play controls.
-Board selection, SD saving and parts are on the left; element and board
-properties are on the right. The center remains available for the board.
+Connection and board retrieval are in the top toolbar. The strip below it
+holds play mode, board title, undo/redo, zoom and play controls. The score,
+lane objective and game announcements sit directly above the board in the
+workspace. Messages stay centered on the board independently of the score.
+Announcements and score celebrations use the actual animated pixel renderer;
+the lane objective returns between messages. This browser-only surface does
+not alter the faithful LCD, physics, timers or random stream.
+
+Board selection, live edits, SD saving and parts are on the left; element and
+board properties are on the right. **Send edits live** controls console RAM,
+separately from saving to SD. It is disabled and unchecked while disconnected.
+The center remains available for the board.
+
+When connected, the **Independent browser game** switch gives the browser
+its own ball, score and keyboard controls while board edits can still reach
+CHGame. With the switch off, the keyboard controls CHGame and the browser
+mirrors that console game. The switch is hidden when disconnected.
 
 Selected ramps show a green **ENTRY** handle at the front lip and a violet
 **EXIT** handle. Drag the track to move the entire ramp, or a handle to move
@@ -64,14 +77,17 @@ for the pinned compiler setup and deployment to a static host.
   Export for JSON. Drafts and last-valid board data are saved in localStorage.
 
 Keyboard controls keep Flipkit's Shift flippers and Space/Enter launcher,
-with A and Right arrow assigned to CHGame's directional shakes:
+with A and Right arrow assigned to CHGame's progressive shake:
 
 | Action | Keys |
 | --- | --- |
 | Left flippers | Left Shift, Left arrow |
 | Right flippers | Right Shift, D, B |
 | Launch | Space, Enter, numpad Enter, Down; A before launch |
-| Shake left / right | A / Right arrow |
+| Shake | A or Right arrow |
+
+Each rapid three-tap series starts in a seeded random direction, then
+alternates with increasing force (1, 3, 5). A fourth tap tilts.
 
 Tap within 420 ms to build levels 1–3; level 3 matches the old maximum force,
 rumble and wobble. A fourth rapid shake tilts: scoring,

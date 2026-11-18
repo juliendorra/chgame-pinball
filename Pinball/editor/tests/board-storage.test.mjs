@@ -83,7 +83,7 @@ test('Revert restores the stable checkpoint, and a new checkpoint is explicit',a
 });
 test('Offline drafts persist as pending without claiming SD success',async()=>{
  const b=board(8),storage=new BoardStorage({delay:15});storage.record(b);b.objects[0].x++;storage.changed(b);assert.equal(storage.view(b).kind,'pending');assert.equal(storage.pending().length,1);
- const restored=new BoardStorage({saved:storage.export()});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/);storage.disconnect();restored.disconnect();
+ const restored=new BoardStorage({saved:storage.export()});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/i);storage.disconnect();restored.disconnect();
 });
 
 test('Undo or an explicit default restore matching SD clears the conflict without a write',async()=>{
@@ -107,5 +107,5 @@ test('Manual save remains available during play, and deferred drafts survive dis
  storage.setAuto(true);
  b.objects[0].x++;storage.changed(b);await tick();await storage.save(b);assert.equal(device.writes.length,1);
  b.objects[0].x++;storage.changed(b);await tick();const persisted=storage.export();storage.disconnect();
- const restored=new BoardStorage({saved:persisted});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/);restored.disconnect();
+ const restored=new BoardStorage({saved:persisted});restored.record(b);assert.equal(restored.pending().length,1);assert.match(restored.view(b).label,/not saved to SD/i);restored.disconnect();
 });
