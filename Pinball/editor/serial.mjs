@@ -27,7 +27,7 @@ export class BrowserDevice {
  async connect(port){
   this.port=port??await navigator.serial.requestPort({filters:[CHGAME_USB]});
   try{await this.port.open({baudRate:115200});await this.port.setSignals({dataTerminalReady:true});this.reader=this.port.readable.getReader();this.writer=this.port.writable.getWriter();this.buffer='';this.lines=[];this.waiters=[];this.stopped=false;this.tail=Promise.resolve();this.readLoop();await this.run(()=>this.request('?'));}
-  catch(e){await this.close();if(e.name==='NetworkError')throw new Error('CHGame USB is in use. Close other editor tabs or serial apps, then reconnect.');throw e;}return this;
+  catch(e){await this.close();if(e.name==='NetworkError')throw Object.assign(new Error('CHGame USB is in use. Close other editor tabs or serial apps, then reconnect.'),{code:'usb_busy'});throw e;}return this;
  }
  async readLoop(){
   const text=new TextDecoder();

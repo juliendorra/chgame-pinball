@@ -16,3 +16,10 @@ original CHGame tables and does not claim affiliation with those games.
 
 Publishing this source does not change the licenses of its components. No
 additional license grant for the original game is implied by this notice.
+
+Studio's vendor/organizer modules come from Julien Dorra's CHGame Menu
+Organizer at 43bf9d2848c3981495f17b61d4eda86021f50f5e, under GPL-3.0-or-later.
+Their license and provenance are included alongside the modules.
+The SD setup flow downloads that revision's checked SD helper. Its complete
+source, build instructions and component notices are available at
+https://github.com/juliendorra/chgame-menu-organizer/tree/43bf9d2848c3981495f17b61d4eda86021f50f5e/firmware

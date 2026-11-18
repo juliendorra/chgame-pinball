@@ -1,0 +1,88 @@
+{
+  "version": "1.4.21",
+  "date": "2026-11-18",
+  "device": "CHGame Rev0",
+  "firmware_sha256": "b55149793a59094719cd0cab2b9697ce4a20f2546edb15c9212692ac1f072511",
+  "firmware_bytes": 50792,
+  "browser_direct_connection": "Passed in Chrome using real Web Serial",
+  "guide_positions": [
+    {
+      "left": 20,
+      "right": 82,
+      "render_hz": 60.218100351061,
+      "physics_hz": 60.218100351061
+    },
+    {
+      "left": 30,
+      "right": 90,
+      "render_hz": 60.8676568437706,
+      "physics_hz": 60.8676568437706
+    },
+    {
+      "left": 38,
+      "right": 100,
+      "render_hz": 60.72191257506466,
+      "physics_hz": 60.72191257506466
+    }
+  ],
+  "timing": [
+    {
+      "case": "original",
+      "seconds": 3.00658585400015,
+      "render_hz": 60.201174617776594,
+      "physics_hz": 60.201174617776594,
+      "camera": 276
+    },
+    {
+      "case": "without_ramps",
+      "seconds": 3.0064693744998294,
+      "render_hz": 60.20350698902829,
+      "physics_hz": 60.20350698902829,
+      "camera": 276
+    },
+    {
+      "case": "one_visible_ramp",
+      "seconds": 3.003524728999764,
+      "render_hz": 59.929588147570776,
+      "physics_hz": 59.929588147570776,
+      "camera": 276
+    },
+    {
+      "case": "two_visible_ramps",
+      "seconds": 3.006468979499914,
+      "render_hz": 60.203514898765704,
+      "physics_hz": 60.203514898765704,
+      "camera": 276
+    },
+    {
+      "case": "empty",
+      "seconds": 3.006257812999138,
+      "render_hz": 60.20774373287322,
+      "physics_hz": 60.20774373287322,
+      "camera": 276
+    }
+  ],
+  "console_web_replay": {
+    "result": "passed",
+    "checkpoints": 9,
+    "fields_per_checkpoint": 16,
+    "pacing": {
+      "seconds": 4.902925083,
+      "drawHz": 59.35232439283837,
+      "p95GapMs": 17.77545800000007,
+      "p95QueuedTicks": 4
+    }
+  },
+  "sd_launch": {
+    "result": "passed",
+    "sd_file_write_commands": 0
+  },
+  "sd_update": {
+    "result": "passed",
+    "transport": "Production editor setup/uploader modules over real USB via a pyserial byte adapter",
+    "sd_file_write_commands": 137,
+    "protected_board_and_save_files": 47,
+    "unchanged_bytes": true,
+    "hello": "LIVE HELLO 1.4.21 PBT2 RAM SD RUBBER TRACE"
+  }
+}

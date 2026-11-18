@@ -6,6 +6,12 @@
 }
 * { box-sizing:border-box }
 [hidden] { display:none!important }
+dialog { max-width:min(560px,calc(100vw - 32px)); padding:26px; color:var(--text); background:var(--panel); border:1px solid var(--line); border-radius:12px }
+dialog::backdrop { background:#080a10bb }
+dialog h2 { font-size:23px; margin:0 0 16px }
+dialog p { line-height:1.55; margin:12px 0 }
+dialog label { display:grid; gap:8px; margin:18px 0 }
+dialog .button-row { flex-wrap:wrap; margin-top:22px }
 body { margin:0; height:100dvh; overflow:hidden; display:flex; flex-direction:column; background:var(--bg); color:var(--text) }
 button,input,select { font:inherit }
 button,select,summary { cursor:pointer }

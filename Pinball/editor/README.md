@@ -107,6 +107,16 @@ The ordinary release carries the live protocol; diagnostic hardware builds
 omit it to leave space for the larger performance/testing interface.
 
 **Connect CHGame** uses Web Serial directly in desktop Chrome or Edge.
+If Pinball is running, Studio connects directly. Otherwise it opens a temporary
+SD helper, checks the latest GitHub release through the Menu Organizer relay,
+and finds Pinball throughout the console's menu categories. A verified current
+SD cart starts automatically. An older or missing cart offers an update or
+installation, with the destination category shown before any SD writes.
+Updates preserve edited boards, recovery copies, high scores and existing
+category placement. You can also launch the installed version or cancel.
+Starting an SD game uploads its verified executable to console memory through
+the standard bootloader, then starts it and reconnects Studio.
+
 Enable **Auto-reconnect** to reopen USB after unplugging or reloading, using
 permission already granted to this site. If several approved CHGame devices
 are plugged in and Studio cannot identify the last one, use **Connect CHGame**
@@ -118,6 +128,8 @@ and verify saved versions.
 Choose CHGame in the browser's device chooser. Use HTTPS or localhost;
 other browsers can still play and edit without a device connection.
 Only one browser tab or application can own the serial port at a time.
+The local development server forwards release downloads to the same worker.
+The deployed editor downloads directly from that worker and remains static.
 
 With **Send edits live** enabled, valid edits are sent after a short debounce
 and read back from device RAM. The handheld keeps playing. Keyboard controls,

@@ -39,6 +39,7 @@ def inputs():
     files.add(ROOT/'pinball.py')
     files.add(ROOT/'save-config.json')
     files.add(GAME/'editor/.htaccess')
+    files.update(p for p in (GAME/'editor/vendor').rglob('*') if p.is_file())
     files.add(GAME/'sd/PINBALL/THEMES.PBA')
     for name in ('build_studio.py','game.py','sprites.py','boards.py','sim_build.py',
                  'verify_wasm.mjs','verify_browser_card.py','verify_browser_card.mjs',
@@ -164,6 +165,7 @@ def main():
     # Copy only deployable assets, with relative URLs (works under a subdirectory).
     for file in (GAME/'editor').iterdir():
         if file.suffix in ('.html','.css','.mjs') or file.name=='.htaccess':shutil.copy2(file,OUT/file.name)
+    shutil.copytree(GAME/'editor/vendor',OUT/'vendor')
     assets=OUT/'assets';assets.mkdir(exist_ok=True)
     (assets/'physics.json').write_text(json.dumps(physics,indent=2)+'\n')
     for src,dest in [('boards/tables.json','boards.json'),('sprites/element_sprites.json','elements.json'),('sprites/board_borders.json','borders.json')]:

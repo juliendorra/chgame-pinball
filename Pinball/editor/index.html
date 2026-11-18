@@ -31,5 +31,12 @@
  <p id="autoSaveNotice">Auto-save waits for a pause or game over. While the SD card is writing, console controls, browser replay and live updates to CHGame can briefly wait. You can keep editing the browser draft.</p>
  <form method="dialog"><button value="cancel" autofocus>Cancel</button><button class="save-primary" value="enable">Enable auto-save</button></form>
 </dialog>
+<dialog id="consoleSetupDialog" aria-labelledby="consoleSetupTitle" aria-describedby="consoleSetupDescription">
+ <h2 id="consoleSetupTitle">Connecting to Pinball</h2>
+ <p id="consoleSetupDescription">Checking the console SD card. Pinball will start if the latest release is installed.</p>
+ <p id="consoleSetupProgress" role="status"></p>
+ <label id="consoleSetupFolderLabel" hidden>SD category <select id="consoleSetupFolder"></select></label>
+ <div id="consoleSetupChoices" class="button-row"></div>
+</dialog>
 <div id="toast" role="status"></div><input type="file" id="importFile" accept=".pbt,.json" hidden><script type="module" src="app.mjs"></script>
 </body></html>

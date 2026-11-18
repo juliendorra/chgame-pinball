@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/juliendorra/chgame-menu-organizer",
+  "commit": "43bf9d2848c3981495f17b61d4eda86021f50f5e",
+  "license": "GPL-3.0-or-later",
+  "changes": [
+    "Expose the existing bootloader upload sequence for launching Pinball as well as the SD helper."
+  ]
+}

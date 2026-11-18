@@ -3,6 +3,7 @@ import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
 import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,nextBoardFilename,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
 import {BrowserDevice,authorizedCHGame} from './serial.mjs';
+import {prepareConsole} from './console-setup.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
 import {PlaySession} from './play-session.mjs';
@@ -315,6 +316,51 @@ async function deviceAction(op,args={}){
 const reconnectPreference='midnight-studio-auto-reconnect';
 const serial=navigator.serial;
 let preferredPort,connectionBusy=false,reconnectQueued=false,closingDevice;
+const consoleSetupDialog=$('#consoleSetupDialog');
+let setupChoice;
+function setupProgress(text){
+ $('#consoleSetupProgress').textContent=text;
+ $('#consoleSetupChoices').replaceChildren();
+ $('#consoleSetupFolderLabel').hidden=true;
+ if(!consoleSetupDialog.open)consoleSetupDialog.showModal();
+}
+function chooseConsoleSetup({title,description,detail,folders,choices}){
+ $('#consoleSetupTitle').textContent=title;
+ $('#consoleSetupDescription').textContent=description;
+ $('#consoleSetupProgress').textContent=detail;
+ const select=$('#consoleSetupFolder');select.replaceChildren();
+ for(const folder of folders)select.add(new Option(folder.path,folder.path));
+ $('#consoleSetupFolderLabel').hidden=!folders.length;
+ return new Promise(resolve=>{
+  setupChoice=action=>{
+   setupChoice=null;
+   $('#consoleSetupChoices').replaceChildren();
+   resolve({action,destination:select.value});
+  };
+  for(const choice of choices){
+   const button=document.createElement('button');
+   button.textContent=choice.label;button.onclick=()=>setupChoice?.(choice.value);
+   $('#consoleSetupChoices').append(button);
+  }
+ });
+}
+consoleSetupDialog.addEventListener('cancel',event=>{
+ event.preventDefault();
+ setupChoice?.('cancel');
+});
+async function reconnectPinball(port){
+ const until=performance.now()+12000;
+ while(performance.now()<until){
+  const available=await authorizedCHGame(serial,port);
+  if(available){
+   try{return await new BrowserDevice().connect(available);}catch(error){
+    if(error.code==='usb_busy')throw error;
+   }
+  }
+  await new Promise(resolve=>setTimeout(resolve,200));
+ }
+ throw new Error('Pinball did not reconnect. Check the console screen, then try Connect CHGame again.');
+}
 function updateDeviceUi(){
  const connected=state.device,auto=$('#autoReconnect').checked;
  $('#deviceBadge').textContent=connectionBusy?(connected?'CONNECTED':'CONNECTING…'):connected?'CONNECTED':auto?'WAITING FOR USB':'OFFLINE';
@@ -351,13 +397,25 @@ async function finishConnection(){
  if(reconnectQueued){reconnectQueued=false;reconnectDevice();}
 }
 async function openDevice(automatic=false){
- const device=new BrowserDevice();
+ let device=new BrowserDevice();
  if(automatic){
   const port=await authorizedCHGame(serial,preferredPort);
   if(!port||!$('#autoReconnect').checked)return;
   await device.connect(port);
   if(!$('#autoReconnect').checked){await device.close();return;}
- }else await device.connect();
+ }else{
+  const port=await serial.requestPort({filters:[{usbVendorId:0x16c0,usbProductId:0x27dd}]});
+  try{await device.connect(port);}
+  catch(error){
+   if(error.code==='usb_busy')throw error;
+   $('#consoleSetupTitle').textContent='Connecting to Pinball';
+   $('#consoleSetupDescription').textContent='Pinball is not running. Checking its SD cart uses a temporary SD reader in console memory.';
+   try{
+    const next=await prepareConsole(serial,port,{progress:setupProgress,choose:chooseConsoleSetup});
+    device=await reconnectPinball(next);
+   }finally{consoleSetupDialog.close();setupChoice=null;}
+  }
+ }
  if(device.stopped){await device.close();throw new Error('CHGame disconnected.');}
  preferredPort=device.port;
  state.direct=device;state.device=true;state.reconnected=automatic;
@@ -402,7 +460,7 @@ async function connectDevice(){
    try{await storage.idle();await play.disconnect(board(),state.revision);}
    finally{await device.close();state.direct=null;}
   }else await openDevice();
- }catch(error){toast(error.message);}
+ }catch(error){if(error.name!=='AbortError'&&error.name!=='NotFoundError')toast(error.message);}
  finally{await finishConnection();}
 }
 async function uploadDevice(){

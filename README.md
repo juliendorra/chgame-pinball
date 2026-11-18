@@ -13,15 +13,21 @@ Rubber slingshots are editable parts too: move, resize, mirror, duplicate or
 remove the existing pair, or add more while playing. Use firmware 1.4.17 or
 newer for these layouts on CHGame; older boards retain their original pair.
 
-The current development build adds console-led browser play: the editor replays the inputs
+Console-led browser play replays the inputs
 actually sampled by CHGame. Enable **Separate web play** to keep two
 independent players while sharing live board edits. Score, mission progress
 and play controls sit together above the board. Storm Riders and Dragon Keep
-use the revised layouts exported on November 10, 2026. The next packaged
-release is being held while more boards are revised.
+use the revised layouts exported on November 10, 2026.
+
+Version 1.4.21 keeps the upper flipper guides curved as their pivots move.
+The Rail parts-bin icon matches the straight rail hardware. When Pinball is
+not running, Connect CHGame checks its SD cart and can launch it or offer the
+latest release for installation, preserving edited boards and high scores.
 
 Download the console cart and matching offline editor from the
 [latest release](https://github.com/juliendorra/chgame-pinball/releases/latest).
+
+[Install the latest release with CHGame Menu Organizer](https://juliendorra.com/chgame-menu-organizer/#import=https%3A%2F%2Fgithub.com%2Fjuliendorra%2Fchgame-pinball%2Freleases%2Flatest)
 
 | Key | Action |
 | --- | --- |
