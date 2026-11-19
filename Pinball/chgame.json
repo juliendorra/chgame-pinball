@@ -1,7 +1,7 @@
 {
   "id": "midnight-pinball",
   "title": "MIDNIGHT PINBALL",
-  "version": "1.4.21",
+  "version": "1.4.22",
   "author": "Julien Dorra",
   "sourceUrl": "https://github.com/juliendorra/chgame-pinball",
   "description": "Original 80s arcade pinball: tall scrolling tables, upper flippers, target banks, lane combos and three-ball multiball. Load a library of PBT tables from SD without reflashing.",
@@ -19,7 +19,7 @@
     },
     {
       "control": "A",
-      "action": "Launch in shooter lane; shake left during play"
+      "action": "Launch in shooter lane; shake during play"
     },
     {
       "control": "DOWN",
@@ -27,7 +27,7 @@
     },
     {
       "control": "RIGHT",
-      "action": "Shake right; four rapid shakes tilt"
+      "action": "Shake; four rapid shakes tilt"
     },
     {
       "control": "SELECT",
