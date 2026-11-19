@@ -76,15 +76,16 @@ for the pinned compiler setup and deployment to a static host.
 - Import reads PBT or JSON. Export produces a device-ready PBT; Shift-click
   Export for JSON. Drafts and last-valid board data are saved in localStorage.
 
-Keyboard controls keep Flipkit's Shift flippers and Space/Enter launcher,
-with A and Right arrow assigned to CHGame's progressive shake:
+Keyboard controls keep Flipkit's Shift flippers. Space/Enter press CHGame's
+contextual A button: launch at the plunger, shake during play. Down stays the
+handheld's dedicated launcher button; Right stays its shake button.
 
 | Action | Keys |
 | --- | --- |
 | Left flippers | Left Shift, Left arrow |
 | Right flippers | Right Shift, D, B |
 | Launch | Space, Enter, numpad Enter, Down; A before launch |
-| Shake | A or Right arrow |
+| Shake | Space, Enter, numpad Enter, A or Right arrow |
 
 Each rapid three-tap series starts in a seeded random direction, then
 alternates with increasing force (1, 3, 5). A fourth tap tilts.

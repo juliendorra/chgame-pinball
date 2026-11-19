@@ -155,8 +155,10 @@ export function controlsForKey(event){
  const k=(event.key||'').toLowerCase(),c=event.code;
  if(c==='ShiftLeft'||k==='arrowleft')return 16;
  if(c==='ShiftRight'||k==='d'||k==='b')return 2;
- if(c==='Space'||c==='Enter'||c==='NumpadEnter'||k==='arrowdown')return 8;
- if(k==='a')return 1;
+ // Launcher shortcuts press the same contextual A button as the handheld:
+ // launch from the plunger, shake once the ball is in play.
+ if(c==='Space'||c==='Enter'||c==='NumpadEnter'||k==='a')return 1;
+ if(k==='arrowdown')return 8;
  if(k==='arrowright')return 32;
  return 0;
 }

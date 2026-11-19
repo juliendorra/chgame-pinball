@@ -8,7 +8,7 @@ for(const board of boards)test(`${board.title}: byte-identical PBT codec`,()=>{
  const bad=bytes.slice();bad[97]^=1;assert.throws(()=>decode(bad,board.file),/checksum/);
 });
 test('Keyboard controls separate flippers, contextual launch and directional shake',()=>{
- for(const [code,key,expected] of [['ShiftLeft','Shift',16],['KeyA','a',1],['ArrowLeft','ArrowLeft',16],['ShiftRight','Shift',2],['KeyD','d',2],['ArrowRight','ArrowRight',32],['Space',' ',8],['Enter','Enter',8],['NumpadEnter','Enter',8],['Tab','Tab',0],['KeyB','b',2],['ArrowDown','ArrowDown',8]])assert.equal(controlsForKey({code,key}),expected);
+ for(const [code,key,expected] of [['ShiftLeft','Shift',16],['KeyA','a',1],['ArrowLeft','ArrowLeft',16],['ShiftRight','Shift',2],['KeyD','d',2],['ArrowRight','ArrowRight',32],['Space',' ',1],['Enter','Enter',1],['NumpadEnter','Enter',1],['Tab','Tab',0],['KeyB','b',2],['ArrowDown','ArrowDown',8]])assert.equal(controlsForKey({code,key}),expected);
  assert.equal(controlsForKey({code:'KeyA',key:'a',metaKey:true}),0);
 });
 test('Clones keep their art and geometry, but have unique IDs/files/scores',()=>{const original=boards[8],clone=newIdentity(original,boards);assert.notEqual(clone.id,original.id);assert.notEqual(clone.file,original.file);assert.deepEqual(clone.objects,original.objects);clone.objects[0].x++;assert.notDeepEqual(clone.objects,original.objects);});
