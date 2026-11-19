@@ -11,7 +11,7 @@ car chases, robots, spaceflight, fighter jets, temples, haunted houses, carnival
 dragons and pirates to a 128×128 screen. Tables stand 352–432 pixels tall, with
 one or two upper flipper pairs and a scrolling camera that follows the action.
 
-![Pirate table and special-hit zoom](docs/gameplay.gif)
+![Gameplay on all nine tables in the CHGame simulator](docs/gameplay.gif)
 
 ![Nine colored board previews](docs/boards.png)
 
