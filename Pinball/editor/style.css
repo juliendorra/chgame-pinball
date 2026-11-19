@@ -51,6 +51,7 @@ i { width:5px; height:5px; background:var(--accent); border-radius:50%; display:
 .play-mode strong { font-size:12px; font-weight:650; color:var(--mode-ink) }
 .play-mode p { font-size:10px; color:var(--muted); margin:4px 0 7px; line-height:1.35; overflow-wrap:anywhere }
 .play-mode button { font-size:10px; padding:2px 5px; background:transparent; border-color:transparent }
+.play-mode .update-play { padding:6px 9px; margin:0 0 7px; background:var(--accent); color:#182016; border-color:var(--accent); font-weight:650 }
 .separate-play { color:var(--text); white-space:normal; line-height:1.35 }
 .play-status[data-mode=console] { --mode-ink:var(--accent) }
 .play-status[data-mode=error] { --mode-ink:var(--red) }

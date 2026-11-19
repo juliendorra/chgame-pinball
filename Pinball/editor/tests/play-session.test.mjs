@@ -12,6 +12,7 @@ test('console input runs require matching build, complete sequence and intact hi
  assert.equal(parseTrace(packet(5),123,5).frame,5);
  assert.throws(()=>parseTrace(packet(6,[0,2]),123,5),/lost/);
  assert.throws(()=>parseTrace(packet(0,[],0,999),123),/builds differ/);
+ assert.throws(()=>parseTrace(packet(0,[],0,999),123),{code:'build_mismatch'});
  assert.throws(()=>parseTrace(packet(0,[],1),123),/overflowed/);
  assert.throws(()=>parseTrace(packet(0,[],2),123),/left the table/);
  assert.throws(()=>parseTrace(packet(0,[0,0]),123),/Invalid/);

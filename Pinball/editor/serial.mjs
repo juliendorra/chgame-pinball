@@ -15,7 +15,7 @@ export function parseTrace(line,build,previous=0){
  const bytes=unhex(line.slice(10));
  if(bytes.length<9||(bytes.length-9)%2)throw new Error('Truncated console input history.');
  const view=new DataView(bytes.buffer,bytes.byteOffset),frame=view.getUint32(0,true);
- if(view.getUint32(4,true)!==(build>>>0))throw new Error('The console and web game builds differ. Update Pinball on CHGame to use console play.');
+ if(view.getUint32(4,true)!==(build>>>0))throw Object.assign(new Error('The console and web game builds differ. Check for a matching Pinball update.'),{code:'build_mismatch'});
  if(bytes[8]&1)throw new Error('Console input history overflowed. Restart console play to synchronize again.');
  if(bytes[8]&2)throw new Error('The console left the table. Restart console play to synchronize again.');
  const runs=[];let count=0;

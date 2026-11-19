@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {latestPinballRelease,pinballCart,prepareConsole,prepareInstall,writeInstall} from '../console-setup.mjs';
+import {latestPinballRelease,checkConsoleUpdate,pinballCart,prepareConsole,prepareInstall,writeInstall} from '../console-setup.mjs';
 import {SerialCard,ascii,crc32,view,flashApplication} from '../vendor/organizer/serial.mjs';
 import {encodeIndex,scanMenu} from '../vendor/organizer/menu.mjs';
 
@@ -50,6 +50,20 @@ test('release lookup only accepts this repository and one uploaded cart',async()
  await assert.rejects(()=>latestPinballRelease(async()=>({ok:true,json:async()=>({tag_name:'v1',assets:[
   {state:'uploaded',name:'Pinball.chgame',browser_download_url:'https://github.com/other/game/releases/download/v1/game.chgame'},
  ]})})),/unexpected/);
+});
+test('running-game update preflight distinguishes a matching release from a newer editor',async()=>{
+ const calls=[],fetcher=async(url,options)=>{
+  calls.push(url);assert.equal(options.credentials,'omit');
+  return {ok:true,text:async()=> '#pragma once\n#define PINBALL_GAME_HASH 123u\n'};
+ };
+ const latest=async()=>release;
+ assert.equal((await checkConsoleUpdate(123,{fetcher,latest})).compatible,true);
+ assert.equal((await checkConsoleUpdate(124,{fetcher,latest})).compatible,false);
+ assert.equal(calls[0],'https://raw.githubusercontent.com/juliendorra/chgame-pinball/v1.4.20/Pinball/SyncBuild.h');
+ await assert.rejects(()=>checkConsoleUpdate(123,{latest,fetcher:async()=>({ok:false})}),/has not been interrupted/);
+ for(const text of ['', '#define PINBALL_GAME_HASH 4294967296u']){
+  await assert.rejects(()=>checkConsoleUpdate(123,{latest,fetcher:async()=>({ok:true,text:async()=>text})}),/no valid replay/);
+ }
 });
 test('launch verifies the actual executable and metadata checksums',()=>{
  assert.equal(pinballCart(latestCart).image.length,32);
@@ -118,6 +132,22 @@ test('outdated SD cart offers update then launches the verified release',async()
  const result=await setup(card,'install');
  assert.equal(result.offers,1);assert.deepEqual(result.flashed,pkg.cart.image);
  assert.ok(card.writes.includes('GAMES/ARCADE/PINBALL.CHG'));
+});
+test('updating a running game opens the helper then installs and launches from SD',async()=>{
+ const card=new Card({'GAMES/ARCADE/PINBALL.CHG':cart('1.4.19')}),identify=SerialCard.identify;
+ const running={port:'running port',close:async()=>{}},calls=[];
+ SerialCard.identify=async link=>{assert.equal(link,running);return null;};
+ try{
+  const next=await prepareConsole({},running.port,{
+   latest:async()=>release,download:async()=>pkg,open:async port=>{assert.equal(port,running.port);return running;},
+   helper:async()=>Uint8Array.of(42),
+   startHelper:async(_serial,link,image)=>{assert.equal(link,running);assert.equal(image[0],42);calls.push('helper');return card;},
+   choose:async()=>({action:'install'}),
+   flash:async(_serial,link,image)=>{assert.equal(link,card.link);assert.deepEqual(image,pkg.cart.image);calls.push('launch');return 'updated port';},
+  });
+  assert.equal(next,'updated port');assert.deepEqual(calls,['helper','launch']);
+  assert.deepEqual(card.files.get('GAMES/ARCADE/PINBALL.CHG'),latestCart);
+ }finally{SerialCard.identify=identify;}
 });
 test('declining an update can launch the old SD version without writing it',async()=>{
  const old=cart('1.4.19',17),card=new Card({'GAMES/ARCADE/PINBALL.CHG':old});

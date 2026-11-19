@@ -31,7 +31,7 @@ export class PlaySession{
  }
  async start(board,revision){
   const device=this.device;if(!device)return;
-  const epoch=++this.epoch;this.cancel(this.timer);this.mode='starting';this.error=null;this.notice='';
+  const epoch=++this.epoch;this.cancel(this.timer);this.mode='starting';this.error=null;this.errorCode=null;this.notice='';
   this.session=Math.max(2,this.seed()>>>0);this.engine.setFollowing(true);this.changed();
   try{
    await device.beginFollow(encode(board),this.session,this.engine.build,revision);
@@ -46,9 +46,9 @@ export class PlaySession{
    catch(error){if(epoch===this.epoch)this.failed(error);}
   },TRACE_POLL_MS);
  }
- failed(error){this.mode='error';this.error=error.message;this.cancel(this.timer);this.engine.setFollowing(true);this.device?.endFollow().catch(()=>{});this.changed();this.onError(error);}
+ failed(error){this.mode='error';this.error=error.message;this.errorCode=error.code;this.cancel(this.timer);this.engine.setFollowing(true);this.device?.endFollow().catch(()=>{});this.changed();this.onError(error);}
  async separate(board,revision){
-  ++this.epoch;this.cancel(this.timer);this.mode='web';this.error=null;this.notice='';
+  ++this.epoch;this.cancel(this.timer);this.mode='web';this.error=null;this.errorCode=null;this.notice='';
   this.engine.setFollowing(false);if(board)this.engine.send({type:'board',board,revision});this.changed();
   if(this.device)await this.device.endFollow();
  }

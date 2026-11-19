@@ -134,6 +134,16 @@ category placement. You can also launch the installed version or cancel.
 Starting an SD game uploads its verified executable to console memory through
 the standard bootloader, then starts it and reconnects Studio.
 
+**Update Pinball…** in the connection toolbar also works while Pinball is
+running. A replay-build mismatch shows **Update CHGame…** in the play alert
+instead of suggesting a Resync that cannot resolve it. Studio checks the
+release's generated replay fingerprint before interrupting the console. If
+the latest cart differs from this editor, it explains that installing it will
+not enable Console Play; independent browser play and live editing remain
+available. Continuing downloads and validates the package, releases the
+editor's USB connection, then reuses the SD update and verified launch flow.
+The current console game restarts; browser drafts remain in place.
+
 Enable **Auto-reconnect** to reopen USB after unplugging or reloading, using
 permission already granted to this site. If several approved CHGame devices
 are plugged in and Studio cannot identify the last one, use **Connect CHGame**

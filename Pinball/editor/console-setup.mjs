@@ -23,7 +23,21 @@ export async function latestPinballRelease(fetcher=fetch){
     !url.pathname.startsWith('/'+REPOSITORY+'/releases/download/')||!url.pathname.endsWith('.chgame')){
   throw new Error('GitHub returned an unexpected Pinball download URL.');
  }
- return {version:release.tag_name.replace(/^v/,''),url};
+ return {version:release.tag_name.replace(/^v/,''),tag:release.tag_name,url};
+}
+
+// Check compatibility before releasing a running game or installing the SD
+// helper. A newer Studio can legitimately be ahead of the latest cart release.
+export async function checkConsoleUpdate(build,{fetcher=fetch,latest=latestPinballRelease}={}){
+ const release=await latest(fetcher);
+ const tag=encodeURIComponent(release.tag||'v'+release.version);
+ const response=await fetcher('https://raw.githubusercontent.com/'+REPOSITORY+'/'+tag+'/Pinball/SyncBuild.h',{
+  credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(10000),
+ });
+ if(!response.ok)throw new Error('Could not verify the latest release engine. CHGame has not been interrupted.');
+ const match=(await response.text()).match(/^#define PINBALL_GAME_HASH (\d+)u\s*$/m);
+ if(!match||Number(match[1])>0xffffffff)throw new Error('The latest release has no valid replay engine fingerprint.');
+ return {release,compatible:Number(match[1])===(build>>>0)};
 }
 
 export function pinballCart(bytes){

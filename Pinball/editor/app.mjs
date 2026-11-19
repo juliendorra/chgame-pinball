@@ -3,7 +3,7 @@ import {BoardPicker} from './board-picker.mjs';
 import {DeviceKeyStream} from './key-stream.mjs';
 import {CATALOG,THEMES,copy,createPart,validate,encode,decode,newIdentity,nextBoardFilename,controlsForKey,pick,handles,rampPoint,editableBoard,rubberOutline,boardNumberLimits,elementLimits,validElement} from './model.mjs';
 import {BrowserDevice,authorizedCHGame} from './serial.mjs';
-import {prepareConsole} from './console-setup.mjs';
+import {prepareConsole,checkConsoleUpdate,releasePackage} from './console-setup.mjs';
 import {drawPartPreview} from './part-drag.mjs';
 import {WasmEngine} from './wasm-engine.mjs';
 import {PlaySession} from './play-session.mjs';
@@ -282,12 +282,14 @@ function engineFrame(game,bytes,draft,feedback){
 }
 function renderPlayMode(){
  const mode=play?.mode||'web',panel=$('#playStatus');panel.dataset.mode=mode;
+ const needsUpdate=play?.errorCode==='build_mismatch'||state.device&&!state.direct?.capabilities.has('TRACE');
  $('#playModeTitle').textContent=mode==='console'?'Console play':mode==='starting'?'Connecting play…':mode==='error'?'Play interrupted':'Web play';
  const lag=Math.max(0,(engine?.receivedFrame||0)-(engine?.appliedFrame||0));
- $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · mirrored here'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+' Choose an independent browser game or Resync.'):state.device?'Own ball & score · keyboard → browser':'Keyboard → browser';
+ $('#playModeDescription').textContent=mode==='console'?'Keyboard → CHGame · mirrored here'+(lag>12?' · catching up':''):mode==='starting'?'Release console buttons':mode==='error'?(play.error+(needsUpdate?' You can keep playing independently in the browser.':' Choose an independent browser game or Resync.')):state.device?'Own ball & score · keyboard → browser':'Keyboard → browser';
  $('#independentPlayControl').hidden=!state.device;
  $('#separatePlay').checked=!state.device||mode==='web';$('#separatePlay').disabled=!state.device||mode==='starting';
- $('#resyncPlay').hidden=!state.device||mode==='web'&&!(state.reconnected&&state.direct?.capabilities.has('TRACE'));$('#resyncPlay').disabled=mode==='starting';
+ $('#resyncPlay').hidden=!state.device||needsUpdate||mode==='web'&&!(state.reconnected&&state.direct?.capabilities.has('TRACE'));$('#resyncPlay').disabled=mode==='starting'||connectionBusy;
+ $('#updatePlay').hidden=!state.device||!needsUpdate;$('#updatePlay').disabled=connectionBusy;
  $('#liveDevice').disabled=!state.device||mode==='console'||mode==='starting';
  $('#liveDevice').checked=Boolean(state.device&&(mode==='console'||mode==='starting'||state.liveEdits));
  if(play?.notice)$('#playModeDescription').textContent+=' '+play.notice;
@@ -372,6 +374,7 @@ function updateDeviceUi(){
  $('#connectButton').disabled=connectionBusy||!state.ready;
  $('#connectButton').firstChild.textContent=connected?'Disconnect CHGame ':'Connect CHGame ';
  $('#readBoards').disabled=!connected;
+ $('#updateConsole').hidden=!connected;$('#updateConsole').disabled=connectionBusy;
  $('#deviceStatus').textContent=connected?'Live edits change console RAM.':auto?'Waiting for a previously approved CHGame.':'Connect CHGame to access console boards.';
  renderStorage();renderPlayMode();
 }
@@ -420,6 +423,9 @@ async function openDevice(automatic=false){
    }finally{consoleSetupDialog.close();setupChoice=null;}
   }
  }
+ await acceptDevice(device,automatic);
+}
+async function acceptDevice(device,automatic=false){
  if(device.stopped){await device.close();throw new Error('CHGame disconnected.');}
  preferredPort=device.port;
  state.direct=device;state.device=true;state.reconnected=automatic;
@@ -466,6 +472,38 @@ async function connectDevice(){
   }else await openDevice();
  }catch(error){if(error.name!=='AbortError'&&error.name!=='NotFoundError')toast(error.message);}
  finally{await finishConnection();}
+}
+async function updateConsole(){
+ if(connectionBusy||!state.device)return;
+ const device=state.direct,port=device.port;
+ connectionBusy=true;updateDeviceUi();
+ try{
+  $('#consoleSetupTitle').textContent='Update Pinball on CHGame';
+  $('#consoleSetupDescription').textContent='Checking the latest release while your console keeps running.';
+  setupProgress('Checking release and replay compatibility…');
+  const {release,compatible}=await checkConsoleUpdate(engine.build);
+  const answer=await chooseConsoleSetup({
+   title:compatible?'Update Pinball on CHGame?':'No matching console release yet',
+   description:compatible?'Pinball '+release.version+' matches this editor.':
+    'Latest release '+release.version+' does not match this editor. Installing it will not enable Console Play. Use an independent browser game until a matching release is published.',
+   detail:'Continuing stops the current console game to check its SD cart, update and relaunch. Existing boards and high scores are kept; browser drafts stay here.',
+   folders:[],choices:[{value:'update',label:compatible?'Continue to update':'Install latest release anyway'},{value:'cancel',label:'Cancel'}],
+  });
+  if(answer.action!=='update')return;
+  setupProgress('Downloading and verifying Pinball '+release.version+'…');
+  const pkg=await releasePackage(release);
+  if(state.direct!==device||device.stopped)throw new Error('CHGame disconnected. Reconnect before updating.');
+  releaseKeys();device.onDisconnect=null;
+  releaseDevice();
+  await storage.idle();await play.disconnect(board(),state.revision);
+  await device.close();state.direct=null;
+  const next=await prepareConsole(serial,port,{
+   progress:setupProgress,choose:chooseConsoleSetup,latest:async()=>release,download:async()=>pkg,
+  });
+  await acceptDevice(await reconnectPinball(next));
+  toast(compatible?'Pinball updated and reconnected.':'Latest release installed. Use an independent browser game with this editor.');
+ }catch(error){if(error.name!=='AbortError')toast(error.message);}
+ finally{consoleSetupDialog.close();setupChoice=null;await finishConnection();}
 }
 async function uploadDevice(){
  if(!state.device||validate(board()).errors.length)return;
@@ -540,6 +578,7 @@ $('#restartButton').onclick=e=>{const seed=e.shiftKey?state.lastState?.seed:0;se
 $('#separatePlay').onchange=async e=>{releaseKeys();state.separatePlay=e.target.checked;persist();try{if(state.separatePlay)await play.separate(copy(state.validBoards[state.id]||board()),state.revision);else await play.start(copy(state.validBoards[state.id]||board()),state.revision);}catch(error){toast(error.message);}renderPlayMode();};
 $('#resyncPlay').onclick=async()=>{releaseKeys();await play.start(copy(state.validBoards[state.id]||board()),state.revision);};
 $('#connectButton').onclick=connectDevice;$('#readBoards').onclick=retrieve;$('#saveSd').onclick=saveSd;
+$('#updateConsole').onclick=updateConsole;$('#updatePlay').onclick=updateConsole;
 $('#autoReconnect').onchange=e=>{
  setAutoReconnect(e.target.checked);
  if(e.target.checked)reconnectDevice();

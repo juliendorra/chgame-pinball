@@ -9,6 +9,7 @@
   <span id="deviceBadge" class="device-badge" role="status">OFFLINE</span>
   <label class="toggle" id="reconnectControl" hidden title="Reconnect to a previously approved CHGame. Resync starts a new console play session."><input type="checkbox" id="autoReconnect"><span>Auto-reconnect</span></label>
   <button id="readBoards" disabled title="Import boards from CHGame into this browser. Existing drafts are kept.">↑ Get boards from console</button>
+  <button id="updateConsole" class="quiet" hidden title="Check and install the latest Pinball release, even while the game is running">Update Pinball…</button>
   <span id="deviceStatus" class="sr-only"></span><button id="browserUsb" hidden>Connect with browser USB</button>
  </div>
  <div class="file-actions"><button id="importButton" class="quiet">Import</button><button id="exportButton" class="quiet">Export .PBT</button></div>
@@ -17,6 +18,7 @@
  <div class="play-mode">
   <div class="play-mode-heading"><strong id="playModeTitle" role="status">Web play</strong><button id="resyncPlay" hidden title="Restart the console and browser together">↻ Resync</button></div>
   <p id="playModeDescription">Keyboard → browser</p>
+  <button id="updatePlay" class="update-play" hidden>Update CHGame…</button>
   <label id="independentPlayControl" class="separate-play play-switch" hidden title="Give the browser its own ball and score. Keyboard controls stay here; live board edits can still go to CHGame."><input type="checkbox" id="separatePlay" role="switch" checked disabled><span>Independent browser game</span></label>
  </div>
  <div class="stagebar"><div><h1 id="boardHeading"></h1><span id="syncStatus" role="status">Starting game…</span><span id="shakeFeedback" class="shake-feedback" hidden></span></div><div class="stage-tools"><button id="undoButton" class="icon" title="Undo (⌘Z)" aria-label="Undo">↶</button><button id="redoButton" class="icon" title="Redo (⇧⌘Z)" aria-label="Redo">↷</button><div class="tool-separator"></div><button id="zoomOut" class="icon" aria-label="Zoom out">−</button><button id="fitButton" class="zoom-label" title="Fit board">Fit</button><button id="zoomIn" class="icon" aria-label="Zoom in">＋</button></div></div>
